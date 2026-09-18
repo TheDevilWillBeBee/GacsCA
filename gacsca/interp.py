@@ -113,7 +113,7 @@ def compile_iphase(C: Compiler, ctx: InterpCtx, al, F1N):
         p0 = ctx.pos(T[tname], 0)
         C.bitop("HOLD", lambda f, x, _: 0 if f else x, F1T, "HOLD", rng=(p0, p0 + R), advance=False)
     C.t += 1
-    C.bitop("HOLD", lambda f, a, x: 0 if (f & a) else x, F1T, ADDRCH, "HOLD", rng=trng)
+    C.bitop("HOLD", lambda f, eq, x: 0 if (f & (1 - eq)) else x, F1T, ADDRCH, "HOLD", rng=trng)   # ADDRCH = [address unchanged]
     al.put(ADDRCH, F1T)
     # level-1 workspace flags (writer cells at the WF1/WF2 positions use WFB latched INFO bits)
     C.emit("IWF", rng=(L.frange("WF1")[0], L.frange("WF2")[0] + 1)); C.t += 1

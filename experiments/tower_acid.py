@@ -59,9 +59,12 @@ def compare(dec, S1):
     return bad
 
 
-def run(age1_start, nper, tag):
+def run(age1_start, nper, tag, signal=False):
     rng = np.random.default_rng(0)
     S1 = level1_initial(rng, age1_start)
+    if signal:      # as if the level-1 signalling step had written F1* = F2* = 1 (addresses Q1-3 and 3)
+        prim = repair(S1["trk"]); prim[0, Q1 - 3::Q1, T["INFO"]] = 1; prim[0, 3::Q1, T["INFO"]] = 1
+        S1["trk"] = redistribute(prim, T.R)
     S0 = eng0.initial(1, info_bits=encode_level1_into_level0(S1)[None, :])
     S0["simage"][:] = age1_start; S0["simaddr"][:] = (np.arange(p0.L) // Q0) % Q1
     st = g0.to_gpu(S0)
@@ -86,4 +89,5 @@ if __name__ == "__main__":
                       (s1.compute_end - 1150, "registers-a"), (s1.compute_end - 600, "registers-b"), (s1.compute_end - 300, "registers-c"), (s1.trickle[0] - 2, "trickle"),
                       (s1.update_age - 2, "update")]:
         ok &= run(age1, 4, tag)
+    ok &= run(s1.trickle[0] - 2, 8, "trickle-signalled", signal=True)
     print("ALL OK" if ok else "MISMATCH")

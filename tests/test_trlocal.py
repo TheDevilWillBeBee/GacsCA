@@ -20,10 +20,14 @@ def random_neigh(rng, Q, U, n=13):
             for k in range(n):
                 if rng.random() < 0.4: st[k]["f1"] = 1
                 if rng.random() < 0.3: st[k]["f2"] = 1
+        if rng.random() < 0.6:
+            for k in range(n):
+                st[k]["wf1"] = int(rng.random() < 0.4); st[k]["wf2"] = int(rng.random() < 0.4)
         if rng.random() < 0.3:     # ages near a multiple of 16 to exercise Flag2 (iii)
             for k in range(n): st[k]["age"] = (st[k]["age"] // 16) * 16 - (k % 3)
         return st
-    return [dict(addr=int(rng.integers(0, Q)), age=int(rng.integers(0, U)), f1=int(rng.integers(0, 2)), f2=int(rng.integers(0, 2))) for _ in range(n)]
+    return [dict(addr=int(rng.integers(0, Q)), age=int(rng.integers(0, U)), f1=int(rng.integers(0, 2)), f2=int(rng.integers(0, 2)),
+                 wf1=int(rng.integers(0, 2)), wf2=int(rng.integers(0, 2))) for _ in range(n)]
 
 
 @pytest.mark.parametrize("variant,D", [(Variant.gray(), 3), (Variant.masumori(), 1)])
@@ -37,7 +41,7 @@ def test_trlocal_matches_spec(variant, D):
     print("trlocal ops:", len(C.prog.ops), "steps:", n - 100, "peak temps:", tl.al.peak)
     eng = Engine(p, T, L, C.prog, wipe_rules=False)
     rng = np.random.default_rng(5)
-    B = 24
+    B = 40
     S = eng.initial(B)
     S["age"][:] = 100
     neighs = []
@@ -47,7 +51,7 @@ def test_trlocal_matches_spec(variant, D):
         neighs.append(st)
         for j in range(-6, 7):
             s = st[6 + j]
-            bits = L.encode(s["addr"], s["age"], s["f1"], s["f2"], None)
+            bits = L.encode(s["addr"], s["age"], s["f1"], s["f2"], None, s.get("wf1", 0), s.get("wf2", 0))
             prim[b, L.b0:L.b0 + L.K, T.arg(j)] = bits
     S["trk"] = redistribute(prim, T.R)
     for _ in range(n - 100):
@@ -56,6 +60,7 @@ def test_trlocal_matches_spec(variant, D):
     for b in range(B):
         got = L.decode(H[b])
         st = neighs[b]
-        cfg = spec.Cfg([s["addr"] for s in st], [s["age"] for s in st], [s["f1"] for s in st], [s["f2"] for s in st])
+        cfg = spec.Cfg([s["addr"] for s in st], [s["age"] for s in st], [s["f1"] for s in st], [s["f2"] for s in st],
+                       [s.get("wf1", 0) for s in st], [s.get("wf2", 0) for s in st])
         ADDR, AGE, F1, F2, info = spec.step_cell(cfg, 6, Q, U, variant)
         assert (got["ADDR"], got["AGE"], got["F1"], got["F2"]) == (ADDR, AGE % (1 << L.wu), F1, F2), (b, got, (ADDR, AGE, F1, F2), info, st)

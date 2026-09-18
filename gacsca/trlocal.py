@@ -156,7 +156,18 @@ class TrLocal:
         for i in range(1, 6):
             C.bitop(t, lambda r, f, _: r & f, inR[i], A(i), rng=one)
             self.count_add(cnta, t, rng=one)
-        CIII = al.get(); C.const(CIII, 0, rng=one)      # Workspace.Flag1 condition (stage 2 only)
+        # (iii): >= 3 sites in N(x)&C(x) with Workspace.Flag1 = 1 ; (iv) same with Workspace.Flag2.
+        # The WF bits of the neighbours sit at the WF1/WF2 addresses of the ARG tracks.
+        CIII, DIV = al.get(), al.get()
+        for fld, dst in (("WF1", CIII), ("WF2", DIV)):
+            aw = self.L.frange(fld)[0]; wr_ = (aw, aw + 1)
+            cw = self.count_init()
+            for i in range(1, 6):
+                C.bitop(t, lambda r, f, _: r & f, inR[i], A(i), rng=wr_); self.count_add(cw, t, rng=wr_)
+                C.bitop(t, lambda l, f, _: l & f, inL[i], A(-i), rng=wr_); self.count_add(cw, t, rng=wr_)
+            C.bitop(t, lambda e, f, _: e & f, EX, A(0), rng=wr_); self.count_add(cw, t, rng=wr_)
+            self.count_ge3(cw, dst, rng=wr_); al.put(*cw)
+            C.spread(aw, dst, FR, dst)
         F1N = al.get()
         # f1==0: INC | CII | CIII ; f1==1: !( !INC & !CIII & cnt<=1 )
         C.bitop(t, lambda i, c2, c3: i | c2 | c3, INC, CII, CIII, rng=one)          # on-value
@@ -187,7 +198,6 @@ class TrLocal:
         DI, DII = al.get(), al.get()
         C.bitop(DI, lambda ge2, _a, _b: 1 - ge2, self.count_ge2(cz), rng=two, advance=False)
         C.bitop(DII, lambda f1, ge2, _: f1 & (1 - ge2), F1N, self.count_ge2(ca), rng=two)
-        DIV = al.get(); C.const(DIV, 0, rng=two)
         F2N = al.get()
         on = t
         C.bitop(on, lambda a, b, cc: a | b | cc, DI, DII, DIII, rng=two)
