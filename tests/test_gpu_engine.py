@@ -6,10 +6,11 @@ from gacsca.workperiod import build_workperiod
 from gacsca.gpu_engine import EngineGPU
 
 
-def setup(R, D, Q=None, U=8192, ncol=3):
+def setup(R, D, Q=None, U=None, ncol=3):
     Q = Q or (256 if R == 3 else 512)
+    U = U or (8192 if R == 3 else 32768)
     p = Params(Q=Q, U=U, ncol=ncol)
-    T = Tracks(JMAX=6, wq=(Q - 1).bit_length(), wu=13, R=R)
+    T = Tracks(JMAX=6, wq=(Q - 1).bit_length(), wu=(U - 1).bit_length(), R=R)
     L = Layout(Q, U, T)
     prog, sched = build_workperiod(p, T, L, D=D)
     eng = Engine(p, T, L, prog); eng.trickle = sched.trickle

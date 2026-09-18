@@ -81,8 +81,8 @@ __device__ void apply_ops_cell(int ky, const uint32_t* V, const int* addr, int a
                 int d = param, z = ky - d;
                 int val = param2;
                 if (z >= 0 && z <= 10) {
-                    int az = addr[z];
-                    if (az == ay - d && az >= lo && az < hi) val = gb(V + z * NWMAX, src);
+                    int az = ay - d;
+                    if (az >= lo && az < hi) val = gb(V + z * NWMAX, src);
                 }
                 sb(P, dst, val);
             } break;
@@ -97,8 +97,8 @@ __device__ void apply_ops_cell(int ky, const uint32_t* V, const int* addr, int a
                 if (inr) {
                     for (int k = 1; k <= E.D && !acted; k++) {
                         int z = ky - k; if (z < 0) break;
-                        int az = addr[z];
-                        if (gb(V + z * NWMAX, E.t_sig) == 1 && az == ay - k && az >= lo - 1) {
+                        int az = ay - k;
+                        if (gb(V + z * NWMAX, E.t_sig) == 1 && az >= lo - 1) {
                             acted = true;
                             int cin = gb(V + z * NWMAX, E.t_acc), out = 0;
                             for (int m = 1; m < k; m++) {
@@ -124,8 +124,8 @@ __device__ void apply_ops_cell(int ky, const uint32_t* V, const int* addr, int a
                 for (int k = 1; k <= E.D; k++) {
                     int sh = dir < 0 ? k : -k; int z = ky + sh;
                     if (z < 0 || z > 10) continue;
-                    int az = addr[z];
-                    if (gb(V + z * NWMAX, E.t_sig) == 1 && az == ay + sh && az >= lo && az < hi) {
+                    int az = ay + sh;
+                    if (gb(V + z * NWMAX, E.t_sig) == 1 && az >= lo && az < hi) {
                         sb(P, dst, gb(V + z * NWMAX, dst)); sb(P, E.t_sig, 1); break;
                     }
                 }

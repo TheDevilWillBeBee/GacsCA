@@ -66,8 +66,7 @@ def apply_ops(V, addr, age, prog: Program, T: Tracks, mask_age=None):
             elif k == "SHIFT":
                 d = op.param
                 src_val = roll(V[:, :, op.src], -d)              # value at x-d
-                src_addr = roll(addr, -d)                        # its address (as the source cell sees it)
-                inside = _in_range(src_addr, op.lo, op.hi) & (src_addr == addr - d)
+                inside = _in_range(addr - d, op.lo, op.hi)       # own-address based (robust to a corrupted neighbour)
                 val = np.where(inside, src_val, op.param2).astype(np.uint8)
                 P[:, :, op.dst][m] = val[m]
             elif k == "RSHIFT":
@@ -86,8 +85,8 @@ def apply_ops(V, addr, age, prog: Program, T: Tracks, mask_age=None):
                 dirn = -1 if op.param == 0 else op.param   # -1: wave moves left (reads right)
                 for kk in range(1, D + 1):
                     sh = kk if dirn < 0 else -kk
-                    s_k = roll(sig, sh); v_k = roll(val, sh); a_k = roll(addr, sh)
-                    cand = (s_k == 1) & (a_k == addr + sh) & (a_k < op.hi) & (a_k >= op.lo) & ~got
+                    s_k = roll(sig, sh); v_k = roll(val, sh); a_k = addr + sh
+                    cand = (s_k == 1) & (a_k < op.hi) & (a_k >= op.lo) & ~got
                     newv = np.where(cand, v_k, newv); got |= cand
                 upd = m & (sig == 0) & got
                 P[:, :, op.dst][upd] = newv[upd]
@@ -125,8 +124,7 @@ def _sweep(P, V, addr, m, am, op, T, D):
     new_sig = np.zeros_like(sig, dtype=np.int32)
     for k in range(1, D + 1):
         hold = roll(sig, -k) == 1                       # token at y-k
-        a_h = roll(addr, -k)
-        valid = hold & (a_h == addr - k) & (a_h >= lo - 1)
+        valid = hold & (addr - k >= lo - 1)
         cin = roll(acc, -k).astype(np.int32)
         for mm in range(1, k):                          # cells strictly between holder and y
             j = k - mm                                  # offset of that cell to the left of y

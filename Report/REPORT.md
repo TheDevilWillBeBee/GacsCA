@@ -9,8 +9,13 @@ fault-tolerant cellular automaton in Gray's simplified presentation, up to finit
 hierarchical self-simulation. **Status:** the level-0 automaton (Gray Sec 5.2: Address/Age/Flags
 majority repair, the part Masumori et al. implemented) is implemented three ways (literal scalar
 spec, vectorized NumPy, CUDA/nanobind), cross-tested, and characterised on the GPU. The
-self-simulation machinery is designed ([design_selfsim.md](design_selfsim.md)); implementation
-of the microprogram engine is next.
+self-simulation machinery is designed ([design_selfsim.md](design_selfsim.md)) and **stage 1 is
+implemented and verified** ([selfsim_stage1.md](selfsim_stage1.md)): colonies of 256 cells
+simulate level-1 cells (local structure) through timed mail streams, a bit-serial microprogram
+computing the level-1 transition, and trickle-down; the decoded level-1 trajectory equals the
+direct one; CUDA engine ≈2×10⁹ cell-updates/s. First hierarchy experiments: the induced level-1
+error rate scales as ≈QUε² (adjacent-pair channel), and a misaligned-colony island that level-0
+rules cannot erode is moved/eroded by trickle-down (glider dynamics, see sub-report).
 
 ## 1. Sources and how they relate
 - Gács 2001 (J. Stat. Phys. 103) — the full construction: media, block codes, amplifiers, robust
@@ -59,10 +64,19 @@ DSL into an op table) computes the simulated transition bit-serially; the same t
 interpret the simulated cell's own microstep (self-reference without an interpreter string).
 Cost model: level-2 dynamics reachable for O(10–100) steps; level 3 static only.
 
-## 5. Next concrete steps
-1. Microprogram DSL + NumPy engine; verify the Tr_local microprogram against `level0_spec`.
-2. Mail streams, gathering stages, Info/Hold, update; noiseless test: decoded level-1 trajectory
-   equals the direct level-1 trajectory (definition of a correct simulation).
-3. Trickle-down (wf1/wf2, SimBit at 3 and Q−3) and the special Mailbox/sim-structure wipe rules.
-4. Interpretation of the simulated microstep (uniform rule) → depth-2 encodings.
-5. CUDA port of the full rule; robustness experiments vs depth.
+## 5. Stage-1 results (summary; details in selfsim_stage1.md)
+- Block simulation verified (decoded == direct). Work period 8010 steps (U = 8192), K = 210 bits.
+- ε₁ ≈ c·QU·ε² (c ≲ 1): the simulation structure survives iid noise only for ε ≲ 3×10⁻⁴; the
+  level-0 local structure survives up to 0.40. The hierarchy's benefit is against organised
+  islands, which must be injected.
+- Misaligned-colony island: fixed point for level-0 rules; with trickle-down it becomes a glider
+  (erodes 3 colonies/period on the left, invades 3 on the right) until a level-2 boundary.
+
+## 6. Next concrete steps
+1. Island on a 512-colony ring (two level-2 cells): confirm the right end stops at the level-2
+   boundary and the island then erodes (running).
+2. Stage 2: interpretation of the simulated cell's own microstep (uniform rule), enabling level-1
+   cells that simulate level-2 cells; depth-2 encodings and island experiments vs depth.
+3. Gray's Flag2 right-end reversal: characterise (fires once per 16 periods) and test islands whose
+   right end is not at a level-2 boundary.
+4. Burst noise (space-time boxes) → does it create stable islands? lifetime vs depth.
