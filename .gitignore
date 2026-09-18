@@ -1,0 +1,7 @@
+papers_txt/
+__pycache__/
+*.pyc
+build/
+*.so
+.ipynb_checkpoints/
+.pytest_cache/
