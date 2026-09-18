@@ -79,3 +79,22 @@ adjacent-pair estimate 2QUε² over-predicts by ≈10× at ε ≥ 3×10⁻⁵ (m
 | 3 misaligned colonies (shift 100) | stuck forever (924 cells) | healed at period 80 |
 | 2 misaligned colonies (shift 10) | stuck forever (758 cells) | healed at period 80 |
 | 2 colonies misaligned in time (Age + 4000) and space | stuck forever | healed at period 2 (the time offset breaks the island's own gathering, so trickle-down fires everywhere in it) |
+
+## Which phase is vulnerable? (`experiments/phase_noise.py`, ε = 3×10⁻⁴, 8 trials × 5 periods, 256 colonies)
+| noise window | level-0 hits per colony-period | level-1 error rate per cell-period |
+|---|---|---|
+| whole period | 1258 | 0.147 |
+| gather 1 / 2 / 3 (2050 steps each) | 157 | 0.000 / 0.0004 / 0.0015 |
+| compute (2990 steps) | 230 | 0.012 |
+| signalling + rest (152) | 12 | 0.0001 |
+| trickle window (512) | 39 | 0.0009 |
+| idle tail (6579 steps, only the update at U−1) | 505 | 0.013 |
+
+Reading: the idle tail, where no op runs, still yields errors at 2.5×10⁻⁵ per hit — exactly the
+adjacent-pair channel: ≈0.15 same-step adjacent pairs per colony-period in that window, each
+destroying the 3-fold majority at two positions of every track (including `Hold`, which becomes
+`Info` at the update); only 20 of the 220 layout positions are monitored by this metric (Address,
+Age, Flags), giving ≈0.15·(2·20/256)·0.75 ≈ 0.018. The whole-period rate (0.147) exceeds the sum of
+the windows (0.028): damage in one phase is amplified by later phases (a corrupted `Arg`/temporary
+bit changes the computed result). Gathers are robust (majority of three). The compute phase
+tolerates ≈5×10⁻⁵ per hit. A rerun at ε = 10⁻⁵ (pairs negligible) isolates the residual single-hit channel.

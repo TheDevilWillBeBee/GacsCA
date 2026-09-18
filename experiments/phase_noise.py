@@ -26,7 +26,8 @@ windows = {"all": (0, U), "gather1": (sched.gather_starts[0], sched.gather_start
            "gather3": (sched.gather_starts[2], sched.compute_start), "compute": (sched.compute_start, sched.compute_end),
            "signal+rest": (sched.compute_end, sched.trickle[0]), "trickle": sched.trickle, "tail": (sched.trickle[1], U)}
 eps = float(sys.argv[1]) if len(sys.argv) > 1 else 3e-4
-B, nper = 8, 5
+B = int(sys.argv[2]) if len(sys.argv) > 2 else 8
+nper = int(sys.argv[3]) if len(sys.argv) > 3 else 5
 res = {}
 for name, (lo, hi) in windows.items():
     level1 = [dict(addr=i % Q, age=0, f1=0, f2=0) for i in range(ncol)]

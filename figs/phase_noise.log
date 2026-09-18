@@ -1,1 +1,8 @@
 all          window [0,16384) hits/colony-period=  1258.3: level-1 error rate 0.1472 per period [0.1724, 0.1553, 0.1729, 0.1401, 0.1206] (47s)
+gather1      window [1,2051) hits/colony-period=   157.4: level-1 error rate 0.0000 per period [0.0, 0.0, 0.0, 0.0, 0.0] (47s)
+gather2      window [2051,4101) hits/colony-period=   157.4: level-1 error rate 0.0004 per period [0.0, 0.0005, 0.0005, 0.0, 0.0005] (47s)
+gather3      window [4101,6151) hits/colony-period=   157.4: level-1 error rate 0.0015 per period [0.0024, 0.0015, 0.001, 0.001, 0.0024] (47s)
+compute      window [6151,9141) hits/colony-period=   229.6: level-1 error rate 0.0120 per period [0.0127, 0.0127, 0.0132, 0.0122, 0.0098] (47s)
+signal+rest  window [9141,9293) hits/colony-period=    11.7: level-1 error rate 0.0001 per period [0.0, 0.0, 0.0005, 0.0, 0.0] (47s)
+trickle      window [9293,9805) hits/colony-period=    39.3: level-1 error rate 0.0009 per period [0.0005, 0.0005, 0.001, 0.0005, 0.0015] (47s)
+tail         window [9805,16384) hits/colony-period=   505.3: level-1 error rate 0.0127 per period [0.0073, 0.0122, 0.0161, 0.0098, 0.0127] (47s)

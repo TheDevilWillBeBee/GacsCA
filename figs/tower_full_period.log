@@ -10,3 +10,6 @@ period 384/4096: level-1 age 384, mismatching level-1 cells 0 [], level-0 ok Tru
 period 448/4096: level-1 age 448, mismatching level-1 cells 0 [], level-0 ok True (339s)
 period 512/4096: level-1 age 512, mismatching level-1 cells 0 [], level-0 ok True (387s)
 period 576/4096: level-1 age 576, mismatching level-1 cells 0 [], level-0 ok True (622s)
+period 640/4096: level-1 age 640, mismatching level-1 cells 0 [], level-0 ok True (851s)
+period 704/4096: level-1 age 704, mismatching level-1 cells 0 [], level-0 ok True (1064s)
+period 768/4096: level-1 age 768, mismatching level-1 cells 0 [], level-0 ok True (1112s)
