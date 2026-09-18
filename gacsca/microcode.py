@@ -33,7 +33,7 @@ class Tracks:
         names += [f"ARGB{j:+d}" for j in range(-JMAX, JMAX + 1)]
         names += ["HOLD", "T0", "T1", "T2", "T3", "T4", "T5", "SIG", "ACC", "BC"]
         names += [f"BF{i}" for i in range(wq + wu)]
-        names += ["MAILL", "MAILR", "WF1", "WF2"]
+        names += ["MAILL", "MAILR"]
         self.names = names
         self.idx = {n: i for i, n in enumerate(names)}
         self.NT = len(names)
@@ -59,7 +59,7 @@ class Layout:
         self.wu = (self.U - 1).bit_length()
         self.fields: Dict[str, Tuple[int, int]] = {}
         p = 0
-        for name, w in [("ADDR", self.wq), ("AGE", self.wu), ("F1", 1), ("F2", 1)]:
+        for name, w in [("ADDR", self.wq), ("AGE", self.wu), ("F1", 1), ("F2", 1), ("WF1", 1), ("WF2", 1)]:
             self.fields[name] = (p, w); p += w
         self.track_base = p
         self.K = p + self.tracks.NT * self.tracks.R
@@ -73,10 +73,10 @@ class Layout:
         p, w = self.fields[name]
         return self.b0 + p, self.b0 + p + w
 
-    def encode(self, addr, age, f1, f2, trackbits):
+    def encode(self, addr, age, f1, f2, trackbits, wf1=0, wf2=0):
         """-> K-bit array (index i = address b0+i).  trackbits: (NT, R) array or None."""
         bits = np.zeros(self.K, np.uint8)
-        for name, val in [("ADDR", addr), ("AGE", age), ("F1", f1), ("F2", f2)]:
+        for name, val in [("ADDR", addr), ("AGE", age), ("F1", f1), ("F2", f2), ("WF1", wf1), ("WF2", wf2)]:
             p, w = self.fields[name]
             for i in range(w):
                 bits[p + i] = (int(val) >> i) & 1

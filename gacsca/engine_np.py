@@ -160,7 +160,7 @@ class Engine:
 
     def initial(self, B, info_bits=None):
         p = self.p
-        S = l0.initial(p, B)
+        S = l0.initial(p, B)          # includes wf1, wf2 arrays
         trk = np.zeros((B, p.L, self.T.NT, self.T.R), np.uint8)
         if info_bits is not None:                        # (B, L) primary Info bits
             trk[:, :, self.T["INFO"], :] = redistribute(info_bits.astype(np.uint8), self.T.R)[..., :]
@@ -170,39 +170,38 @@ class Engine:
     def step(self, S):
         p, T = self.p, self.T
         V = repair(S["trk"])
-        Sl = dict(addr=S["addr"], age=S["age"], f1=S["f1"], f2=S["f2"],
-                  wf1=V[:, :, T["WF1"]].astype(np.int8), wf2=V[:, :, T["WF2"]].astype(np.int8))
+        Sl = dict(addr=S["addr"], age=S["age"], f1=S["f1"], f2=S["f2"], wf1=S["wf1"], wf2=S["wf2"])
         N = l0.step(Sl, p, self.v)
-        info = N.pop("_info")
+        N.pop("_info")
         P = apply_ops(V, S["addr"], S["age"], self.prog, T)
+        trk = redistribute(P, T.R)
         F1 = N["f1"] == 1
         if self.wipe_rules:
-            # Gray p.33: Mailbox := 0 where computed Flag1 = 1; all simulation-structure bits := 0
-            # where computed Flag1 = 1 and computed Address != current Address.
-            P[:, :, T["MAILL"]][F1] = 0; P[:, :, T["MAILR"]][F1] = 0
+            # Gray p.33 (holder form): a cell with computed Flag1 = 1 clears every Mailbox bit it
+            # holds; if additionally its computed Address differs from its current Address it clears
+            # every simulation-structure bit it holds.
+            trk[:, :, T["MAILL"], :][F1] = 0; trk[:, :, T["MAILR"], :][F1] = 0
             wipe = F1 & (N["addr"] != S["addr"])
-            P[wipe] = 0
-        # Workspace.Flag1/2 (Gray p.41-42), using computed Address/Age and computed Info bits
-        A = N["addr"]; G = N["age"]; Q = p.Q
-        Uq = p.U
-        L = p.L
+            trk[wipe] = 0
+        # Workspace.Flag1/2 (Gray p.41-42) with computed Address/Age and the *current* (repaired)
+        # SimBit at the site with address Q-3 (resp. 3) of x's colony.
+        A = N["addr"]; G = N["age"]; Q = p.Q; L = p.L
         x = np.arange(L)[None, :]
-        site1 = (x - A + (Q - 3)) % L          # cell with address Q-3 in x's colony
+        site1 = (x - A + (Q - 3)) % L
         site2 = (x - A + 3) % L
-        infoP = P[:, :, T["INFO"]]
-        sb1 = np.take_along_axis(infoP, site1, axis=1)
-        sb2 = np.take_along_axis(infoP, site2, axis=1)
+        infoV = V[:, :, T["INFO"]]
+        sb1 = np.take_along_axis(infoV, site1, axis=1)
+        sb2 = np.take_along_axis(infoV, site2, axis=1)
         tlo, thi = self.trickle_window()
         in_win = (G >= tlo) & (G < thi)
         wf1 = (A >= Q - 5) & (A <= Q - 1) & in_win & (sb1 == 1)
         wf2 = (A >= 0) & (A <= 4) & in_win & (sb2 == 1) & (~F1)
-        P[:, :, T["WF1"]] = wf1.astype(np.uint8)
-        P[:, :, T["WF2"]] = wf2.astype(np.uint8)
-        out = dict(addr=N["addr"], age=N["age"], f1=N["f1"], f2=N["f2"], trk=redistribute(P, T.R))
+        out = dict(addr=N["addr"], age=N["age"], f1=N["f1"], f2=N["f2"],
+                   wf1=wf1.astype(np.int8), wf2=wf2.astype(np.int8), trk=trk)
         return out
 
     def trickle_window(self):
-        return getattr(self, "_trickle", (3 * self.p.U // 4, 3 * self.p.U // 4 + 2 * self.p.Q))
+        return self.trickle if getattr(self, "trickle", None) else (3 * self.p.U // 4, 3 * self.p.U // 4 + 2 * self.p.Q)
 
 
 def apply_noise(S, p, eps, rng):
@@ -216,7 +215,7 @@ def apply_noise(S, p, eps, rng):
     if n:
         for k, hi in (("addr", p.Q), ("age", p.U)):
             a = S[k].copy(); a[hit] = rng.integers(0, hi, n, dtype=a.dtype); out[k] = a
-        for k in ("f1", "f2"):
+        for k in ("f1", "f2", "wf1", "wf2"):
             a = S[k].copy(); a[hit] = rng.integers(0, 2, n).astype(a.dtype); out[k] = a
         trk = S["trk"].copy()
         trk[hit] = rng.integers(0, 2, (n,) + trk.shape[2:], dtype=np.uint8); out["trk"] = trk
