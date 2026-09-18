@@ -150,8 +150,13 @@ def apply_iop(P, V, S, m, am, op, tau, ctx: InterpCtx, T, D):
     m: mask (age & range); am: age mask; tau: age - op.t0."""
     k = op.kind
     addr, simage, simaddr = S["addr"], S["simage"], S["simaddr"]
-    n = ctx.n
+    n = ctx.n if ctx is not None else None
     B, Lt, NT = V.shape
+    if k == "REGWIN":
+        lo1, hi1 = ctx.regwin_up if ctx is not None else (0, 0)
+        val = ((simage >= lo1) & (simage < hi1)).astype(np.uint8)
+        P[:, :, op.dst][m] = val[m]
+        return
     inrng, r, t, c = _cell_geometry(ctx, addr)
     a1 = np.mod(simaddr + c, ctx.L.Qs)              # simulated address of the cell at offset c
     if k == "IINIT":
@@ -162,12 +167,6 @@ def apply_iop(P, V, S, m, am, op, tau, ctx: InterpCtx, T, D):
         return
     if k == "BUSLATCH_INT":
         _buslatch_int(P, V, S, m, op, tau, ctx, D)
-        return
-    if k == "REGWIN":
-        # dst <- [simage in the simulated level's register-load window] (per cell)
-        lo1, hi1 = ctx.regwin_up if ctx is not None else (0, 0)
-        val = ((simage >= lo1) & (simage < hi1)).astype(np.uint8)
-        P[:, :, op.dst][m] = val[m]
         return
     # level-1 active ops per distinct simage value
     for g1 in np.unique(simage[m]) if m.any() else []:

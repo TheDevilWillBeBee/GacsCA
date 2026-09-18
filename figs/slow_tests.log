@@ -1,1 +1,166 @@
-...F
+...FF                                                                                                                                             [100%]
+======================================================================= FAILURES ========================================================================
+_________________________________________________________ test_trlocal_matches_spec[variant0-3] _________________________________________________________
+
+variant = Variant(flag1_ii_in_colony=True, flag2_iii_age='computed', majority='strict', age_increment_always=True), D = 3
+
+    @pytest.mark.parametrize("variant,D", [(Variant.gray(), 3), (Variant.masumori(), 1)])
+    def test_trlocal_matches_spec(variant, D):
+        p = Params(Q=Q, U=U, ncol=2)
+        T = Tracks(JMAX=6, wq=8, wu=14, R=3)
+        L = Layout(Q, U, T)
+        C = Compiler(T, L, D=D, t=100)
+        tl = TrLocal(C, c=0, variant=variant)
+        n = tl.build()
+        print("trlocal ops:", len(C.prog.ops), "steps:", n - 100, "peak temps:", tl.al.peak)
+        eng = Engine(p, T, L, C.prog, wipe_rules=False)
+        rng = np.random.default_rng(5)
+        B = 24
+        S = eng.initial(B)
+        S["age"][:] = 100
+        neighs = []
+        prim = repair(S["trk"])
+        for b in range(B):
+            st = random_neigh(rng, Q, U)
+            neighs.append(st)
+            for j in range(-6, 7):
+                s = st[6 + j]
+                bits = L.encode(s["addr"], s["age"], s["f1"], s["f2"], None)
+                prim[b, L.b0:L.b0 + L.K, T.arg(j)] = bits
+        S["trk"] = redistribute(prim, T.R)
+        for _ in range(n - 100):
+>           S = eng.step(S)
+
+tests/test_trlocal.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+gacsca/engine_np.py:180: in step
+    P = apply_ops(V, S["addr"], S["age"], self.prog, T, S=Sx, ctx=getattr(self, "ictx", None))
+gacsca/engine_np.py:58: in apply_ops
+    _interp.apply_iop(P, V, S, m, am, op, int(a) - op.t0, ctx, T, D)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+P = array([[[0, 0, 0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 0, 0],
+        ...,
+      ...0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 0, 0]]], shape=(24, 512, 61), dtype=uint8)
+V = array([[[0, 0, 0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 0, 0],
+        ...,
+      ...0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 0, 0]]], shape=(24, 512, 61), dtype=uint8)
+S = {'addr': array([[  0,   1,   2, ..., 253, 254, 255],
+       [  0,   1,   2, ..., 253, 254, 255],
+       [  0,   1,   2..., 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0]], shape=(24, 512), dtype=int8), ...}
+m = array([[ True,  True,  True, ...,  True,  True,  True],
+       [ True,  True,  True, ...,  True,  True,  True],
+      ...rue,  True,  True, ...,  True,  True,  True],
+       [ True,  True,  True, ...,  True,  True,  True]], shape=(24, 512))
+am = array([[ True,  True,  True, ...,  True,  True,  True],
+       [ True,  True,  True, ...,  True,  True,  True],
+      ...rue,  True,  True, ...,  True,  True,  True],
+       [ True,  True,  True, ...,  True,  True,  True]], shape=(24, 512))
+op = Op(kind='REGWIN', t0=1607, t1=1608, lo=0, hi=256, dst=51, src=None, src2=None, src3=None, param=0, param2=0, skind='', tag=''), tau = 0, ctx = None
+T = <gacsca.microcode.Tracks object at 0x74e936dd6da0>, D = 3
+
+    
+    def apply_iop(P, V, S, m, am, op, tau, ctx: InterpCtx, T, D):
+        """Interpretation ops.  P: new primaries (B,L,NT) being built; V: repaired; S: state dict;
+        m: mask (age & range); am: age mask; tau: age - op.t0."""
+        k = op.kind
+>       addr, simage, simaddr = S["addr"], S["simage"], S["simaddr"]
+E       AttributeError: 'NoneType' object has no attribute 'n'
+
+gacsca/interp.py:152: AttributeError
+----------------------------------------------------------------- Captured stdout call ------------------------------------------------------------------
+trlocal ops: 1559 steps: 2990 peak temps: 28
+_________________________________________________________ test_trlocal_matches_spec[variant1-1] _________________________________________________________
+
+variant = Variant(flag1_ii_in_colony=False, flag2_iii_age='current', majority='strict', age_increment_always=True), D = 1
+
+    @pytest.mark.parametrize("variant,D", [(Variant.gray(), 3), (Variant.masumori(), 1)])
+    def test_trlocal_matches_spec(variant, D):
+        p = Params(Q=Q, U=U, ncol=2)
+        T = Tracks(JMAX=6, wq=8, wu=14, R=3)
+        L = Layout(Q, U, T)
+        C = Compiler(T, L, D=D, t=100)
+        tl = TrLocal(C, c=0, variant=variant)
+        n = tl.build()
+        print("trlocal ops:", len(C.prog.ops), "steps:", n - 100, "peak temps:", tl.al.peak)
+        eng = Engine(p, T, L, C.prog, wipe_rules=False)
+        rng = np.random.default_rng(5)
+        B = 24
+        S = eng.initial(B)
+        S["age"][:] = 100
+        neighs = []
+        prim = repair(S["trk"])
+        for b in range(B):
+            st = random_neigh(rng, Q, U)
+            neighs.append(st)
+            for j in range(-6, 7):
+                s = st[6 + j]
+                bits = L.encode(s["addr"], s["age"], s["f1"], s["f2"], None)
+                prim[b, L.b0:L.b0 + L.K, T.arg(j)] = bits
+        S["trk"] = redistribute(prim, T.R)
+        for _ in range(n - 100):
+>           S = eng.step(S)
+
+tests/test_trlocal.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+gacsca/engine_np.py:180: in step
+    P = apply_ops(V, S["addr"], S["age"], self.prog, T, S=Sx, ctx=getattr(self, "ictx", None))
+gacsca/engine_np.py:58: in apply_ops
+    _interp.apply_iop(P, V, S, m, am, op, int(a) - op.t0, ctx, T, D)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+P = array([[[0, 0, 0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 0, 0],
+        ...,
+      ...0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 0, 0]]], shape=(24, 512, 61), dtype=uint8)
+V = array([[[0, 0, 0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 0, 0],
+        ...,
+      ...0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 0, 0]]], shape=(24, 512, 61), dtype=uint8)
+S = {'addr': array([[  0,   1,   2, ..., 253, 254, 255],
+       [  0,   1,   2, ..., 253, 254, 255],
+       [  0,   1,   2..., 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0]], shape=(24, 512), dtype=int8), ...}
+m = array([[ True,  True,  True, ...,  True,  True,  True],
+       [ True,  True,  True, ...,  True,  True,  True],
+      ...rue,  True,  True, ...,  True,  True,  True],
+       [ True,  True,  True, ...,  True,  True,  True]], shape=(24, 512))
+am = array([[ True,  True,  True, ...,  True,  True,  True],
+       [ True,  True,  True, ...,  True,  True,  True],
+      ...rue,  True,  True, ...,  True,  True,  True],
+       [ True,  True,  True, ...,  True,  True,  True]], shape=(24, 512))
+op = Op(kind='REGWIN', t0=3536, t1=3537, lo=0, hi=256, dst=51, src=None, src2=None, src3=None, param=0, param2=0, skind='', tag=''), tau = 0, ctx = None
+T = <gacsca.microcode.Tracks object at 0x74e936992980>, D = 1
+
+    
+    def apply_iop(P, V, S, m, am, op, tau, ctx: InterpCtx, T, D):
+        """Interpretation ops.  P: new primaries (B,L,NT) being built; V: repaired; S: state dict;
+        m: mask (age & range); am: age mask; tau: age - op.t0."""
+        k = op.kind
+>       addr, simage, simaddr = S["addr"], S["simage"], S["simaddr"]
+E       AttributeError: 'NoneType' object has no attribute 'n'
+
+gacsca/interp.py:152: AttributeError
+----------------------------------------------------------------- Captured stdout call ------------------------------------------------------------------
+trlocal ops: 1565 steps: 6959 peak temps: 28
+================================================================ short test summary info ================================================================
+FAILED tests/test_trlocal.py::test_trlocal_matches_spec[variant0-3] - AttributeError: 'NoneType' object has no attribute 'n'
+FAILED tests/test_trlocal.py::test_trlocal_matches_spec[variant1-1] - AttributeError: 'NoneType' object has no attribute 'n'
+2 failed, 3 passed in 440.45s (0:07:20)

@@ -216,7 +216,7 @@ class TrLocal:
         C.add_const(out, t, FG, 1)
         C.mov(out, F1N, rng=one, advance=False)
         C.mov(out, F2N, rng=two)
-        al.put(ML, VR, EX, AR, AL, t)
+        al.put(ML, AR, AL, t)                              # VR, EX still needed for the register masks
         # --- SIMAGE / SIMADDR registers of the simulated cell: majority repair (no increment) ---
         INW = al.get()
         C.emit("REGWIN", dst=self.T[INW], rng=(0, self.L.Q)); C.t += 1
@@ -248,7 +248,7 @@ class TrLocal:
             C.bitop(tt, lambda a, b, _: a | b, tt, sv, rng=FS)
             C.bitop(out, lambda w, own, mj: own if w else mj, INW, A(0), tt, rng=FS)
             al.put(MR, ML2, EXR, EXL, tt, fok, sok, sv)
-        al.put(INW)
+        al.put(INW, VR, EX)
         self.F1N, self.F2N, self.VRT = F1N, F2N, VRT
         al.put(F2N, VRT)                                  # F1N is kept for the interpretation phase
         return C.t
