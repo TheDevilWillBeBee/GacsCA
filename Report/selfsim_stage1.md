@@ -57,6 +57,9 @@ Two adjacent misaligned full colonies (address 0 at site 20Q+100) inside a 256-c
   trail of 7 colonies whose level-1 state is wiped and re-synthesised by the level-1 majority rule
   (3 cells per period). Gray's argument (p. 38–40) stops the right end at the left boundary of an
   undamaged level-2 cell; a 256-colony ring has a single level-2 cell and no such boundary.
-  `island_long.py` repeats the experiment on a 512-colony ring (two level-2 cells).
+  `island_long.py` repeats the experiment on a 512-colony ring (two level-2 cells): the glider
+  travels 3 colonies/period from colony 20 to the level-2 boundary at colony 256, is eroded there
+  within two periods, and the level-1 trail heals: **fully repaired (level 0 and level 1) at
+  period 80** (6.6×10⁵ steps). With trickle-down disabled the island persists indefinitely.
 
 ![island](../figs/island_trickle_n2_s100.png)
