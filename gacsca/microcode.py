@@ -26,13 +26,16 @@ import numpy as np
 class Tracks:
     """Track name registry.  ARG tracks are indexed by neighbour offset j in [-JMAX, JMAX]."""
 
-    def __init__(self, JMAX=6, wq=8, wu=14, R=3):
+    def __init__(self, JMAX=6, wq=8, wu=14, R=3, ntemp=22):
+        """The registry is independent of Q/U (the tower needs identical registries at all levels):
+        JMAX=6 arg tracks each side and ntemp=22 extra temporaries (BF0..)."""
         self.R, self.JMAX = R, JMAX
+        JMAX = 6
         names = ["INFO"]
         names += [f"ARGA{j:+d}" for j in range(-JMAX, JMAX + 1)]
         names += [f"ARGB{j:+d}" for j in range(-JMAX, JMAX + 1)]
         names += ["HOLD", "T0", "T1", "T2", "T3", "T4", "T5", "SIG", "ACC", "BC"]
-        names += [f"BF{i}" for i in range(wq + wu)]
+        names += [f"BF{i}" for i in range(ntemp)]
         names += ["MAILL", "MAILR"]
         self.names = names
         self.idx = {n: i for i, n in enumerate(names)}
@@ -47,22 +50,39 @@ class Tracks:
 
 @dataclass
 class Layout:
-    """Bit layout of a cell state as a bit-serial string (the simulated cell lives in the Info
-    track of a colony at addresses [b0, b0+K)).  Little-endian fields."""
+    """Bit layout of the *simulated* cell state as a bit-serial string living in the Info track of
+    a colony of the simulating level at addresses [b0, b0+K).  Little-endian fields.
+    Q, U: colony size / work period of the simulating level (where the string lives).
+    Qs, Us: parameters of the simulated level (address modulus, work period) - default = Q, U.
+    with_tracks: whether the simulated cell has simulation-structure tracks (False: local-only cell).
+    The local part is ADDR, AGE, F1, F2, WF1, WF2, SIMAGE, SIMADDR (the simulated cell's own
+    registers for the level above it, widths from Qss/Uss)."""
     Q: int
     U: int
     tracks: Tracks
     b0: int = 8
+    Qs: int = None
+    Us: int = None
+    with_tracks: bool = True
+    Qss: int = None      # parameters of the level above the simulated one (for its SIMADDR/SIMAGE)
+    Uss: int = None
 
     def __post_init__(self):
-        self.wq = (self.Q - 1).bit_length()
-        self.wu = (self.U - 1).bit_length()
+        if self.Qs is None: self.Qs = self.Q
+        if self.Us is None: self.Us = self.U
+        if self.Qss is None: self.Qss = self.Qs
+        if self.Uss is None: self.Uss = self.Us
+        self.wq = (self.Qs - 1).bit_length()
+        self.wu = (self.Us - 1).bit_length()
+        self.wqs = (self.Qss - 1).bit_length()
+        self.wus = (self.Uss - 1).bit_length()
         self.fields: Dict[str, Tuple[int, int]] = {}
         p = 0
-        for name, w in [("ADDR", self.wq), ("AGE", self.wu), ("F1", 1), ("F2", 1), ("WF1", 1), ("WF2", 1)]:
+        for name, w in [("ADDR", self.wq), ("AGE", self.wu), ("F1", 1), ("F2", 1), ("WF1", 1), ("WF2", 1),
+                        ("SIMAGE", self.wus), ("SIMADDR", self.wqs)]:
             self.fields[name] = (p, w); p += w
         self.track_base = p
-        self.K = p + self.tracks.NT * self.tracks.R
+        self.K = p + (self.tracks.NT * self.tracks.R if self.with_tracks else 0)
         assert self.b0 + self.K <= self.Q - 4, f"K={self.K} does not fit in Q={self.Q}"
 
     def pos(self, t, r):
@@ -73,14 +93,15 @@ class Layout:
         p, w = self.fields[name]
         return self.b0 + p, self.b0 + p + w
 
-    def encode(self, addr, age, f1, f2, trackbits, wf1=0, wf2=0):
+    def encode(self, addr, age, f1, f2, trackbits, wf1=0, wf2=0, simage=0, simaddr=0):
         """-> K-bit array (index i = address b0+i).  trackbits: (NT, R) array or None."""
         bits = np.zeros(self.K, np.uint8)
-        for name, val in [("ADDR", addr), ("AGE", age), ("F1", f1), ("F2", f2), ("WF1", wf1), ("WF2", wf2)]:
+        for name, val in [("ADDR", addr), ("AGE", age), ("F1", f1), ("F2", f2), ("WF1", wf1), ("WF2", wf2),
+                          ("SIMAGE", simage), ("SIMADDR", simaddr)]:
             p, w = self.fields[name]
             for i in range(w):
                 bits[p + i] = (int(val) >> i) & 1
-        if trackbits is not None:
+        if trackbits is not None and self.with_tracks:
             bits[self.track_base:] = np.asarray(trackbits, np.uint8).reshape(-1)
         return bits
 
@@ -88,7 +109,8 @@ class Layout:
         out = {}
         for name, (p, w) in self.fields.items():
             out[name] = int(sum(int(bits[p + i]) << i for i in range(w)))
-        out["tracks"] = np.asarray(bits[self.track_base:], np.uint8).reshape(self.tracks.NT, self.tracks.R)
+        if self.with_tracks:
+            out["tracks"] = np.asarray(bits[self.track_base:], np.uint8).reshape(self.tracks.NT, self.tracks.R)
         return out
 
 

@@ -63,3 +63,12 @@ Two adjacent misaligned full colonies (address 0 at site 20Q+100) inside a 256-c
   period 80** (6.6×10⁵ steps). With trickle-down disabled the island persists indefinitely.
 
 ![island](../figs/island_trickle_n2_s100.png)
+
+## Injected damage vs depth (`experiments/damage_vs_depth.py`, 512-colony ring, U = 8192 runs)
+| damage | level-0 only | depth 1 (trickle-down) |
+|---|---|---|
+| 1 misaligned full colony (shift 100) | heals in < 1 period (its right end is inconsistent) | same |
+| 2 misaligned colonies (shift 100) | stuck forever (668 cells) | glider, healed at period 80 |
+| 3 misaligned colonies (shift 100) | stuck forever (924 cells) | healed at period 80 |
+| 2 misaligned colonies (shift 10) | stuck forever (758 cells) | healed at period 80 |
+| 2 colonies misaligned in time (Age + 4000) and space | stuck forever | healed at period 2 (the time offset breaks the island's own gathering, so trickle-down fires everywhere in it) |

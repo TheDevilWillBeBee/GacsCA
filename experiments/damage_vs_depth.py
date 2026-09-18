@@ -16,7 +16,7 @@ ap.add_argument("--ncol", type=int, default=512)
 ap.add_argument("--seed", type=int, default=0)
 ap.add_argument("--tag", default="")
 a = ap.parse_args()
-Q, U = 256, 8192
+Q, U = 256, 16384
 sysm = make_system(Q=Q, U=U, ncol=a.ncol, R=3, D=3)
 p, T, L, sched = sysm.p, sysm.T, sysm.L, sysm.sched
 eng = sysm.np_engine()

@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from .microcode import Compiler, Tracks, Layout, Op
 from .trlocal import TrLocal
 from .params import Params, Variant
+from . import interp as _interp
 
 
 @dataclass
@@ -14,10 +15,16 @@ class Schedule:
     trickle: tuple
     update_age: int
     length: int
+    iphase: tuple = None
+    ictx: object = None
+    reg_window: tuple = (0, 0)
 
 
 def build_workperiod(p: Params, T: Tracks, L: Layout, D=3, variant=Variant(), gather_rest=None,
-                     compute_margin=64, JMAX=6, c_list=(0,)):
+                     compute_margin=64, JMAX=6, c_list=(0,), prog_up=None, L_up=None, trickle_up=None,
+                     regwin_up=(0, 0)):
+    """prog_up/L_up/trickle_up: the simulated level's program, layout and trickle window; if given,
+    the interpretation phase is emitted after Tr_local (stage 2)."""
     Q, U = p.Q, p.U
     gather_rest = 2 * Q if gather_rest is None else gather_rest
     C = Compiler(T, L, D=D, t=1)
@@ -58,6 +65,13 @@ def build_workperiod(p: Params, T: Tracks, L: Layout, D=3, variant=Variant(), ga
     for c in c_list:
         tl = TrLocal(C, c=c, variant=variant)
         tl.build()
+    iphase = None; ictx = None
+    C.reg_window = (0, 0)
+    if prog_up is not None:
+        ictx = _interp.InterpCtx(L, T, prog_up, L_up, trickle_up, None, regwin_up=regwin_up)
+        t_i0 = C.t
+        _interp.compile_iphase(C, ictx, tl.al, tl.F1N, tl.VRT, L.Qs, L.Us)
+        iphase = (t_i0, C.t)
     compute_end = C.t
     # F1*, F2* -> INFO at addresses Q-3 and 3 (Gray p.35)
     aF1, aF2 = L.frange("F1")[0], L.frange("F2")[0]
@@ -73,5 +87,5 @@ def build_workperiod(p: Params, T: Tracks, L: Layout, D=3, variant=Variant(), ga
     assert C.t <= update_age, f"work period needs {C.t + 1} > U={U} steps"
     C.prog.add(Op("MOV", update_age, update_age + 1, *info_rng, dst=T["INFO"], src=T["HOLD"]))
     C.prog.U = U
-    sched = Schedule(starts, compute_start, compute_end, trickle, update_age, C.t)
+    sched = Schedule(starts, compute_start, compute_end, trickle, update_age, C.t, iphase, ictx, C.reg_window)
     return C.prog, sched

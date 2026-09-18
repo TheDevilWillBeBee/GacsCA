@@ -48,7 +48,7 @@ def apparent_colony(addr, Q):
     return nbest >= 3, v
 
 
-def step(S, p: Params, variant: Variant = Variant()):
+def step(S, p: Params, variant: Variant = Variant(), reg_window=(0, 0)):
     """S: dict with 'addr','age','f1','f2' (and optionally 'wf1','wf2') arrays of shape (B,L).
     Returns new dict with updated addr, age, f1, f2 (wf1/wf2 passed through)."""
     Q, U = p.Q, p.U
@@ -114,6 +114,13 @@ def step(S, p: Params, variant: Variant = Variant()):
 
     out = dict(S)
     out.update(addr=ADDR.astype(addr.dtype), age=AGE.astype(age.dtype), f1=F1, f2=F2)
+    # simulated-cell registers (Report/design_selfsim.md, stage 2): repaired by majority like Address
+    inwin = (age >= reg_window[0]) & (age < reg_window[1])     # register-load window: keep own value
+    for k in ("simage", "simaddr"):
+        if k in S:
+            v = S[k]
+            votes = np.where(vote_right[..., None], stack_R(v), stack_L(v))
+            out[k] = np.where(inwin, v, majority5(votes, v, variant)).astype(v.dtype)
     # Workspace.Flag1/2 are recomputed every step from the simulation structure (Gray Sec. 5.5:
     # 1 -> 0 whenever any of their conditions fails).  Without a simulation structure they are 0.
     out["wf1"] = np.zeros_like(wf1); out["wf2"] = np.zeros_like(wf2)
@@ -127,7 +134,8 @@ def initial(p: Params, B: int = 1, dtype=np.int32):
     S = dict(addr=np.tile((x % p.Q).astype(dtype), (B, 1)),
              age=np.zeros((B, L), dtype),
              f1=np.zeros((B, L), np.int8), f2=np.zeros((B, L), np.int8),
-             wf1=np.zeros((B, L), np.int8), wf2=np.zeros((B, L), np.int8))
+             wf1=np.zeros((B, L), np.int8), wf2=np.zeros((B, L), np.int8),
+             simage=np.zeros((B, L), dtype), simaddr=np.zeros((B, L), dtype))
     return S
 
 

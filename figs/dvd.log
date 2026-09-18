@@ -1,0 +1,40 @@
+isl_n1_s100 trickle=False: periods=1 final l0=0 l1=0  first l0=0 (1s)
+isl_n1_s100 trickle=True: periods=1 final l0=0 l1=0  first l0=0 (1s)
+isl_n3_s100 trickle=False: periods=120 final l0=924 l1=236  first l0=924 (98s)
+isl_n3_s100 trickle=True: periods=80 final l0=0 l1=0  first l0=924 (65s)
+isl_n2_s10 trickle=False: periods=120 final l0=758 l1=236  first l0=758 (98s)
+isl_n2_s10 trickle=True: periods=80 final l0=0 l1=0  first l0=1014 (65s)
+isl_n2_s100_age4000 trickle=False: periods=120 final l0=668 l1=236  first l0=668 (99s)
+isl_n2_s100_age4000 trickle=True: periods=2 final l0=0 l1=0  first l0=0 (2s)
+Traceback (most recent call last):
+  File "/scratch/Ehsan/Projects/GacsCA/experiments/damage_vs_depth.py", line 20, in <module>
+    sysm = make_system(Q=Q, U=U, ncol=a.ncol, R=3, D=3)
+  File "/scratch/Ehsan/Projects/GacsCA/gacsca/build.py", line 35, in make_system
+    prog, sched = build_workperiod(p, T, L, D=D, variant=variant, JMAX=JMAX, **kw)
+  File "/scratch/Ehsan/Projects/GacsCA/gacsca/workperiod.py", line 73, in build_workperiod
+    assert C.t <= update_age, f"work period needs {C.t + 1} > U={U} steps"
+AssertionError: work period needs 9340 > U=8192 steps
+Traceback (most recent call last):
+  File "/scratch/Ehsan/Projects/GacsCA/experiments/damage_vs_depth.py", line 20, in <module>
+    sysm = make_system(Q=Q, U=U, ncol=a.ncol, R=3, D=3)
+  File "/scratch/Ehsan/Projects/GacsCA/gacsca/build.py", line 35, in make_system
+    prog, sched = build_workperiod(p, T, L, D=D, variant=variant, JMAX=JMAX, **kw)
+  File "/scratch/Ehsan/Projects/GacsCA/gacsca/workperiod.py", line 73, in build_workperiod
+    assert C.t <= update_age, f"work period needs {C.t + 1} > U={U} steps"
+AssertionError: work period needs 9340 > U=8192 steps
+Traceback (most recent call last):
+  File "/scratch/Ehsan/Projects/GacsCA/experiments/damage_vs_depth.py", line 20, in <module>
+    sysm = make_system(Q=Q, U=U, ncol=a.ncol, R=3, D=3)
+  File "/scratch/Ehsan/Projects/GacsCA/gacsca/build.py", line 35, in make_system
+    prog, sched = build_workperiod(p, T, L, D=D, variant=variant, JMAX=JMAX, **kw)
+  File "/scratch/Ehsan/Projects/GacsCA/gacsca/workperiod.py", line 73, in build_workperiod
+    assert C.t <= update_age, f"work period needs {C.t + 1} > U={U} steps"
+AssertionError: work period needs 9340 > U=8192 steps
+Traceback (most recent call last):
+  File "/scratch/Ehsan/Projects/GacsCA/experiments/damage_vs_depth.py", line 20, in <module>
+    sysm = make_system(Q=Q, U=U, ncol=a.ncol, R=3, D=3)
+  File "/scratch/Ehsan/Projects/GacsCA/gacsca/build.py", line 35, in make_system
+    prog, sched = build_workperiod(p, T, L, D=D, variant=variant, JMAX=JMAX, **kw)
+  File "/scratch/Ehsan/Projects/GacsCA/gacsca/workperiod.py", line 73, in build_workperiod
+    assert C.t <= update_age, f"work period needs {C.t + 1} > U={U} steps"
+AssertionError: work period needs 9340 > U=8192 steps

@@ -1,7 +1,9 @@
 // ---------------------------------------------------------------- track engine (Report/design_selfsim.md)
-// State words: 0 addr, 1 age, 2 flags (f1,f2,wf1,wf2), then R*NW track words: copy r, word w at 3 + r*NW + w.
+// State words: 0 addr, 1 age, 2 flags (f1,f2,wf1,wf2), 3 simage | simaddr<<16, then R*NW track words:
+// copy r, word w at TW0 + r*NW + w with TW0 = 4.
 // Copy r of cell x holds the track bits of cell x + (r - h), h = (R-1)/2.
 #define NWMAX 2
+#define TW0 4
 #define OPK_CONST 0
 #define OPK_MOV 1
 #define OPK_BITOP 2
@@ -24,6 +26,8 @@ struct EngineCfg {
     int t_sig, t_acc, t_info, t_maill, t_mailr;
     int tlo, thi;      // trickle-down window
     int wipe;
+    int t_hold, t_busup;   // HOLD track; BUS track index of the simulated level (same registry)
+    int reg_lo, reg_hi;    // level-0 register-load window (repair suspended)
 };
 
 __device__ __forceinline__ int gb(const uint32_t* w, int t) { return (w[t >> 5] >> (t & 31)) & 1; }
@@ -55,21 +59,59 @@ __device__ __forceinline__ int chain(int skind, int cin, int sv, int s2v, int kb
     return 0;
 }
 
+#include "interp.cuh"
+
 // Apply the ops scheduled at age a to cell ky (index into the 11-cell window).  V: repaired
 // track words for window cells [NWMAX each]; addr[]: addresses; P: output words for cell ky.
+// simage/simaddr: registers of the window cells (for the interpretation ops); regs_out: the
+// own cell's registers (only updated when ky == 5, by BUSLATCH_INT).
 __device__ void apply_ops_cell(int ky, const uint32_t* V, const int* addr, int a, uint32_t* P,
                                const EngineCfg& E, const int* __restrict__ ops,
-                               const int* __restrict__ age_ptr, const int* __restrict__ op_idx) {
+                               const int* __restrict__ age_ptr, const int* __restrict__ op_idx,
+                               const ICtx& I, const int* simage, const int* simaddr, int* regs_out) {
     for (int w = 0; w < E.NW; w++) P[w] = V[ky * NWMAX + w];
     if (a < 0 || a >= E.U) return;
     int s = age_ptr[a], e = age_ptr[a + 1];
     const int ay = addr[ky];
+    const int g1 = simage[ky], sa1 = simaddr[ky];
     for (int q = s; q < e; q++) {
         const int* op = ops + (size_t)op_idx[q] * OPW;
         int kind = op[0], lo = op[3], hi = op[4], dst = op[5], src = op[6], src2 = op[7], src3 = op[8];
         int param = op[9], param2 = op[10], skind = op[11];
         bool inr = (ay >= lo && ay < hi);
         const uint32_t* Vy = V + ky * NWMAX;
+        int tau = a - op[1];
+        if (kind >= OPK_IINIT) {
+            if (!inr) continue;
+            Op1 o1 = load_op(op);
+            switch (kind) {
+                case OPK_IINIT: {
+                    int r, t, c; if (cell_geom(I, E.R, E.NT, ay, r, t, c) && c == param) {
+                        int z = ky - param; if (z >= 0 && z <= 10) sb(P, dst, gb(V + z * NWMAX, src));
+                    }
+                } break;
+                case OPK_ILATCH: interp_ilatch(P, V, ky, ay, g1, sa1, o1, tau, I, E.R, E.NT, E.t_sig, E.t_acc, E.t_info, E.t_busup, E.D); break;
+                case OPK_ICHAIN: interp_ichain(P, Vy, ay, g1, sa1, o1, I, E.R, E.NT, E.t_sig, E.t_acc); break;
+                case OPK_IBC: interp_ibc(P, Vy, ay, g1, sa1, o1, I, E.R, E.NT, E.t_sig, E.t_acc); break;
+                case OPK_IEVAL: interp_ieval(P, Vy, ay, g1, sa1, o1, I, E.R, E.NT, E.t_sig, E.t_acc, E.t_hold); break;
+                case OPK_IWF: interp_iwf(P, Vy, ay, g1, sa1, I, E.t_hold); break;
+                case OPK_REGWIN: sb(P, dst, (g1 >= I.rw_lo && g1 < I.rw_hi) ? 1 : 0); break;
+                case OPK_BUSLATCH_INT: if (ky == 5 && regs_out != nullptr) {
+                    // own registers: latch bit i of the Hold AGE/ADDR fields riding on the bus
+                    for (int f = 0; f < 2; f++) {
+                        int lo_f = f == 0 ? I.age_lo : I.addr_lo, hi_f = f == 0 ? I.age_hi : I.addr_hi;
+                        for (int i = 0; i < hi_f - lo_f; i++) {
+                            int tt, j;
+                            if (!latch_time(ay, lo_f + i, param2, E.D, tt, j) || tt != tau) continue;
+                            int z = ky - param2 * j; if (z < 0 || z > 10) continue;
+                            int v = gb(V + z * NWMAX, src);
+                            regs_out[f] = (regs_out[f] & ~(1 << i)) | (v << i);
+                        }
+                    }
+                } break;
+            }
+            continue;
+        }
         switch (kind) {
             case OPK_CONST: if (inr) sb(P, dst, param); break;
             case OPK_MOV: if (inr) sb(P, dst, gb(Vy, src)); break;
@@ -137,14 +179,14 @@ __device__ void apply_ops_cell(int ky, const uint32_t* V, const int* addr, int a
 template <int R>
 __global__ void engine_step_kernel(const uint32_t* __restrict__ in, uint32_t* __restrict__ out,
                                    const int* __restrict__ ops, const int* __restrict__ age_ptr,
-                                   const int* __restrict__ op_idx, EngineCfg E, RuleParams P, NoiseParams N) {
+                                   const int* __restrict__ op_idx, EngineCfg E, RuleParams P, NoiseParams N, ICtx I) {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int b = blockIdx.y;
     if (x >= E.L || b >= E.B) return;
     const int L = E.L, W = E.W, Q = E.Q, NW = E.NW;
     const int h = (R - 1) / 2;
     const uint32_t* row = in + (size_t)b * L * W;
-    int addr[11], age[11], f1[11], f2[11], wf1[11], wf2[11];
+    int addr[11], age[11], f1[11], f2[11], wf1[11], wf2[11], sg[11], sa[11];
     uint32_t T[11][R][NWMAX];
     for (int k = 0; k < 11; k++) {
         int y = x + (k - 5); y = (y % L + L) % L;
@@ -153,7 +195,8 @@ __global__ void engine_step_kernel(const uint32_t* __restrict__ in, uint32_t* __
         uint32_t fl = c[2];
         f1[k] = fl & F1_BIT ? 1 : 0; f2[k] = fl & F2_BIT ? 1 : 0;
         wf1[k] = fl & WF1_BIT ? 1 : 0; wf2[k] = fl & WF2_BIT ? 1 : 0;
-        for (int r = 0; r < R; r++) for (int w = 0; w < NWMAX; w++) T[k][r][w] = (w < NW) ? c[3 + r * NW + w] : 0u;
+        sg[k] = (int)(c[3] & 0xFFFFu); sa[k] = (int)(c[3] >> 16);
+        for (int r = 0; r < R; r++) for (int w = 0; w < NWMAX; w++) T[k][r][w] = (w < NW) ? c[TW0 + r * NW + w] : 0u;
     }
     // repaired values for window cells [h, 10-h]: bit of cell k, copy r held by cell k - (r-h)
     uint32_t V[11][NWMAX];
@@ -165,14 +208,17 @@ __global__ void engine_step_kernel(const uint32_t* __restrict__ in, uint32_t* __
             V[k][w] = majR<R>(c);
         }
     }
-    int ADDR, AGE, F1, F2;
-    local_rule(addr, age, f1, f2, wf1, wf2, P, ADDR, AGE, F1, F2);
+    int ADDR, AGE, F1, F2, SIMAGE, SIMADDR;
+    local_rule(addr, age, f1, f2, wf1, wf2, sg, sa, P, ADDR, AGE, F1, F2, SIMAGE, SIMADDR);
+    if (age[5] >= E.reg_lo && age[5] < E.reg_hi) { SIMAGE = sg[5]; SIMADDR = sa[5]; }
+    int regs[2] = {SIMAGE, SIMADDR};
     // ops for the R cells whose copies x holds
     uint32_t newT[R][NWMAX];
     for (int r = 0; r < R; r++) {
         int ky = 5 + (r - h);
-        apply_ops_cell(ky, &V[0][0], addr, age[ky], newT[r], E, ops, age_ptr, op_idx);
+        apply_ops_cell(ky, &V[0][0], addr, age[ky], newT[r], E, ops, age_ptr, op_idx, I, sg, sa, ky == 5 ? regs : nullptr);
     }
+    SIMAGE = regs[0]; SIMADDR = regs[1];
     if (E.wipe && F1) {
         for (int r = 0; r < R; r++) { sb(newT[r], E.t_maill, 0); sb(newT[r], E.t_mailr, 0); }
         if (ADDR != addr[5]) for (int r = 0; r < R; r++) for (int w = 0; w < NWMAX; w++) newT[r][w] = 0u;
@@ -192,13 +238,14 @@ __global__ void engine_step_kernel(const uint32_t* __restrict__ in, uint32_t* __
     if (N.eps > 0.f) {
         uint64_t hh = splitmix64(N.seed ^ splitmix64(((uint64_t)N.t << 40) ^ ((uint64_t)b << 28) ^ (uint64_t)x));
         if (u01(hh) < N.eps) {
-            uint64_t h2 = splitmix64(hh), h3 = splitmix64(h2), h4 = splitmix64(h3);
+            uint64_t h2 = splitmix64(hh), h3 = splitmix64(h2), h4 = splitmix64(h3), h5 = splitmix64(h4);
             ADDR = (int)(h2 % (uint64_t)Q); AGE = (int)(h3 % (uint64_t)E.U); FL = (uint32_t)(h4 & 15ull);
-            uint64_t g = h4;
+            SIMAGE = (int)(h5 & 0xFFFF); SIMADDR = (int)((h5 >> 16) & 0xFFFF);
+            uint64_t g = h5;
             for (int r = 0; r < R; r++) for (int w = 0; w < NW; w++) { g = splitmix64(g); newT[r][w] = (uint32_t)g; }
         }
     }
     uint32_t* o = out + ((size_t)b * L + x) * W;
-    o[0] = (uint32_t)ADDR; o[1] = (uint32_t)AGE; o[2] = FL;
-    for (int r = 0; r < R; r++) for (int w = 0; w < NW; w++) o[3 + r * NW + w] = newT[r][w];
+    o[0] = (uint32_t)ADDR; o[1] = (uint32_t)AGE; o[2] = FL; o[3] = (uint32_t)SIMAGE | ((uint32_t)SIMADDR << 16);
+    for (int r = 0; r < R; r++) for (int w = 0; w < NW; w++) o[TW0 + r * NW + w] = newT[r][w];
 }

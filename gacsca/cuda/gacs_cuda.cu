@@ -71,8 +71,9 @@ __device__ __forceinline__ int modq(int a, int q) { int r = a % q; return r < 0 
 // ---------------------------------------------------------------- Gray Sec 5.2 local rule
 // inputs indexed k = 0..10 for sites x-5..x+5 (k=5 is x).  Outputs the computed values.
 __device__ __forceinline__ void local_rule(const int* addr, const int* age, const int* f1, const int* f2,
-                                           const int* wf1, const int* wf2, const RuleParams& P,
-                                           int& ADDR, int& AGE, int& F1, int& F2) {
+                                           const int* wf1, const int* wf2, const int* simage, const int* simaddr,
+                                           const RuleParams& P, int& ADDR, int& AGE, int& F1, int& F2,
+                                           int& SIMAGE, int& SIMADDR) {
     const int Q = P.Q, U = P.U;
     #define RR(i) (5 + (i))
     #define LL(i) (5 - (i))
@@ -123,6 +124,13 @@ __device__ __forceinline__ void local_rule(const int* addr, const int* age, cons
     }
     ADDR = majority5(av, cur_addr, P.plurality);
     AGE = (majority5(gv, cur_age, P.plurality) + 1) % U;
+    int sg[5], sa[5];
+    for (int i = 1; i <= 5; i++) {
+        if (vote_right) { sg[i - 1] = simage[RR(i)]; sa[i - 1] = simaddr[RR(i)]; }
+        else { sg[i - 1] = simage[LL(i)]; sa[i - 1] = simaddr[LL(i)]; }
+    }
+    SIMAGE = majority5(sg, simage[5], P.plurality);
+    SIMADDR = majority5(sa, simaddr[5], P.plurality);
     #undef RR
     #undef LL
 }
@@ -134,7 +142,7 @@ __global__ void level0_step_kernel(const uint32_t* __restrict__ in, uint32_t* __
     if (x >= P.L || b >= P.B) return;
     const int L = P.L, W = P.W, Q = P.Q, U = P.U;
     const uint32_t* row = in + (size_t)b * L * W;
-    int addr[11], age[11], f1[11], f2[11], wf1[11], wf2[11];
+    int addr[11], age[11], f1[11], f2[11], wf1[11], wf2[11], sg[11], sa[11];
     for (int k = 0; k < 11; k++) {
         int y = x + (k - 5); y = (y % L + L) % L;
         const uint32_t* c = row + (size_t)y * W;
@@ -142,24 +150,28 @@ __global__ void level0_step_kernel(const uint32_t* __restrict__ in, uint32_t* __
         uint32_t fl = c[2];
         f1[k] = fl & F1_BIT ? 1 : 0; f2[k] = fl & F2_BIT ? 1 : 0;
         wf1[k] = fl & WF1_BIT ? 1 : 0; wf2[k] = fl & WF2_BIT ? 1 : 0;
+        uint32_t sw = (W > 3) ? c[3] : 0u;
+        sg[k] = (int)(sw & 0xFFFFu); sa[k] = (int)(sw >> 16);
     }
-    int ADDR, AGE, F1, F2;
-    local_rule(addr, age, f1, f2, wf1, wf2, P, ADDR, AGE, F1, F2);
+    int ADDR, AGE, F1, F2, SIMAGE, SIMADDR;
+    local_rule(addr, age, f1, f2, wf1, wf2, sg, sa, P, ADDR, AGE, F1, F2, SIMAGE, SIMADDR);
     uint32_t FL = (F1 ? F1_BIT : 0) | (F2 ? F2_BIT : 0);
     if (N.eps > 0.f) {
         uint64_t h = splitmix64(N.seed ^ splitmix64(((uint64_t)N.t << 40) ^ ((uint64_t)b << 28) ^ (uint64_t)x));
         bool hit = u01(h) < N.eps;
         if (N.use_mask) hit = hit && mask[(size_t)b * L + x];
         if (hit) {
-            uint64_t h2 = splitmix64(h), h3 = splitmix64(h2), h4 = splitmix64(h3);
+            uint64_t h2 = splitmix64(h), h3 = splitmix64(h2), h4 = splitmix64(h3), h5 = splitmix64(h4);
             int qa = Q, qu = U;
             if (N.addr_mode) { qa = 1; while (qa < Q) qa <<= 1; qu = 1; while (qu < U) qu <<= 1; }
             ADDR = (int)(h2 % (uint64_t)qa); AGE = (int)(h3 % (uint64_t)qu); FL = (uint32_t)(h4 & 15ull);
+            SIMAGE = (int)(h5 & 0xFFFF); SIMADDR = (int)((h5 >> 16) & 0xFFFF);
         }
     }
     uint32_t* o = out + ((size_t)b * L + x) * W;
     o[0] = (uint32_t)ADDR; o[1] = (uint32_t)AGE; o[2] = FL;
-    for (int w = 3; w < W; w++) o[w] = row[(size_t)x * W + w];
+    if (W > 3) o[3] = (uint32_t)SIMAGE | ((uint32_t)SIMADDR << 16);
+    for (int w = 4; w < W; w++) o[w] = row[(size_t)x * W + w];
 }
 
 #include "engine.cuh"
@@ -169,23 +181,46 @@ using I32Array2D = nb::ndarray<int32_t, nb::shape<-1, -1>, nb::c_contig, nb::dev
 
 void engine_step(U32Array3D in, U32Array3D out, I32Array2D ops, I32Array1D age_ptr, I32Array1D op_idx,
                  I32Array1D cfg, int flag1_ii_in_colony, int flag2_iii_current, int plurality,
-                 float eps, uint64_t seed, int t) {
-    // cfg (host-readable copy needed): pass as cuda tensor -> copy to host
-    int c[32];
-    cuda_check(cudaMemcpy(c, cfg.data(), sizeof(int) * std::min<size_t>(32, cfg.shape(0)), cudaMemcpyDeviceToHost));
+                 float eps, uint64_t seed, int t, nb::object ops_up_o, nb::object age_ptr_up_o, nb::object op_idx_up_o) {
+    int c[96];
+    for (int i = 0; i < 96; i++) c[i] = 0;
+    cuda_check(cudaMemcpy(c, cfg.data(), sizeof(int) * std::min<size_t>(96, cfg.shape(0)), cudaMemcpyDeviceToHost));
     EngineCfg E;
     E.Q = c[0]; E.U = c[1]; E.R = c[2]; E.NW = c[3]; E.NT = c[4]; E.D = c[5];
     E.t_sig = c[6]; E.t_acc = c[7]; E.t_info = c[8]; E.t_maill = c[9]; E.t_mailr = c[10];
     E.tlo = c[11]; E.thi = c[12]; E.wipe = c[13];
+    E.t_hold = c[14]; E.t_busup = c[15]; E.reg_lo = c[16]; E.reg_hi = c[17];
+    ICtx I;
+    I.has = c[20];
+    I.b0 = c[21]; I.track_base = c[22]; I.K = c[23]; I.Qs = c[24]; I.Us = c[25]; I.D_up = c[26]; I.JI = c[27];
+    I.addr_lo = c[28]; I.addr_hi = c[29]; I.age_lo = c[30]; I.age_hi = c[31]; I.wf1_pos = c[32]; I.wf2_pos = c[33];
+    I.simage_lo = c[34]; I.simage_hi = c[35]; I.simaddr_lo = c[36]; I.simaddr_hi = c[37];
+    I.up_age_lo = c[38]; I.up_age_hi = c[39]; I.up_addr_lo = c[40]; I.up_addr_hi = c[41];
+    I.trk_lo = c[42]; I.trk_hi = c[43]; I.rw_lo = c[44]; I.rw_hi = c[45];
+    int b = 46;
+    I.t_vt = c[b++]; I.t_bus = c[b++]; I.t_sa = c[b++]; I.t_sb = c[b++];
+    I.t_sig[0] = -1; for (int k = 1; k <= 3; k++) I.t_sig[k] = c[b++];
+    I.t_carry[0] = -1; for (int k = 1; k <= 3; k++) I.t_carry[k] = c[b++];
+    I.t_bfound = c[b++]; I.t_bval = c[b++];
+    for (int k = 0; k < 3; k++) I.t_shsrc[k] = c[b++];
+    for (int k = 0; k < 3; k++) for (int j = 0; j < 3; j++) I.t_s[k][j] = c[b++];
+    I.t_blb = c[b++]; I.t_wfb = c[b++]; I.t_f1n = c[b++];
+    I.U_up = c[b++];
+    I.ops_up = nullptr; I.age_ptr_up = nullptr; I.op_idx_up = nullptr;
+    if (I.has) {
+        I32Array2D ou = nb::cast<I32Array2D>(ops_up_o); I32Array1D au = nb::cast<I32Array1D>(age_ptr_up_o); I32Array1D iu = nb::cast<I32Array1D>(op_idx_up_o);
+        I.ops_up = ou.data(); I.age_ptr_up = au.data(); I.op_idx_up = iu.data();
+        if ((int)au.shape(0) != I.U_up + 1) throw std::runtime_error("age_ptr_up size");
+    }
     E.B = (int)in.shape(0); E.L = (int)in.shape(1); E.W = (int)in.shape(2);
-    if (E.W != 3 + E.R * E.NW) throw std::runtime_error("state width mismatch");
+    if (E.W != 4 + E.R * E.NW) throw std::runtime_error("state width mismatch");
     if (E.NW > NWMAX) throw std::runtime_error("too many tracks");
     if ((int)age_ptr.shape(0) != E.U + 1) throw std::runtime_error("age_ptr size must be U+1");
     RuleParams P{E.Q, E.U, E.L, E.B, E.W, flag1_ii_in_colony, flag2_iii_current, plurality};
     NoiseParams N{eps, seed, t, 0, 0};
     dim3 block(128), grid((E.L + 127) / 128, E.B);
-    if (E.R == 3) engine_step_kernel<3><<<grid, block>>>(in.data(), out.data(), ops.data(), age_ptr.data(), op_idx.data(), E, P, N);
-    else if (E.R == 5) engine_step_kernel<5><<<grid, block>>>(in.data(), out.data(), ops.data(), age_ptr.data(), op_idx.data(), E, P, N);
+    if (E.R == 3) engine_step_kernel<3><<<grid, block>>>(in.data(), out.data(), ops.data(), age_ptr.data(), op_idx.data(), E, P, N, I);
+    else if (E.R == 5) engine_step_kernel<5><<<grid, block>>>(in.data(), out.data(), ops.data(), age_ptr.data(), op_idx.data(), E, P, N, I);
     else throw std::runtime_error("R must be 3 or 5");
     cuda_check(cudaGetLastError());
 }
@@ -210,7 +245,8 @@ void level0_step(U32Array3D in, U32Array3D out, nb::object mask_obj, int Q, int 
 
 NB_MODULE(gacs_cuda, m) {
     m.def("engine_step", &engine_step, "in"_a, "out"_a, "ops"_a, "age_ptr"_a, "op_idx"_a, "cfg"_a,
-          "flag1_ii_in_colony"_a, "flag2_iii_current"_a, "plurality"_a, "eps"_a, "seed"_a, "t"_a);
+          "flag1_ii_in_colony"_a, "flag2_iii_current"_a, "plurality"_a, "eps"_a, "seed"_a, "t"_a,
+          "ops_up"_a.none(), "age_ptr_up"_a.none(), "op_idx_up"_a.none());
     m.def("level0_step", &level0_step, "in"_a, "out"_a, "mask"_a.none(), "Q"_a, "U"_a, "flag1_ii_in_colony"_a,
           "flag2_iii_current"_a, "plurality"_a, "eps"_a, "seed"_a, "t"_a, "addr_mode"_a);
 }

@@ -1,7 +1,7 @@
 import sys, numpy as np, torch
 from gacsca.build import make_system
 from gacsca.hierarchy import encode_info
-Q, U = 256, 8192
+Q, U = 256, 16384
 ncol = int(sys.argv[1]) if len(sys.argv) > 1 else 256
 shift, n_island, nper, c0 = 100, 2, int(sys.argv[2]) if len(sys.argv) > 2 else 3, 20
 sysm = make_system(Q=Q, U=U, ncol=ncol, R=3, D=3)

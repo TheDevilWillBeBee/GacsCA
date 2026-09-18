@@ -32,7 +32,7 @@ class TrLocal:
     def __init__(self, C: Compiler, c: int = 0, variant: Variant = Variant(), out="HOLD", stage2=False):
         self.C, self.c, self.v, self.out = C, c, variant, out
         self.L, self.T = C.L, C.T
-        self.Q, self.U = C.L.Q, C.L.U
+        self.Q, self.U = C.L.Qs, C.L.Us          # parameters of the simulated level
         self.FA = self.L.frange("ADDR"); self.FG = self.L.frange("AGE")
         self.aF1 = self.L.frange("F1")[0]; self.aF2 = self.L.frange("F2")[0]
         self.FR = (self.L.b0, self.L.b0 + self.L.track_base)     # local part of the layout
@@ -213,5 +213,19 @@ class TrLocal:
         C.add_const(out, t, FG, 1)
         C.mov(out, F1N, rng=one, advance=False)
         C.mov(out, F2N, rng=two)
-        al.put(VRT, ML, VR, EX, AR, AL, F1N, F2N, t)
+        al.put(ML, VR, EX, AR, AL, t)
+        # --- SIMAGE / SIMADDR registers of the simulated cell: majority repair (no increment) ---
+        INW = al.get()
+        C.emit("REGWIN", dst=self.T[INW], rng=(0, self.L.Q)); C.t += 1
+        for fname in ("SIMAGE", "SIMADDR"):
+            FS = self.L.frange(fname)
+            MR, ML2, EXR, tt = al.get(), al.get(), al.get(), al.get()
+            self.maj5([A(i) for i in range(1, 6)], FS, A(0), MR, EXR)
+            self.maj5([A(-i) for i in range(1, 6)], FS, A(0), ML2, EXR)
+            C.bitop(tt, lambda r, a, b: a if r else b, VRT, MR, ML2, rng=FS)
+            C.bitop(out, lambda w, own, mj: own if w else mj, INW, A(0), tt, rng=FS)
+            al.put(MR, ML2, EXR, tt)
+        al.put(INW)
+        self.F1N, self.F2N, self.VRT = F1N, F2N, VRT
+        al.put(F2N, VRT)                                  # F1N is kept for the interpretation phase
         return C.t

@@ -7,6 +7,7 @@ import numpy as np
 from .params import Params, Variant
 from . import level0_np as l0
 from .microcode import Tracks, Layout, Program, Op
+from . import interp as _interp
 
 
 def offs(R):
@@ -38,8 +39,9 @@ def _in_range(addr, lo, hi):
     return (addr >= lo) & (addr < hi)
 
 
-def apply_ops(V, addr, age, prog: Program, T: Tracks, mask_age=None):
-    """Apply the ops scheduled at each cell's age.  V: repaired (B,L,NT) uint8.  Returns P."""
+def apply_ops(V, addr, age, prog: Program, T: Tracks, mask_age=None, S=None, ctx=None):
+    """Apply the ops scheduled at each cell's age.  V: repaired (B,L,NT) uint8.  Returns P.
+    S/ctx: full state and interpretation context (needed for the interpretation op kinds)."""
     P = V.copy()
     B, L, NT = V.shape
     ages = np.unique(age)
@@ -52,7 +54,9 @@ def apply_ops(V, addr, age, prog: Program, T: Tracks, mask_age=None):
         for op in ops:
             m = am & _in_range(addr, op.lo, op.hi)
             k = op.kind
-            if k == "CONST":
+            if k in _interp.IKINDS:
+                _interp.apply_iop(P, V, S, m, am, op, int(a) - op.t0, ctx, T, D)
+            elif k == "CONST":
                 P[:, :, op.dst][m] = op.param
             elif k == "MOV":
                 P[:, :, op.dst][m] = V[:, :, op.src][m]
@@ -168,10 +172,13 @@ class Engine:
     def step(self, S):
         p, T = self.p, self.T
         V = repair(S["trk"])
-        Sl = dict(addr=S["addr"], age=S["age"], f1=S["f1"], f2=S["f2"], wf1=S["wf1"], wf2=S["wf2"])
-        N = l0.step(Sl, p, self.v)
+        Sl = dict(addr=S["addr"], age=S["age"], f1=S["f1"], f2=S["f2"], wf1=S["wf1"], wf2=S["wf2"],
+                  simage=S["simage"], simaddr=S["simaddr"])
+        N = l0.step(Sl, p, self.v, reg_window=getattr(self, "reg_window", (0, 0)))
         N.pop("_info")
-        P = apply_ops(V, S["addr"], S["age"], self.prog, T)
+        Sx = dict(S); Sx["_simage"] = N["simage"].copy(); Sx["_simaddr"] = N["simaddr"].copy()
+        P = apply_ops(V, S["addr"], S["age"], self.prog, T, S=Sx, ctx=getattr(self, "ictx", None))
+        N["simage"], N["simaddr"] = Sx["_simage"], Sx["_simaddr"]
         trk = redistribute(P, T.R)
         F1 = N["f1"] == 1
         if self.wipe_rules:
@@ -195,7 +202,8 @@ class Engine:
         wf1 = (A >= Q - 5) & (A <= Q - 1) & in_win & (sb1 == 1)
         wf2 = (A >= 0) & (A <= 4) & in_win & (sb2 == 1) & (~F1)
         out = dict(addr=N["addr"], age=N["age"], f1=N["f1"], f2=N["f2"],
-                   wf1=wf1.astype(np.int8), wf2=wf2.astype(np.int8), trk=trk)
+                   wf1=wf1.astype(np.int8), wf2=wf2.astype(np.int8), trk=trk,
+                   simage=N["simage"], simaddr=N["simaddr"])
         return out
 
     def trickle_window(self):
@@ -211,7 +219,7 @@ def apply_noise(S, p, eps, rng):
     n = int(hit.sum())
     out = dict(S)
     if n:
-        for k, hi in (("addr", p.Q), ("age", p.U)):
+        for k, hi in (("addr", p.Q), ("age", p.U), ("simage", 1 << 16), ("simaddr", 1 << 16)):
             a = S[k].copy(); a[hit] = rng.integers(0, hi, n, dtype=a.dtype); out[k] = a
         for k in ("f1", "f2", "wf1", "wf2"):
             a = S[k].copy(); a[hit] = rng.integers(0, 2, n).astype(a.dtype); out[k] = a

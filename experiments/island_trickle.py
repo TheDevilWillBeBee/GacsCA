@@ -7,7 +7,7 @@ import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 from gacsca.build import make_system
 from gacsca.hierarchy import encode_info
 
-Q, U = 256, 8192
+Q, U = 256, 16384
 ncol = Q                      # level-1 ring is a full level-1 colony -> level-1 ground state
 shift = int(sys.argv[1]) if len(sys.argv) > 1 else 100
 nper = int(sys.argv[2]) if len(sys.argv) > 2 else 6

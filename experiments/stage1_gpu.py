@@ -8,7 +8,7 @@ from gacsca import level0_np as l0
 from gacsca.params import Params
 
 ncol = 64
-sysm = make_system(Q=256, U=8192, ncol=ncol, R=3, D=3)
+sysm = make_system(Q=256, U=16384, ncol=ncol, R=3, D=3)
 p, T, L = sysm.p, sysm.T, sysm.L
 g = sysm.gpu_engine(seed=1)
 eng = sysm.np_engine()

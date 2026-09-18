@@ -3,7 +3,7 @@ damage and level-1 damage (colonies whose decoded level-1 state is wrong)."""
 import sys, time, json, numpy as np, torch
 from gacsca.build import make_system
 from gacsca.hierarchy import encode_info
-Q, U = 256, 8192
+Q, U = 256, 16384
 ncol = int(sys.argv[1]) if len(sys.argv) > 1 else 512
 nper = int(sys.argv[2]) if len(sys.argv) > 2 else 180
 shift, n_island, c0 = 100, 2, 20

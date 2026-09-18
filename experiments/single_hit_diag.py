@@ -6,7 +6,7 @@ from gacsca.hierarchy import encode_info
 from gacsca.params import Params
 from gacsca import level0_np as l0
 
-Q, U, ncol = 256, 8192, 256
+Q, U, ncol = 256, 16384, 256
 sysm = make_system(Q=Q, U=U, ncol=ncol, R=3, D=3)
 p, T, L, sched = sysm.p, sysm.T, sysm.L, sysm.sched
 eng = sysm.np_engine(); g = sysm.gpu_engine(seed=0)

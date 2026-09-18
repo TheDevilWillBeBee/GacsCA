@@ -10,7 +10,8 @@ def encode_info(level1, L: Layout, Q):
     ncol = len(level1)
     info = np.zeros(ncol * Q, np.uint8)
     for i, s in enumerate(level1):
-        bits = L.encode(s["addr"], s["age"], s["f1"], s["f2"], s.get("tracks"))
+        bits = L.encode(s["addr"], s["age"], s["f1"], s["f2"], s.get("tracks"), s.get("wf1", 0), s.get("wf2", 0),
+                        s.get("simage", 0), s.get("simaddr", 0))
         info[i * Q + L.b0: i * Q + L.b0 + L.K] = bits
     return info
 
@@ -33,4 +34,6 @@ def level1_to_arrays(level1):
                 age=np.array([[s["age"] for s in level1]], np.int32),
                 f1=np.array([[s["f1"] for s in level1]], np.int8),
                 f2=np.array([[s["f2"] for s in level1]], np.int8),
-                wf1=np.zeros((1, len(level1)), np.int8), wf2=np.zeros((1, len(level1)), np.int8))
+                wf1=np.zeros((1, len(level1)), np.int8), wf2=np.zeros((1, len(level1)), np.int8),
+                simage=np.array([[s.get("simage", 0) for s in level1]], np.int32),
+                simaddr=np.array([[s.get("simaddr", 0) for s in level1]], np.int32))

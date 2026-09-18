@@ -10,7 +10,7 @@ from gacsca import level0_np as l0
 
 
 @pytest.mark.slow
-def test_decoded_trajectory_equals_direct(nsteps=2, ncol=16, Q=256, U=8192, D=3):
+def test_decoded_trajectory_equals_direct(nsteps=2, ncol=16, Q=256, U=16384, D=3):
     p = Params(Q=Q, U=U, ncol=ncol)
     T = Tracks(JMAX=6, wq=8, wu=(U - 1).bit_length(), R=3)
     L = Layout(Q, U, T)

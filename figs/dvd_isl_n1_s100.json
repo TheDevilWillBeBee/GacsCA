@@ -1,0 +1,1 @@
+{"args": {"kind": "island", "n_island": 1, "shift": 100, "age_off": 0, "w": 300, "tau": 100, "rate": 1.0, "nper": 120, "ncol": 512, "seed": 0, "tag": "isl_n1_s100"}, "depth0": [{"per": 1, "l0": 0, "l0_lo": -1, "l0_hi": -1, "l1": 0}], "depth1": [{"per": 1, "l0": 0, "l0_lo": -1, "l0_hi": -1, "l1": 0}]}
