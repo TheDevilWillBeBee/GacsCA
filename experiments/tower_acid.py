@@ -81,7 +81,8 @@ if __name__ == "__main__":
     ok = True
     s1 = sched1
     for age1, tag in [(0, "period-start"), (s1.gather_starts[1] - 2, "gather2"), (s1.compute_start - 2, "compute-start"),
-                      (s1.compute_start + 400, "compute-mid"), (s1.compute_end - 60, "signalling"), (s1.trickle[0] - 2, "trickle"),
+                      (s1.compute_start + 400, "compute-mid"), (s1.compute_end - 60, "signalling"),
+                      (s1.compute_end - 1150, "registers-a"), (s1.compute_end - 600, "registers-b"), (s1.compute_end - 300, "registers-c"), (s1.trickle[0] - 2, "trickle"),
                       (s1.update_age - 2, "update")]:
         ok &= run(age1, 4, tag)
     print("ALL OK" if ok else "MISMATCH")

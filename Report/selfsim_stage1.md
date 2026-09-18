@@ -98,3 +98,12 @@ Age, Flags), giving ≈0.15·(2·20/256)·0.75 ≈ 0.018. The whole-period rate 
 the windows (0.028): damage in one phase is amplified by later phases (a corrupted `Arg`/temporary
 bit changes the computed result). Gathers are robust (majority of three). The compute phase
 tolerates ≈5×10⁻⁵ per hit. A rerun at ε = 10⁻⁵ (pairs negligible) isolates the residual single-hit channel.
+
+At ε = 10⁻⁵ (16 trials × 10 periods) all errors come from the compute window (3×10⁻⁴ per cell-period,
+zero in every other window). A batched single-hit diagnostic restricted to the compute window
+(`experiments/single_hit_compute.py`, one whole-cell replacement per trial) found **0 corrupting
+hits in 2560 trials** (per-hit probability < 1.2×10⁻³ at 95 %). Same-step pairs at distance ≤ 2
+(both destroy a 3-fold majority) occur ≈2·256·2990·ε² ≈ 1.5×10⁻⁴ times per colony-period in the
+compute window at ε = 10⁻⁵, which accounts for the measured rate within the statistics (≈12 events).
+Conclusion: no single-hit channel was detected; the level-1 error rate is dominated by same-step
+hit pairs within distance 2 during the computation, i.e. ε₁ ≈ c·Q·U_compute·ε² with c ≈ 2.

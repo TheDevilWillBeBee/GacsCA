@@ -37,7 +37,7 @@ __device__ __forceinline__ int active_ops_up(const ICtx& I, int g1, Op1* out) {
 
 __device__ __forceinline__ bool op_writes(const Op1& o, int t, int t_sig, int t_acc) {
     switch (o.kind) {
-        case OPK_CONST: case OPK_MOV: case OPK_BITOP: case OPK_SHIFT: case OPK_RSHIFT: case OPK_BCAST_INIT: return t == o.dst;
+        case OPK_CONST: case OPK_MOV: case OPK_BITOP: case OPK_SHIFT: case OPK_RSHIFT: case OPK_BCAST_INIT: case OPK_REGWIN: return t == o.dst;
         case OPK_SWEEP_INIT: return t == t_sig || t == o.dst;
         case OPK_SWEEP: return t == t_sig || t == t_acc || (o.dst >= 0 && t == o.dst);
         case OPK_BCAST: return t == o.dst || t == t_sig;
@@ -221,6 +221,7 @@ __device__ void interp_ieval(uint32_t* P, const uint32_t* Vy, int p, int g1, int
     int S0 = gb(Vy, I.t_s[i][0]), S1 = gb(Vy, I.t_s[i][1]), S2 = gb(Vy, I.t_s[i][2]);
     switch (o1.kind) {
         case OPK_CONST: if (inr) sb(P, t_hold, o1.param); break;
+        case OPK_REGWIN: if (inr) sb(P, t_hold, 0); break;     // depth-2 tower: level-2 has no register window
         case OPK_MOV: if (inr) sb(P, t_hold, S0); break;
         case OPK_BITOP: if (inr) sb(P, t_hold, (o1.param >> ((S0 << 2) | (S1 << 1) | S2)) & 1); break;
         case OPK_SHIFT: if (inr) {

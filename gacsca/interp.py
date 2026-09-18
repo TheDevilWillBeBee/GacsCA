@@ -14,7 +14,7 @@ from .microcode import Compiler, Layout, Tracks, Op, Program
 
 # level-0 op kinds of the interpretation phase
 IKINDS = ("IINIT", "ILATCH", "ICHAIN", "IBC", "IEVAL", "IWF", "BUSLATCH_INT", "REGWIN")
-INTERPRETABLE = ("CONST", "MOV", "BITOP", "SHIFT", "RSHIFT", "SWEEP_INIT", "SWEEP", "BCAST_INIT", "BCAST", "BUSLATCH_INT")
+INTERPRETABLE = ("CONST", "MOV", "BITOP", "SHIFT", "RSHIFT", "SWEEP_INIT", "SWEEP", "BCAST_INIT", "BCAST", "BUSLATCH_INT", "REGWIN")
 
 
 class InterpCtx:
@@ -36,7 +36,7 @@ class InterpCtx:
 
 def writes(op, T):
     k = op.kind
-    if k in ("CONST", "MOV", "BITOP", "SHIFT", "RSHIFT", "BCAST_INIT"):
+    if k in ("CONST", "MOV", "BITOP", "SHIFT", "RSHIFT", "BCAST_INIT", "REGWIN"):
         return {op.dst}
     if k == "SWEEP_INIT":
         return {T["SIG"], op.dst}
@@ -398,6 +398,12 @@ def _ieval(P, V, S, gm, op, ctx, ops1, inrng, r, t, c, a1):
         return
     if k == "CONST":
         P[:, :, hold][base_sel] = op1.param
+    elif k == "REGWIN":
+        # the simulated cell's [its own simulated age in the level-2 register window]: the level-2
+        # program of a depth-2 tower has no register load -> window (0,0) -> 0 (ctx.regwin_upup)
+        lo2, hi2 = getattr(ctx, "regwin_upup", (0, 0))
+        val = ((S["simage"] * 0 + 0 >= lo2) & (0 < hi2)).astype(np.uint8) if hi2 > lo2 else np.zeros_like(a1, np.uint8)
+        P[:, :, hold][base_sel] = val[base_sel]
     elif k == "MOV":
         P[:, :, hold][base_sel] = S0[base_sel].astype(np.uint8)
     elif k == "BITOP":
