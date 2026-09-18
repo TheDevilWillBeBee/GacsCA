@@ -51,6 +51,16 @@ latch slots, up to four ops per age, compile-time assertion); the unit and acid 
 nonzero level-2 states and include the receive ages. The same review found a nearest-neighbour
 priority inversion for rightward broadcasts (fixed) and fragile temp-track lifetimes (documented).
 
+The first full-length run (one complete level-1 work period with nonzero level-2 states) exposed two
+more defects that the phase-wise acid test could not see because its initial states never carried the
+F1*/F2* signal bit: Tr_local still had Gray's Flag conditions (iii)/(iv) (Workspace.Flag1/2 of the
+neighbours) hard-wired to 0 from stage 1, so level-2→level-1 trickle-down never raised the level-1
+Flag1; and the interpreted "wipe everything on Flag1 + address change" used the equality bit
+inverted. Both fixed; the acid test now includes a signalled-trickle case (all 8 phases OK) and the
+Tr_local spec test uses random workspace flags. The decoded level-2 transition after a full level-1
+period matched the level-2 rule even in the defective run (the level-2 fields are computed before
+the defects act), i.e. the colonies-of-colonies computation itself was already correct.
+
 ## The self-reference boundary (why the tower and not a single uniform rule)
 Interpreting a level-1 op requires knowing *which* op is active, i.e. a table lookup keyed by the
 level-1 age. Here that lookup is a primitive of the cell (the table is part of the transition
