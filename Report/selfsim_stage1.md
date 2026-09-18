@@ -64,6 +64,13 @@ Two adjacent misaligned full colonies (address 0 at site 20Q+100) inside a 256-c
 
 ![island](../figs/island_trickle_n2_s100.png)
 
+![depth results](../figs/depth_results.png)
+
+Note on the amplifier plot: at small ε the measured ε₁ is *linear* (≈40ε ≈ 2×10⁻⁵ per hit), so a rare
+single-hit channel exists that the 40-trial single-hit diagnostic could not resolve; the
+adjacent-pair estimate 2QUε² over-predicts by ≈10× at ε ≥ 3×10⁻⁵ (most pairs are harmless).
+`experiments/phase_noise.py` localises the channel by restricting noise to phases of the work period.
+
 ## Injected damage vs depth (`experiments/damage_vs_depth.py`, 512-colony ring, U = 8192 runs)
 | damage | level-0 only | depth 1 (trickle-down) |
 |---|---|---|

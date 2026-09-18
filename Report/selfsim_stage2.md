@@ -57,6 +57,17 @@ d−1 register pairs (22 bits each), is a single well-defined CA rule at each le
 every mechanism of the hierarchy (colonies encoding cells, work periods, mailboxes, computation,
 encoding/decoding, redundancy repair, trickle-down) at every level.
 
+## Depth-2 noise (`experiments/depth2_noise.py`)
+Level-1 error rate per cell-period (a level-1 cell is wrong if *any* of its 220 decoded bits differs
+from the direct level-1 engine's one-step prediction), 64 level-1 cells, 8 periods:
+
+| ε | 1e-5 | 3e-5 | 1e-4 | 3e-4 |
+|---|---|---|---|---|
+| ε₁ (full level-1 rule, 220 bits) | 0 (of 512) | 0 (of 512) | 0.034 | 0.17 |
+| ε₁ (stage 1, 28-bit level-1 cells) | 4e-4 | 1.2e-3 | 4.9e-3 | 3.2e-2 |
+
+The usable regime of the simulation structure is ε ≲ 10⁻⁴ (≈ 400 hits per colony per period).
+
 ## Cost (measured)
 One level-1 step = U₀ = 16384 level-0 steps; 64 colonies (16 384 cells) run at ≈1 s per level-1
 step on the A100. One level-2 step = U₀·U₁ = 6.7×10⁷ level-0 steps ≈ 70 min for 64 colonies
