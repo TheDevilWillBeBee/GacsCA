@@ -1,0 +1,63 @@
+# Stage 2: colonies of colonies — level-1 cells running the full rule (finite tower)
+
+## What was built
+`gacsca/interp.py` (NumPy semantics + compiler) and `gacsca/cuda/interp.cuh` (CUDA, bit-identical)
+add an **interpretation phase** to the level-0 work period. After Tr_local has computed the new
+local fields of the simulated level-1 cell, the colony computes the new *simulation-structure
+tracks* of that cell — and of its two neighbours, for the copies it must hold — by executing the
+level-1 op table (`prog_up`) at the level-1 age and address held in two integer registers of every
+level-0 cell (`simage`, `simaddr`; colony-local majority repair, suspended during the load window).
+
+Mechanism (per period, 1505 level-0 steps for Q₀=256, D=3):
+1. For each neighbour offset o = −4..4: rebuild the repaired level-1 tracks of cell o from the
+   ARG tracks (`VT = MAJ3(shift(ARG_{o+1},+1), ARG_o, shift(ARG_{o−1},−1))`), then move `VT` along a
+   bus track in both directions (D cells/step). Every level-0 cell knows which level-1 bit it is the
+   writer for (track t, copy slot r ⇒ simulated cell c = r−h) and latches, at the computed pass
+   step, exactly the bits that the active level-1 op needs from offset o (sources, token/carry of
+   the sweep hypotheses k = 1..D, broadcast candidates, shift sources, Info bits for the
+   Workspace-flag rules). Carry chains through intermediate cells are advanced after each pass.
+2. `IEVAL` (one step per op slot): writer cells compute the op result (CONST/MOV/BITOP/SHIFT/
+   RSHIFT/SWEEP_INIT/SWEEP/BCAST_INIT/BCAST/BUSLATCH_INT) and write `Hold`.
+3. Level-1 holder-side wipes (Mailbox if F1*, everything if F1* and address change),
+   level-1 Workspace flags (`IWF`), then a bus pass loads the level-0 registers from the new
+   level-1 AGE/ADDR fields (`BUSLATCH_INT`), and `Info := Hold` at age U−1.
+
+The **tower**: level 0 (Q₀=256, U₀=16384, K₁=220 bits, program 10 894 steps) simulates level-1
+cells (Q₁=64, U₁=4096, program 3550 steps, no interpretation phase) that simulate local-only
+level-2 cells (Q₂=16, U₂=2048, K₂=21 bits). Each level is a finite CA; each simulates the next
+exactly. Track registries are identical at all levels; the levels differ in (Q, U) and in whether
+they carry an interpretation phase.
+
+## Verification
+| test | result |
+|---|---|
+| `tests/test_interp.py` — interpreted Hold tracks (3 simulated cells) vs `apply_ops` of the level-1 rule on a level-1 ring, 15 level-1 ages covering every op kind, 3 address settings | pass |
+| `tests/test_gpu_engine.py::test_gpu_tower_matches_numpy` — CUDA vs NumPy over the whole interpretation phase on random states | pass (bit-identical) |
+| `experiments/tower_acid.py` — decoded level-1 trajectory (all 220 bits: local fields, registers, 61×3 track copies) vs the direct level-1 engine, 4 periods from 7 starting ages (period start, gather 2, compute start/mid, signalling, trickle, update) | **ALL OK** |
+| `experiments/tower_full_period.py` — one complete level-1 work period (4096 level-0 periods), decoded level-2 transition vs the level-2 rule | running (see log) |
+
+Two bugs found by the acid test are worth recording: (1) integer registers repaired by the plain
+5-voter majority *leak across colony boundaries* (the last cells of a colony vote from the right,
+i.e. entirely inside the next colony) — the Address field does not leak only because its votes are
+position-adjusted; fixed with a colony-local rule (voters restricted to R∩C / L∩C, fallback to the
+other side, else keep). (2) A temp-track lifetime error made a broadcast reuse the track holding the
+latched Info bit for the Workspace-flag rule.
+
+## The self-reference boundary (why the tower and not a single uniform rule)
+Interpreting a level-1 op requires knowing *which* op is active, i.e. a table lookup keyed by the
+level-1 age. Here that lookup is a primitive of the cell (the table is part of the transition
+function; the key is the `simage` register). If level-1 cells themselves ran an interpretation
+phase (a depth-3 tower, or a uniform rule), the level-0 colony would have to reproduce *their*
+lookup, keyed by the level-2 age — one more integer register per nesting depth. A uniform rule
+would therefore need unboundedly many registers. Gács avoids this because in his construction the
+program counter is *data* on the `Cpt` track processed by a universal medium interpreting `My-rules`
+(Secs 9.2–9.3), at the price of an interpreter cost ∝ (|program|+1)² per simulated step that makes
+explicit multi-level runs infeasible. The finite tower is the executable compromise: depth d needs
+d−1 register pairs (22 bits each), is a single well-defined CA rule at each level, and reproduces
+every mechanism of the hierarchy (colonies encoding cells, work periods, mailboxes, computation,
+encoding/decoding, redundancy repair, trickle-down) at every level.
+
+## Cost (measured)
+One level-1 step = U₀ = 16384 level-0 steps; 64 colonies (16 384 cells) run at ≈1 s per level-1
+step on the A100. One level-2 step = U₀·U₁ = 6.7×10⁷ level-0 steps ≈ 70 min for 64 colonies
+(one level-2 cell), ≈ 2–9 h for a 1024-colony ring (16 level-2 cells, a level-2 ground state).

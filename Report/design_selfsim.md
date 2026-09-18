@@ -69,4 +69,12 @@ updates/s). Consequence: level-1 dynamics can be studied for thousands of level-
 dynamics for O(10-100) steps; level 3 only as static encoded structure. This is intrinsic to any
 faithful implementation (Gray's U=128Q is worse); it is documented rather than worked around.
 
-## 5. Interpretation choices vs Gray/Masumori (see Report/discrepancies.md)
+## 5. Revision after stage 2 (finite tower)
+Section 2.4's "same op table used to interpret the simulated cell" holds for one nesting level:
+the interpreting cell needs the simulated cell's age and address as integers (registers `simage`,
+`simaddr`). Interpreting a cell that itself interprets needs its registers too, i.e. one register
+pair per depth. The implemented system is therefore a finite tower (see selfsim_stage2.md), with
+level-specific (Q, U) chosen so that the top level is local-only and small: level-2 steps become
+affordable (U₀U₁ ≈ 6.7×10⁷ level-0 steps instead of U² ≈ 2.7×10⁸).
+
+## 6. Interpretation choices vs Gray/Masumori (see Report/discrepancies.md)

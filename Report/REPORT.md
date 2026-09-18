@@ -1,7 +1,8 @@
 # GacsCA: executable Gács/Gray noise-robust cellular automaton — project report
 
-Last updated: 2026-09-18. Sub-reports: [design_selfsim.md](design_selfsim.md),
-[discrepancies.md](discrepancies.md), [level0.md](level0.md).
+Last updated: 2026-09-18 (evening). Sub-reports: [design_selfsim.md](design_selfsim.md),
+[discrepancies.md](discrepancies.md), [level0.md](level0.md), [selfsim_stage1.md](selfsim_stage1.md),
+[selfsim_stage2.md](selfsim_stage2.md).
 
 ## 0. Goal and status in one paragraph
 Build, verify and experimentally study an executable version of Gács' one-dimensional
@@ -13,9 +14,14 @@ self-simulation machinery is designed ([design_selfsim.md](design_selfsim.md)) a
 implemented and verified** ([selfsim_stage1.md](selfsim_stage1.md)): colonies of 256 cells
 simulate level-1 cells (local structure) through timed mail streams, a bit-serial microprogram
 computing the level-1 transition, and trickle-down; the decoded level-1 trajectory equals the
-direct one; CUDA engine ≈2×10⁹ cell-updates/s. First hierarchy experiments: the induced level-1
-error rate scales as ≈QUε² (adjacent-pair channel), and a misaligned-colony island that level-0
-rules cannot erode is moved/eroded by trickle-down (glider dynamics, see sub-report).
+direct one; CUDA engine ≈2×10⁹ cell-updates/s. **Stage 2 is implemented and verified**
+([selfsim_stage2.md](selfsim_stage2.md)): a three-level finite tower in which level-0 colonies
+interpret the level-1 op table, so level-1 cells run the complete rule (tracks, mail streams,
+bit-serial computation of the level-2 transition, trickle-down, update) and simulate level-2
+cells; the decoded level-1 trajectory equals the direct level-1 engine in every phase. Hierarchy
+experiments: the induced level-1 error rate scales as ≈QUε² (adjacent-pair channel); a
+misaligned-colony island that level-0 rules cannot erode becomes a glider under trickle-down and
+is eliminated at the next level-2 boundary (healed at period 80 on a 512-colony ring).
 
 ## 1. Sources and how they relate
 - Gács 2001 (J. Stat. Phys. 103) — the full construction: media, block codes, amplifiers, robust
@@ -72,11 +78,20 @@ Cost model: level-2 dynamics reachable for O(10–100) steps; level 3 static onl
 - Misaligned-colony island: fixed point for level-0 rules; with trickle-down it becomes a glider
   (erodes 3 colonies/period on the left, invades 3 on the right) until a level-2 boundary.
 
-## 6. Next concrete steps
-1. Island on a 512-colony ring (two level-2 cells): confirm the right end stops at the level-2
-   boundary and the island then erodes (running).
-2. Stage 2: interpretation of the simulated cell's own microstep (uniform rule), enabling level-1
-   cells that simulate level-2 cells; depth-2 encodings and island experiments vs depth.
-3. Gray's Flag2 right-end reversal: characterise (fires once per 16 periods) and test islands whose
-   right end is not at a level-2 boundary.
-4. Burst noise (space-time boxes) → does it create stable islands? lifetime vs depth.
+## 6. Stage-2 results (summary; details in selfsim_stage2.md)
+- Tower: level 0 (Q=256, U=16384) → level 1 (Q=64, U=4096, full rule) → level 2 (Q=16, local-only).
+- Interpretation phase: 1505 level-0 steps per period; `tower_acid.py` ALL OK on 7 phases × 4 periods.
+- Self-reference boundary documented: a uniform rule needs one integer register pair per nesting
+  depth; Gács's data-driven interpreter avoids it at a cost that forbids explicit multi-level runs.
+- Cost: one level-2 step ≈ 6.7×10⁷ level-0 steps (≈1 h for one level-2 cell, hours for a ring).
+- Injected islands: 1 misaligned colony heals at level 0; 2–3 misaligned colonies are level-0
+  fixed points and heal at depth 1 (period 80); time-misaligned islands heal at depth 1 in 2
+  periods; random bursts (up to 2000 cells × 500 steps) heal at level 0 within 3 periods.
+
+## 7. Next concrete steps
+1. Finish the full level-1 work period run (`tower_full_period.py`): decoded level-2 transition.
+2. Depth-2 noise characterisation: level-1 error rate when level-1 cells carry tracks.
+3. Depth-2 island experiment: a misaligned level-1 island (128 misaligned level-0 colonies) inside
+   a 16-level-2-cell ring — repaired by level-2 trickle-down (overnight run).
+4. Depth 3 (nested interpretation with a second register pair) if time permits.
+5. Gray's Flag2 right-end reversal; lifetime vs ε at moderate noise for depth 0/1.
