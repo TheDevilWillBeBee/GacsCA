@@ -24,7 +24,8 @@ class Alloc:
             self.free.append(n); self.n -= 1
 
 
-TEMPS = ["T0", "T1", "T2", "T3", "T4", "T5", "BC"] + [f"BF{i}" for i in range(22)]
+def temps_of(T):
+    return ["T0", "T1", "T2", "T3", "T4", "T5", "BC"] + [n for n in T.names if n.startswith("BF")]
 
 
 class TrLocal:
@@ -35,7 +36,7 @@ class TrLocal:
         self.FA = self.L.frange("ADDR"); self.FG = self.L.frange("AGE")
         self.aF1 = self.L.frange("F1")[0]; self.aF2 = self.L.frange("F2")[0]
         self.FR = (self.L.b0, self.L.b0 + self.L.track_base)     # local part of the layout
-        self.al = Alloc(TEMPS)
+        self.al = Alloc(temps_of(self.T))
         self.stage2 = stage2
 
     # ---- helpers ----

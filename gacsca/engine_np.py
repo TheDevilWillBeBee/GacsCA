@@ -70,6 +70,8 @@ def apply_ops(V, addr, age, prog: Program, T: Tracks, mask_age=None):
                 inside = _in_range(src_addr, op.lo, op.hi) & (src_addr == addr - d)
                 val = np.where(inside, src_val, op.param2).astype(np.uint8)
                 P[:, :, op.dst][m] = val[m]
+            elif k == "RSHIFT":
+                P[:, :, op.dst][m] = roll(V[:, :, op.src], -op.param)[m]
             elif k == "SWEEP_INIT":
                 P[:, :, T["SIG"]][m] = 1
                 P[:, :, op.dst][m] = op.param
