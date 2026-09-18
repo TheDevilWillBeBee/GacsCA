@@ -27,12 +27,20 @@ __device__ __forceinline__ Op1 load_op(const int* o) {
     r.src3 = o[8]; r.param = o[9]; r.param2 = o[10]; r.skind = o[11]; return r;
 }
 
-// active level-1 ops at simulated age g1 (at most 3)
+#define NMAX 4
+// active level-1 ops at simulated age g1 (at most NMAX)
 __device__ __forceinline__ int active_ops_up(const ICtx& I, int g1, Op1* out) {
     if (g1 < 0 || g1 >= I.U_up) return 0;
     int s = I.age_ptr_up[g1], e = I.age_ptr_up[g1 + 1], n = 0;
-    for (int q = s; q < e && n < 3; q++) out[n++] = load_op(I.ops_up + (size_t)I.op_idx_up[q] * OPW);
+    for (int q = s; q < e && n < NMAX; q++) out[n++] = load_op(I.ops_up + (size_t)I.op_idx_up[q] * OPW);
     return n;
+}
+__device__ __forceinline__ bool is_shift_kind(const Op1& o) { return o.kind == OPK_SHIFT || o.kind == OPK_RSHIFT; }
+// resource-class slot of op i0 among the active ops (shift-kind ops use SHSRC slots, others S slots)
+__device__ __forceinline__ int slot_of(const Op1* ops1, int i0) {
+    int s = 0; bool cl = is_shift_kind(ops1[i0]);
+    for (int j = 0; j < i0; j++) if (is_shift_kind(ops1[j]) == cl) s++;
+    return s;
 }
 
 __device__ __forceinline__ bool op_writes(const Op1& o, int t, int t_sig, int t_acc) {
@@ -79,13 +87,15 @@ __device__ void interp_ilatch(uint32_t* P, const uint32_t* V, int ky, int p, int
     int o = op.param, dirn = op.param2;
     int r, t, c; bool inr = cell_geom(I, R, NT, p, r, t, c);
     int a1 = ((simaddr + c) % I.Qs + I.Qs) % I.Qs;
-    Op1 ops1[3]; int n1 = active_ops_up(I, g1, ops1);
+    Op1 ops1[NMAX]; int n1 = active_ops_up(I, g1, ops1);
     int D1 = I.D_up;
     int oo = o - c;
     #define PH(tr) (I.b0 + I.track_base + (tr) * R + (R - 1) / 2)
-    for (int i = 0; i < n1; i++) {
-        const Op1& o1 = ops1[i];
+    for (int i0 = 0; i0 < n1; i0++) {
+        const Op1& o1 = ops1[i0];
+        int i = slot_of(ops1, i0);
         if (o1.kind == OPK_BUSLATCH_INT) {
+            if (t_busup < 0) continue;      // simulated level has no register load (depth-2 tower)
             // writer cells: SIMAGE/SIMADDR field positions (c = 0 only)
             int tau1 = g1 - o1.t0, dir1 = o1.param2;
             for (int f = 0; f < 2; f++) {
@@ -152,11 +162,12 @@ __device__ void interp_ichain(uint32_t* P, const uint32_t* Vy, int p, int g1, in
     int o = op.param; int r, t, c;
     if (!cell_geom(I, R, NT, p, r, t, c)) return;
     int a1 = ((simaddr + c) % I.Qs + I.Qs) % I.Qs;
-    Op1 ops1[3]; int n1 = active_ops_up(I, g1, ops1);
+    Op1 ops1[NMAX]; int n1 = active_ops_up(I, g1, ops1);
     int D1 = I.D_up, oo = o - c;
-    for (int i = 0; i < n1; i++) {
-        const Op1& o1 = ops1[i];
+    for (int i0 = 0; i0 < n1; i0++) {
+        const Op1& o1 = ops1[i0];
         if (o1.kind != OPK_SWEEP) continue;
+        int i = slot_of(ops1, i0);
         if (!op_writes(o1, t, t_sig, t_acc)) continue;
         int sv = gb(Vy, I.t_s[i][0]), s2v = gb(Vy, I.t_s[i][1]);
         for (int kk = 2; kk <= D1; kk++) {
@@ -173,10 +184,10 @@ __device__ void interp_ibc(uint32_t* P, const uint32_t* Vy, int p, int g1, int s
     int o = op.param; int r, t, c;
     if (!cell_geom(I, R, NT, p, r, t, c)) return;
     int a1 = ((simaddr + c) % I.Qs + I.Qs) % I.Qs;
-    Op1 ops1[3]; int n1 = active_ops_up(I, g1, ops1);
+    Op1 ops1[NMAX]; int n1 = active_ops_up(I, g1, ops1);
     int D1 = I.D_up, oo = o - c;
-    for (int i = 0; i < n1; i++) {
-        const Op1& o1 = ops1[i];
+    for (int i0 = 0; i0 < n1; i0++) {
+        const Op1& o1 = ops1[i0];
         if (o1.kind != OPK_BCAST) continue;
         if (!op_writes(o1, t, t_sig, t_acc)) continue;
         int dir1 = (o1.param == 0) ? -1 : o1.param;
@@ -185,17 +196,18 @@ __device__ void interp_ibc(uint32_t* P, const uint32_t* Vy, int p, int g1, int s
             if (oo != sh) continue;
             int sig = gb(Vy, I.t_sig[kk]), val = gb(Vy, I.t_carry[kk]), found = gb(Vy, I.t_bfound);
             bool inr = (a1 + sh >= o1.lo) && (a1 + sh < o1.hi);
-            if (found == 0 && sig == 1 && inr) { sb(P, I.t_bval, val); sb(P, I.t_bfound, 1); }
+            if ((found == 0 || dir1 > 0) && sig == 1 && inr) { sb(P, I.t_bval, val); sb(P, I.t_bfound, 1); }
         }
     }
 }
 
 __device__ void interp_ieval(uint32_t* P, const uint32_t* Vy, int p, int g1, int simaddr, const Op1& op, const ICtx& I,
                              int R, int NT, int t_sig, int t_acc, int t_hold) {
-    int i = op.param;
-    Op1 ops1[3]; int n1 = active_ops_up(I, g1, ops1);
-    if (i >= n1) return;
-    const Op1& o1 = ops1[i];
+    int i0 = op.param;
+    Op1 ops1[NMAX]; int n1 = active_ops_up(I, g1, ops1);
+    if (i0 >= n1) return;
+    const Op1& o1 = ops1[i0];
+    int i = slot_of(ops1, i0);
     int D1 = I.D_up;
     if (o1.kind == OPK_BUSLATCH_INT) {
         int tau1 = g1 - o1.t0, dir1 = o1.param2;

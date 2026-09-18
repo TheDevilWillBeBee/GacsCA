@@ -19,7 +19,8 @@ eng1 = sys1.np_engine()
 def level1_initial(rng, age1, ncell=ncol0):
     """level-1 ring of ncell cells (ncell/Q1 level-1 colonies): ground state of the level-1 local
     structure, level-2 states (local-only, addresses mod Q2) encoded in the level-1 Info track."""
-    level2 = [dict(addr=i % L1.Qs, age=0, f1=0, f2=0) for i in range(ncell // Q1)]
+    # non-trivial level-2 states (nonzero Info bits) so that dropped/garbled level-1 receives are visible
+    level2 = [dict(addr=(i + 5) % L1.Qs, age=777 + i, f1=i % 2, f2=(i + 1) % 2) for i in range(ncell // Q1)]
     S1 = eng1.initial(1, info_bits=encode_info(level2, L1, Q1)[None, :])
     S1["age"][:] = age1
     return S1

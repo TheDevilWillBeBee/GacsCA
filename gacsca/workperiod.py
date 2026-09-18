@@ -70,7 +70,7 @@ def build_workperiod(p: Params, T: Tracks, L: Layout, D=3, variant=Variant(), ga
     if prog_up is not None:
         ictx = _interp.InterpCtx(L, T, prog_up, L_up, trickle_up, None, regwin_up=regwin_up)
         t_i0 = C.t
-        _interp.compile_iphase(C, ictx, tl.al, tl.F1N, tl.VRT, L.Qs, L.Us)
+        _interp.compile_iphase(C, ictx, tl.al, tl.F1N)
         iphase = (t_i0, C.t)
     compute_end = C.t
     # F1*, F2* -> INFO at addresses Q-3 and 3 (Gray p.35)

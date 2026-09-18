@@ -13,7 +13,7 @@ T, L0, L1, s1 = ta.T, ta.L0, ta.L1, ta.sched1
 U0, U1, Q0, Q1 = ta.U0, ta.U1, ta.Q0, ta.Q1
 rng = np.random.default_rng(0)
 S1 = ta.level1_initial(rng, 0)
-level2_init = [dict(addr=i % L1.Qs, age=0, f1=0, f2=0) for i in range(ta.ncol0 // Q1)]
+level2_init = [dict(addr=(i + 5) % L1.Qs, age=777 + i, f1=i % 2, f2=(i + 1) % 2) for i in range(ta.ncol0 // Q1)]
 S0 = ta.eng0.initial(1, info_bits=ta.encode_level1_into_level0(S1)[None, :])
 S0["simage"][:] = 0; S0["simaddr"][:] = (np.arange(ta.p0.L) // Q0) % Q1
 st = ta.g0.to_gpu(S0)
@@ -39,8 +39,9 @@ info_dec = np.array([d["tracks"][T["INFO"], (T.R - 1) // 2] for d in dec], np.ui
 l2_from_l0 = [tuple(L1.decode(info_dec[i * Q1 + L1.b0:i * Q1 + L1.b0 + L1.K])[k] for k in ("ADDR", "AGE", "F1", "F2")) for i in range(len(info_dec) // Q1)]
 l2_direct = level2_from_S1(S1)
 p2 = Params(Q=L1.Qs, U=L1.Us, ncol=1)
-arr = dict(addr=np.array([[c["addr"] for c in level2_init]]), age=np.array([[0] * len(level2_init)]), f1=np.zeros((1, len(level2_init)), np.int8),
-           f2=np.zeros((1, len(level2_init)), np.int8), wf1=np.zeros((1, len(level2_init)), np.int8), wf2=np.zeros((1, len(level2_init)), np.int8))
+arr = dict(addr=np.array([[c["addr"] for c in level2_init]]), age=np.array([[c["age"] for c in level2_init]]),
+           f1=np.array([[c["f1"] for c in level2_init]], np.int8), f2=np.array([[c["f2"] for c in level2_init]], np.int8),
+           wf1=np.zeros((1, len(level2_init)), np.int8), wf2=np.zeros((1, len(level2_init)), np.int8))
 nxt = l0.step(arr, p2)
 l2_rule = [(int(nxt["addr"][0, i]), int(nxt["age"][0, i]), int(nxt["f1"][0, i]), int(nxt["f2"][0, i])) for i in range(len(level2_init))]
 print("level-2 state after one level-2 step: from level-0 decode:", l2_from_l0, " direct level-1 engine:", l2_direct, " level-2 rule:", l2_rule)

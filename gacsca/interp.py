@@ -12,6 +12,18 @@ offset o at the computed pass step.
 import numpy as np
 from .microcode import Compiler, Layout, Tracks, Op, Program
 
+NMAX = 4          # max concurrent level-1 ops per age handled by the interpreter
+NSLOT = 3         # latch slots per resource class (S-slots for value ops, SHSRC for shift ops)
+
+
+def slot_of(ops1, i):
+    """resource-class slot of op i among the ops active at one age: shift-kind ops use SHSRC
+    slots, the others S-slots (sweeps/bcasts also use the shared SIGk/CARRYk tracks)."""
+    k = ops1[i].kind
+    cls = (lambda o: o.kind in ("SHIFT", "RSHIFT"))
+    return sum(1 for j in range(i) if cls(ops1[j]) == cls(ops1[i]))
+
+
 # level-0 op kinds of the interpretation phase
 IKINDS = ("IINIT", "ILATCH", "ICHAIN", "IBC", "IEVAL", "IWF", "BUSLATCH_INT", "REGWIN")
 INTERPRETABLE = ("CONST", "MOV", "BITOP", "SHIFT", "RSHIFT", "SWEEP_INIT", "SWEEP", "BCAST_INIT", "BCAST", "BUSLATCH_INT", "REGWIN")
@@ -50,7 +62,7 @@ def writes(op, T):
 
 
 # ---------------------------------------------------------------- compile
-def compile_iphase(C: Compiler, ctx: InterpCtx, al, F1N, VRT, Qs, Us):
+def compile_iphase(C: Compiler, ctx: InterpCtx, al, F1N):
     """Emit the interpretation phase.  al: temp allocator (Alloc).  Returns dict of temp names."""
     T, L, R, h = ctx.T, ctx.L, ctx.R, ctx.h
     trng = ctx.trng
@@ -83,7 +95,9 @@ def compile_iphase(C: Compiler, ctx: InterpCtx, al, F1N, VRT, Qs, Us):
         C.emit("ICHAIN", param=o, rng=trng); C.t += 1
         C.emit("IBC", param=o, rng=trng); C.t += 1
     C.const(names["BUS"], 0, rng=(0, Q))
-    for i in range(3):
+    nmax = max(len(ctx.prog_up.ops_at(a)) for a in range(ctx.prog_up.U))
+    assert nmax <= NMAX, f"level-1 program has {nmax} concurrent ops (max {NMAX})"
+    for i in range(nmax):
         C.emit("IEVAL", param=i, rng=(0, Q)); C.t += 1
     # free the pass temporaries (BUS is kept for the register load, WFB for the IWF op)
     for nm in names:
@@ -171,7 +185,8 @@ def apply_iop(P, V, S, m, am, op, tau, ctx: InterpCtx, T, D):
     # level-1 active ops per distinct simage value
     for g1 in np.unique(simage[m]) if m.any() else []:
         gm = m & (simage == g1)
-        ops1 = ctx.prog_up.ops_at(int(g1))[:3]
+        ops1 = ctx.prog_up.ops_at(int(g1))
+        assert len(ops1) <= NMAX
         if k == "ILATCH":
             _ilatch(P, V, S, gm, op, tau, ctx, ops1, inrng, r, t, c, a1, D)
         elif k == "ICHAIN":
@@ -191,6 +206,7 @@ def _needs(ctx, op1, i, T, r, t, c, a1, o, D1):
     oo = o - c                                          # relative offset of o from the cell's simulated cell
     w = writes(op1, T)
     wr = np.isin(t, list(w)) if w else np.zeros_like(t, bool)
+    assert i < NSLOT, "too many concurrent ops of one class"
     Si = [n[f"S{i}0"], n[f"S{i}1"], n[f"S{i}2"]]
     k = op1.kind
     ph = lambda tr: ctx.pos(tr, ctx.h)
@@ -240,7 +256,8 @@ def _ilatch(P, V, S, gm, op, tau, ctx, ops1, inrng, r, t, c, a1, D):
     addr = S["addr"]
     bus = V[:, :, n["BUS"]]
     D1 = ctx.D_up
-    for i, op1 in enumerate(ops1):
+    for i0, op1 in enumerate(ops1):
+        i = slot_of(ops1, i0)
         if op1.kind == "BUSLATCH_INT":
             _ilatch_buslatch(P, V, S, gm, op, tau, ctx, op1, D)
             continue
@@ -331,8 +348,9 @@ def _ichain(P, V, gm, op, ctx, ops1, inrng, r, t, c, a1):
     """after the passes for absolute offset o: advance the sweep carry hypotheses through the
     intermediate cell at relative offset oo = o - c (for hypotheses k > -oo)."""
     T = ctx.T; n = ctx.n; o = op.param; D1 = ctx.D_up
-    for i, op1 in enumerate(ops1):
+    for i0, op1 in enumerate(ops1):
         if op1.kind != "SWEEP": continue
+        i = slot_of(ops1, i0)
         oo = o - c
         wr = np.isin(t, list(writes(op1, T)))
         sv = V[:, :, n[f"S{i}0"]].astype(np.int32); s2v = V[:, :, n[f"S{i}1"]].astype(np.int32)
@@ -349,7 +367,7 @@ def _ichain(P, V, gm, op, ctx, ops1, inrng, r, t, c, a1):
 def _ibc(P, V, gm, op, ctx, ops1, inrng, r, t, c, a1):
     """after the passes for offset o: BCAST accumulation (first neighbour with SIG=1 wins)."""
     T = ctx.T; n = ctx.n; o = op.param; D1 = ctx.D_up
-    for i, op1 in enumerate(ops1):
+    for i0, op1 in enumerate(ops1):
         if op1.kind != "BCAST": continue
         dirn = -1 if op1.param == 0 else op1.param
         oo = o - c
@@ -361,15 +379,18 @@ def _ibc(P, V, gm, op, ctx, ops1, inrng, r, t, c, a1):
             sig = V[:, :, n[f"SIG{kk}"]]; val = V[:, :, n[f"CARRY{kk}"]]
             found = V[:, :, n["BFOUND"]]
             inr = (a1 + sh >= op1.lo) & (a1 + sh < op1.hi)
-            take = sel & (found == 0) & (sig == 1) & inr
+            # nearest neighbour wins (engine scans kk = 1..D): passes visit kk decreasing for dirn>0,
+            # so a later (nearer) candidate overwrites; for dirn<0 the first found is the nearest.
+            take = sel & ((found == 0) | (dirn > 0)) & (sig == 1) & inr
             P[:, :, n["BVAL"]][take] = val[take]
             P[:, :, n["BFOUND"]][take] = 1
 
 
 def _ieval(P, V, S, gm, op, ctx, ops1, inrng, r, t, c, a1):
-    T = ctx.T; n = ctx.n; i = op.param; D1 = ctx.D_up
-    if i >= len(ops1): return
-    op1 = ops1[i]
+    T = ctx.T; n = ctx.n; i0 = op.param; D1 = ctx.D_up
+    if i0 >= len(ops1): return
+    op1 = ops1[i0]
+    i = slot_of(ops1, i0)
     k = op1.kind
     hold = T["HOLD"]
     wr = np.isin(t, list(writes(op1, T)))

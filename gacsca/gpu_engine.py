@@ -53,7 +53,7 @@ class EngineGPU:
                      "SHSRC0", "SHSRC1", "SHSRC2", "S00", "S01", "S02", "S10", "S11", "S12", "S20", "S21", "S22", "BLB", "WFB", "F1N"]
             cfg[46:46 + len(names)] = [I.n[nm] for nm in names]
             cfg[46 + len(names)] = I.prog_up.U
-            cfg[15] = I.n["BUS"]
+            cfg[15] = -1          # bus track of the simulated level's register load (none in a depth-2 tower)
             ou, au, iu = pack_program(I.prog_up, I.prog_up.U)
             self.ops_up = torch.from_numpy(ou).cuda(); self.age_ptr_up = torch.from_numpy(au).cuda(); self.op_idx_up = torch.from_numpy(iu).cuda()
         self.cfg = torch.from_numpy(cfg).cuda()

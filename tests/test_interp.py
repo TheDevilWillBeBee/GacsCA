@@ -31,6 +31,11 @@ def pick_ages():
         op = ops[len(ops) // 2]
         a = op.t0 + (op.t1 - op.t0) // 2
         picks[kind] = a
+    # receive ages of the gathers: 4 concurrent ops (2 RSHIFT + 2 MOV / BITOP)
+    for a in range(prog1.U):
+        if len(prog1.ops_at(a)) >= 4:
+            picks[f"RECV{a}"] = a
+            if len([k for k in picks if k.startswith("RECV")]) >= 3: break
     # a few extra sweep ages (chain hypotheses k = 1..3)
     sw = d.get("SWEEP", [])
     for kk, op in enumerate(sw[:6]):
