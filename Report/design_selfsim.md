@@ -78,3 +78,20 @@ level-specific (Q, U) chosen so that the top level is local-only and small: leve
 affordable (U₀U₁ ≈ 6.7×10⁷ level-0 steps instead of U² ≈ 2.7×10⁸).
 
 ## 6. Interpretation choices vs Gray/Masumori (see Report/discrepancies.md)
+
+## 7. Depth 3 (design, not implemented)
+A fourth level (level-2 cells running the full rule, simulating local-only level-3 cells) requires
+the level-1 cells to carry an interpretation phase, hence the level-0 interpreter must reproduce
+level-1 ops of kinds IINIT/ILATCH/ICHAIN/IBC/IEVAL/IWF/REGWIN/BUSLATCH_INT. Each of these is a
+per-cell rule of the level-1 cell parameterised by the *level-2* active ops (table lookup keyed by
+the level-1 cell's `simage` register) and by the level-1 cell's slot geometry. Implementation:
+(a) a second register pair (`simage2`, `simaddr2`) in every level-0 cell, loaded each period from
+the SIMAGE/SIMADDR fields of the simulated level-1 cell (Arg_0), colony-locally repaired;
+(b) `_needs`/`_ieval` extended with a nested case that, for a level-1 op of an interpretation kind,
+computes the level-1 cell's latch/eval decision from (level-2 active ops at `simage2`, level-1
+address = `simaddr`, level-1 slot geometry of the level-1 layout L1, level-1 pass step
+= `simage` − op.t0) and reads the corresponding level-1 bits from the passes (they are ordinary
+track bits of the level-1 neighbours). Cost: U₁ grows to ≈ 2·U₁ (its own I-phase), a level-3 step
+is U₀U₁U₂ ≈ 3×10¹¹ level-0 steps — its dynamics are unobservable; only the static structure and
+per-phase correctness (acid test at level 1 through its I-phase, ≈ 25 GPU-minutes per phase) can
+be verified. Deferred in favour of depth-2 experiments.
