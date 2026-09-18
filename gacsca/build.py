@@ -45,8 +45,8 @@ def make_tower(Q0=256, U0=16384, Q1=64, U1=4096, Q2=16, U2=2048, ncol0=64, R=3, 
     """Depth-2 tower: level-0 cells (Q0, U0) simulate level-1 cells (Q1, U1) which simulate
     local-only level-2 cells (Q2, U2).  Returns (sys0, sys1); sys1 is the level-1 system whose
     program is interpreted by sys0 (ncol of sys1 = ncol0 level-1 cells)."""
-    sys1 = make_system(Q=Q1, U=U1, ncol=ncol0, R=R, D=D, variant=variant, JMAX=JMAX1,
-                       Qs=Q2, Us=U2, with_tracks=False, Qss=2, Uss=2)
+    sys1 = make_system(Q=Q1, U=U1, ncol=max(1, ncol0 // Q1), R=R, D=D, variant=variant, JMAX=JMAX1,
+                       Qs=Q2, Us=U2, with_tracks=False, Qss=2, Uss=2)      # level-1 ring has ncol0 cells
     p0 = Params(Q=Q0, U=U0, ncol=ncol0)
     T0 = Tracks(JMAX=6, wq=(Q0 - 1).bit_length(), wu=(U0 - 1).bit_length(), R=R)
     L0 = Layout(Q0, U0, T0, Qs=Q1, Us=U1, with_tracks=True, Qss=Q2, Uss=U2)

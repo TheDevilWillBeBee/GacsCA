@@ -124,13 +124,21 @@ __device__ __forceinline__ void local_rule(const int* addr, const int* age, cons
     }
     ADDR = majority5(av, cur_addr, P.plurality);
     AGE = (majority5(gv, cur_age, P.plurality) + 1) % U;
-    int sg[5], sa[5];
-    for (int i = 1; i <= 5; i++) {
-        if (vote_right) { sg[i - 1] = simage[RR(i)]; sa[i - 1] = simaddr[RR(i)]; }
-        else { sg[i - 1] = simage[LL(i)]; sa[i - 1] = simaddr[LL(i)]; }
+    // registers: colony-local majority on the voting side (>= 3 in-colony voters), fallback other side, else keep
+    for (int f = 0; f < 2; f++) {
+        const int* reg = f == 0 ? simage : simaddr;
+        int vR[5], vL[5]; bool mR[5], mL[5];
+        for (int i = 1; i <= 5; i++) { vR[i - 1] = reg[RR(i)]; mR[i - 1] = inR[i]; vL[i - 1] = reg[LL(i)]; mL[i - 1] = inL[i]; }
+        int valR = 0, okR = 0, valL = 0, okL = 0;
+        for (int i = 0; i < 5; i++) {
+            if (mR[i]) { int cnt = 0; for (int j = 0; j < 5; j++) cnt += (mR[j] && vR[j] == vR[i]); if (cnt >= 3) { valR = vR[i]; okR = 1; } }
+            if (mL[i]) { int cnt = 0; for (int j = 0; j < 5; j++) cnt += (mL[j] && vL[j] == vL[i]); if (cnt >= 3) { valL = vL[i]; okL = 1; } }
+        }
+        int res = reg[5];
+        if (vote_right) { if (okR) res = valR; else if (okL) res = valL; }
+        else { if (okL) res = valL; else if (okR) res = valR; }
+        if (f == 0) SIMAGE = res; else SIMADDR = res;
     }
-    SIMAGE = majority5(sg, simage[5], P.plurality);
-    SIMADDR = majority5(sa, simaddr[5], P.plurality);
     #undef RR
     #undef LL
 }

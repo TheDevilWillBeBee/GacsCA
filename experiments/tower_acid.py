@@ -17,20 +17,11 @@ eng1 = sys1.np_engine()
 
 
 def level1_initial(rng, age1, ncell=ncol0):
-    """level-1 ring: ground state of the level-1 local structure (addresses mod Q1), level-2 states
-    encoded in the level-1 Info tracks (local-only level-2 cells, addresses mod Q2)."""
-    level2 = [dict(addr=i % L1.Qs, age=0, f1=0, f2=0) for i in range(ncell // Q1 + 1)]
-    S1 = eng1.initial(1)
+    """level-1 ring of ncell cells (ncell/Q1 level-1 colonies): ground state of the level-1 local
+    structure, level-2 states (local-only, addresses mod Q2) encoded in the level-1 Info track."""
+    level2 = [dict(addr=i % L1.Qs, age=0, f1=0, f2=0) for i in range(ncell // Q1)]
+    S1 = eng1.initial(1, info_bits=encode_info(level2, L1, Q1)[None, :])
     S1["age"][:] = age1
-    info1 = np.zeros(ncell, np.uint8)
-    for i in range(0, ncell, Q1):
-        n = min(Q1, ncell - i)
-        bits = L1.encode(level2[i // Q1]["addr"], 0, 0, 0, None)
-        seg = np.zeros(Q1, np.uint8); seg[L1.b0:L1.b0 + L1.K] = bits
-        info1[i:i + n] = seg[:n]
-    S1["trk"] = redistribute(np.repeat(info1[None, :, None], T.NT, axis=2) * 0, T.R)
-    prim = repair(S1["trk"]); prim[0, :, T["INFO"]] = info1
-    S1["trk"] = redistribute(prim, T.R)
     return S1
 
 

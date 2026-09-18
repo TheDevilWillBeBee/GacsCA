@@ -38,6 +38,16 @@ def majority5(votes, current, variant: Variant):
     return np.where(tie, current, val)
 
 
+def masked_majority(votes, mask):
+    """votes (...,5), mask (...,5) bool: value supported by >=3 masked voters -> (value, ok)."""
+    eq = ((votes[..., :, None] == votes[..., None, :]) & mask[..., None, :]).sum(-1)   # support of each vote
+    eq = np.where(mask, eq, 0)
+    best = eq.argmax(-1)
+    nbest = np.take_along_axis(eq, best[..., None], -1)[..., 0]
+    val = np.take_along_axis(votes, best[..., None], -1)[..., 0]
+    return val, nbest >= 3
+
+
 def apparent_colony(addr, Q):
     """Returns (exists (B,L) bool, v (B,L) int).  v = position of x in C(x)."""
     votes = (stack_R(addr) - OFFS) % Q                                  # (B,L,5)
@@ -119,8 +129,15 @@ def step(S, p: Params, variant: Variant = Variant(), reg_window=(0, 0)):
     for k in ("simage", "simaddr"):
         if k in S:
             v = S[k]
-            votes = np.where(vote_right[..., None], stack_R(v), stack_L(v))
-            out[k] = np.where(inwin, v, majority5(votes, v, variant)).astype(v.dtype)
+            # colony-local majority: voters restricted to R(x)&C(x) (resp. L(x)&C(x)); a value needs
+            # >= 3 in-colony voters; fall back to the other side, else keep (registers must not leak
+            # across colony boundaries).
+            vR, vL = stack_R(v), stack_L(v)
+            mR = masked_majority(vR, inR_C); mL = masked_majority(vL, inL_C)
+            first_v, first_ok = np.where(vote_right, mR[0], mL[0]), np.where(vote_right, mR[1], mL[1])
+            second_v, second_ok = np.where(vote_right, mL[0], mR[0]), np.where(vote_right, mL[1], mR[1])
+            rep = np.where(first_ok, first_v, np.where(second_ok, second_v, v))
+            out[k] = np.where(inwin, v, rep).astype(v.dtype)
     # Workspace.Flag1/2 are recomputed every step from the simulation structure (Gray Sec. 5.5:
     # 1 -> 0 whenever any of their conditions fails).  Without a simulation structure they are 0.
     out["wf1"] = np.zeros_like(wf1); out["wf2"] = np.zeros_like(wf2)

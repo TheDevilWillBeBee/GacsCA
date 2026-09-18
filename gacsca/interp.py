@@ -85,9 +85,9 @@ def compile_iphase(C: Compiler, ctx: InterpCtx, al, F1N, VRT, Qs, Us):
     C.const(names["BUS"], 0, rng=(0, Q))
     for i in range(3):
         C.emit("IEVAL", param=i, rng=(0, Q)); C.t += 1
-    # free the pass temporaries (BUS is kept for the register load)
+    # free the pass temporaries (BUS is kept for the register load, WFB for the IWF op)
     for nm in names:
-        if nm != "BUS": al.put(names[nm])
+        if nm not in ("BUS", "WFB"): al.put(names[nm])
     # level-1 wipes (holder form): mail bits if F1N; everything if F1N and the address changed
     ADDRCH = al.get()
     C.sweep("EQF", L.frange("ADDR"), src="HOLD", src2=T.names[T.arg(0)], acc_init=1)
@@ -103,6 +103,7 @@ def compile_iphase(C: Compiler, ctx: InterpCtx, al, F1N, VRT, Qs, Us):
     al.put(ADDRCH, F1T)
     # level-1 workspace flags (writer cells at the WF1/WF2 positions use WFB latched INFO bits)
     C.emit("IWF", rng=(L.frange("WF1")[0], L.frange("WF2")[0] + 1)); C.t += 1
+    al.put(names["WFB"])
     # load the level-0 registers from the new simulated AGE / ADDR fields (Hold) via two bus passes
     C.const(names["BUS"], 0, rng=(0, Q))
     C.mov(names["BUS"], "HOLD", rng=L.frange("AGE"), advance=False)

@@ -74,15 +74,18 @@ class TrLocal:
     def count_ge3(self, cnt, dst, rng=None):
         self.C.bitop(dst, lambda a, b, _: a & b, cnt[0], cnt[1], rng=rng or self.FR)
 
-    def maj5(self, vals, rng, cur, out, ex):
+    def maj5(self, vals, rng, cur, out, ex, masks=None):
         """majority (>=3 equal) of five bit-serial values on tracks `vals` over rng -> `out`
-        (= cur if none); ex (over FR) <- exists."""
+        (= cur if none); ex (over FR) <- exists.  masks: optional per-value validity tracks (over FR):
+        a value only counts if its mask bit is 1 (pairwise equality is ANDed with both masks)."""
         C = self.C
         E = {}
         for a in range(5):
             for b in range(a + 1, 5):
                 t = self.al.get(); E[(a, b)] = t
                 self.eqf_dec(vals[a], vals[b], rng, t)
+                if masks is not None:
+                    C.bitop(t, lambda e, ma, mb: e & ma & mb, t, masks[a], masks[b], rng=self.FR)
         C.const(ex, 0, rng=self.FR, advance=False); C.const(out, 0, rng=rng)
         W = self.al.get()
         for a in range(5):
@@ -219,12 +222,32 @@ class TrLocal:
         C.emit("REGWIN", dst=self.T[INW], rng=(0, self.L.Q)); C.t += 1
         for fname in ("SIMAGE", "SIMADDR"):
             FS = self.L.frange(fname)
-            MR, ML2, EXR, tt = al.get(), al.get(), al.get(), al.get()
-            self.maj5([A(i) for i in range(1, 6)], FS, A(0), MR, EXR)
-            self.maj5([A(-i) for i in range(1, 6)], FS, A(0), ML2, EXR)
-            C.bitop(tt, lambda r, a, b: a if r else b, VRT, MR, ML2, rng=FS)
+            # colony-local majority (voters restricted to R&C / L&C; needs >= 3), fallback, else keep
+            masks = []
+            for i in range(1, 6):
+                m_ = al.get(); self.ltc_dec(VR, FA, Q - i, m_); C.bitop(m_, lambda e, l, _: e & l, EX, m_, rng=FR); masks.append(m_)
+            MR, EXR = al.get(), al.get()
+            self.maj5([A(i) for i in range(1, 6)], FS, A(0), MR, EXR, masks=masks)
+            al.put(*masks)
+            masks = []
+            for i in range(1, 6):
+                m_ = al.get(); self.ltc_dec(VR, FA, i, m_); C.bitop(m_, lambda e, l, _: e & (1 - l), EX, m_, rng=FR); masks.append(m_)
+            ML2, EXL = al.get(), al.get()
+            self.maj5([A(-i) for i in range(1, 6)], FS, A(0), ML2, EXL, masks=masks)
+            al.put(*masks)
+            tt = al.get()
+            # first choice by direction, fallback to the other side, else own
+            C.bitop(tt, lambda r, a, b: a if r else b, VRT, MR, ML2, rng=FS)          # first value
+            fok = al.get(); sok = al.get()
+            C.bitop(fok, lambda r, a, b: a if r else b, VRT, EXR, EXL, rng=FR, advance=False)
+            C.bitop(sok, lambda r, a, b: b if r else a, VRT, EXR, EXL, rng=FR)
+            sv = al.get(); C.bitop(sv, lambda r, a, b: b if r else a, VRT, MR, ML2, rng=FS)  # second value
+            C.bitop(tt, lambda ok, first, second: first if ok else second, fok, tt, sv, rng=FS)
+            C.bitop(tt, lambda ok1, ok2, v: v if (ok1 | ok2) else 0, fok, sok, tt, rng=FS, advance=False)
+            C.bitop(sv, lambda ok1, ok2, own: 0 if (ok1 | ok2) else own, fok, sok, A(0), rng=FS)
+            C.bitop(tt, lambda a, b, _: a | b, tt, sv, rng=FS)
             C.bitop(out, lambda w, own, mj: own if w else mj, INW, A(0), tt, rng=FS)
-            al.put(MR, ML2, EXR, tt)
+            al.put(MR, ML2, EXR, EXL, tt, fok, sok, sv)
         al.put(INW)
         self.F1N, self.F2N, self.VRT = F1N, F2N, VRT
         al.put(F2N, VRT)                                  # F1N is kept for the interpretation phase
