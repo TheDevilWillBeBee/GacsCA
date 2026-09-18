@@ -43,6 +43,14 @@ position-adjusted; fixed with a colony-local rule (voters restricted to R∩C / 
 other side, else keep). (2) A temp-track lifetime error made a broadcast reuse the track holding the
 latched Info bit for the Workspace-flag rule.
 
+A third bug was found by an independent code review after the acid tests had passed: the
+interpreter truncated the level-1 op list to three ops per age, while gathers run four concurrent
+ops (two stream shifts + two receives), so the left-neighbour receive was silently dropped. It was
+invisible because the level-2 test states encoded to all-zero Info bits. Fixed (per-resource-class
+latch slots, up to four ops per age, compile-time assertion); the unit and acid tests now use
+nonzero level-2 states and include the receive ages. The same review found a nearest-neighbour
+priority inversion for rightward broadcasts (fixed) and fragile temp-track lifetimes (documented).
+
 ## The self-reference boundary (why the tower and not a single uniform rule)
 Interpreting a level-1 op requires knowing *which* op is active, i.e. a table lookup keyed by the
 level-1 age. Here that lookup is a primitive of the cell (the table is part of the transition
