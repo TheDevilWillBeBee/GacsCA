@@ -1,0 +1,2 @@
+trickle2=1 period 1 (level-1 age 1, level-2 step 0): level-1 misaligned cells 131 in [148,278], level-0 damaged 0 (3s)
+trickle2=1 period 2 (level-1 age 2, level-2 step 0): level-1 misaligned cells 134 in [148,281], level-0 damaged 0 (6s)

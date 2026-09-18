@@ -34,7 +34,7 @@ they carry an interpretation phase.
 | `tests/test_interp.py` — interpreted Hold tracks (3 simulated cells) vs `apply_ops` of the level-1 rule on a level-1 ring, 15 level-1 ages covering every op kind, 3 address settings | pass |
 | `tests/test_gpu_engine.py::test_gpu_tower_matches_numpy` — CUDA vs NumPy over the whole interpretation phase on random states | pass (bit-identical) |
 | `experiments/tower_acid.py` — decoded level-1 trajectory (all 220 bits: local fields, registers, 61×3 track copies) vs the direct level-1 engine, 4 periods from 7 starting ages (period start, gather 2, compute start/mid, signalling, trickle, update) | **ALL OK** |
-| `experiments/tower_full_period.py` — one complete level-1 work period (4096 level-0 periods), decoded level-2 transition vs the level-2 rule | running (see log) |
+| `experiments/tower_full_period.py` — one complete level-1 work period (4096 level-0 periods = 6.7×10⁷ level-0 steps, 69 checkpoints of all 220 bits × 64 cells), decoded level-2 transition vs the level-2 rule | **OK**: every checkpoint matches; level-2 state (5, 778, 1, 1) identical via level-0 decode, direct level-1 engine, and the level-2 rule (53 min on the A100) |
 
 Two bugs found by the acid test are worth recording: (1) integer registers repaired by the plain
 5-voter majority *leak across colony boundaries* (the last cells of a colony vote from the right,

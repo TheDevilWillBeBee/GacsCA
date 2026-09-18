@@ -80,7 +80,9 @@ Cost model: level-2 dynamics reachable for O(10–100) steps; level 3 static onl
 
 ## 6. Stage-2 results (summary; details in selfsim_stage2.md)
 - Tower: level 0 (Q=256, U=16384) → level 1 (Q=64, U=4096, full rule) → level 2 (Q=16, local-only).
-- Interpretation phase: 1505 level-0 steps per period; `tower_acid.py` ALL OK on 7 phases × 4 periods.
+- Interpretation phase: 1505 level-0 steps per period; `tower_acid.py` ALL OK on 8 phase cases; a full
+  level-1 work period (6.7×10⁷ level-0 steps) reproduces the level-2 transition exactly
+  (`tower_full_period.py`: RESULT OK) — colonies of colonies verified end to end.
 - Self-reference boundary documented: a uniform rule needs one integer register pair per nesting
   depth; Gács's data-driven interpreter avoids it at a cost that forbids explicit multi-level runs.
 - Cost: one level-2 step ≈ 6.7×10⁷ level-0 steps (≈1 h for one level-2 cell, hours for a ring).
