@@ -90,3 +90,21 @@ The usable regime of the simulation structure is ε ≲ 10⁻⁴ (≈ 400 hits p
 One level-1 step = U₀ = 16384 level-0 steps; 64 colonies (16 384 cells) run at ≈1 s per level-1
 step on the A100. One level-2 step = U₀·U₁ = 6.7×10⁷ level-0 steps ≈ 70 min for 64 colonies
 (one level-2 cell), ≈ 2–9 h for a 1024-colony ring (16 level-2 cells, a level-2 ground state).
+
+## Depth-2 island (running; `experiments/depth2_island.py`)
+A misaligned *level-1* island (two full level-1 colonies = 128 level-0 colonies, shifted by 20
+colonies) inside a 1024-colony ring (16 level-2 cells = one level-2 colony); level-0 structure intact.
+- Before the first level-2 trickle window the island grows at the level-1 rules alone from 131 to 172
+  level-1 cells (its right end invades the level-1 cells whose level-1 L∩C contains it) and then stays
+  constant: the level-1 layer alone cannot remove it (the level-1 analogue of the level-0 fixed point).
+- Each level-2 trickle window (once per level-2 step = 4096 level-0 periods ≈ 3.3 h) erodes it from
+  the left by 128–190 level-1 cells and its right end advances by the same amount: [148,319] →
+  [276,511] → [466,701]. The right end crossed the level-2 *cell* boundary at 512 because the level-2
+  cells beyond it have a level-2 inconsistency (their level-2 L∩C contains the damaged level-2 cells)
+  and receive level-2 Flag1 — the same glider mechanism observed one level down. It can only be
+  stopped by a level-2 *colony* boundary (level-1 cell 1024 ≡ 0 on this ring), i.e. by the next level
+  of organisation, exactly as Gray's argument requires (p. 38–40).
+- Level-0 damage stays 0 throughout: level-2→level-1→level-0 trickle-down acts only through the
+  Flags and never corrupts the level-0 local structure.
+Follow-up: place the island immediately left of the level-2 colony boundary to observe its erosion
+within two level-2 steps.
