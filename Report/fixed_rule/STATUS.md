@@ -1,83 +1,75 @@
 # Fixed-rule agent status
 
-Updated 2026-09-28. Full fixed-rule Gacs/Gray goal is active and incomplete.
-Please reply in Report/fixed_rule/MAIN_AGENT_NOTES.md; this agent never edits it.
-Only new fixed_rule namespace files and mutable STATUS were changed. No shared
-source, GPU job, historical data, root/shared report or CUDA artifact changed.
-Earlier complete status is archived in
-[STATUS_BEFORE_COMPACT16_COMPILER_OPTIMIZATION_20260928.md](STATUS_BEFORE_COMPACT16_COMPILER_OPTIMIZATION_20260928.md).
+Updated 2026-09-28. Full fixed-rule Gács/Gray objective remains active and incomplete. Please reply only in `Report/fixed_rule/MAIN_AGENT_NOTES.md`; I do not edit it. My current changes are new files in the owned fixed_rule source/test/experiment/report namespaces plus this mutable status. I have not edited shared source, reports, GPU jobs, CUDA artifacts, historical data, or other-agent notes. Latest complete-period result is [GATHER29_FULL_PERIOD.md](GATHER29_FULL_PERIOD.md); optimization measurements are in [BRANCH_AND_GATHER29_CANDIDATES.md](BRANCH_AND_GATHER29_CANDIDATES.md).
 
-## User direction
+## Direction and checkpoint
 
-Focus now on Q/U optimization, beginning with promising low-impact changes.
-Defer additional stochastic noise sweeps. Stop if a weekly/session limit is
-reported; ask before continuing with credits. No limit notice occurred this
-turn. User allows up to40GB shared host RAM; these CPU-only jobs used<90MiB
-sampled RSS each. Main agent owns substantial GPU scheduling.
+User directed Q/U optimization, beginning with promising low-impact changes, and asked for a source-only Git checkpoint. Existing root `.git` was used; commit `5fc10a7` snapshots source, tests, and reports. No logs, figures, data files, JSON, NPY/NPZ, PNG/PDF, or `figs/` entries were committed. Existing modified `figs/depth2_island.log` and untracked data remain outside the commit. All fixed-AND changes below are uncommitted. Stop if a weekly/session usage limit is reported and ask before spending more credits; no limit notice occurred in this turn. Main agent owns substantial GPU scheduling. This work used CPU only, peak 376136 KiB RSS.
 
-## Latest result
+## Earlier fixed-AND candidate
 
-[COMPACT16_COMPILER_OPTIMIZATION.md](COMPACT16_COMPILER_OPTIMIZATION.md) details the
-new candidate and preserved failed paths. One fixed physical rule F:
-Q16384/U2^30/radius7,154raw words4090bits, descriptor
-53f7adbf7c34df6b17897b20a0d0654108f23a9c064defb89bb3c6d1a7fb846b.
-Compiler candidate's fixed own ROM is
-0de4dc9ba97f861a04e975fad7d44a2e5eb5952bc30f3a7d08fac0ea3118c3be.
-No depth-dependent parameter or new hardware/opcode; G's ROM metadata differs.
+[AND_OPCODE_CANDIDATE.md](AND_OPCODE_CANDIDATE.md) contains the source justification, architecture, measurements, failed attempts, verification and limits. Gray pp.31–32 supports hard-wired Address-determined ProgramBit projection; Gács §9.3 permits simulation of an identical or suitably modified self-correcting rule. General-purpose universality is unnecessary. The new physical rule has one fixed radius-seven neighborhood, raw schema 154 words/4090 bits, projected 105 words/2704 bits, Q16384/U2^30, and a fixed own ROM independent of depth. Depth one/two raw parent decoding and depth-three ROM identity were tested; there is no depth-specific hardware/kernel.
 
-Sharing-aware three-leaf NAND rewrite removes23 descriptor operations. Reverse
-output-dependency traversal and scratch capacity270 give12906->12883 instruction
-cells,3447->3397 MEM cells,16354->16281 core cells and819159153->811855585
-scheduled controller ticks:73cells and7303568ticks saved,0.892% travel.
-Physical Q/U stay unchanged. Candidate selected from bounded10-descriptor x9-
-capacity search (8.885s/watch9.133s,75112KiB), not global optimum.
+Added fixed `AND` instruction kind14 and `alu` code6 without widening 4-bit kind or 3-bit alu. Both opcode/controller and exact 64-bit behavior are included in the complete physical self-description. The new rule owns its fixed parameter module and projected schema/decoder. Compiling the description and fusing 1629 exclusive NAND inversion cones reduces 10555 optimized operations to 8926. A verified reverse-output dependency order and fixed scratch capacity256 yield the final ROM. The ROM emits 1635 AND instructions. New complete F digest `13753641417305409333a10208609b932c28b26643a6c88d49d2c8a8d2b0e48f`; ordered description `81b018a5f73c324e5caf14ce4a6d8781cdef03ec9823ee87501a3477841b331c`; own ROM SHA-256 `09394d7d9f357c66cbaea14d549d90de396d8592252c5735a60d89848221090a`.
 
-Exact verified-domain checks: baseline full154-output arbitrary-typed descriptor
-identity; all12 accepted NAND cut truth tables and their recorded labels; complete
-output-order dependency mapping; own-ROM symbolic full controller,62010history
-instances,355215instructions,2940META calls,26790packets. Final ROM certificate
-PASS5.706s/watch5.913s,88824KiB. Three testsPASS5.420s/watch5.642s,
-83532KiB, including scalar raw local F agreement and negative mutations of
-controller output and false rewrite label. Representative physical full-raw
-ALU/SEND/LOAD/HALT/META endpoint/fallback/dispatch path probePASS1.291s,
-66820KiB; interior singletonMETA queries1,3396,3397 PASS1.211s,
-66956KiB. New-ROM exhaustive path/schedule composition, actual U-tick period,
-GPU execution, depth2 endpoints and repair are NOT transferred from old ROM.
+Versus the previous compiler-only fixed-ROM candidate: MEM 3397→3383, instructions 12883→11380, core 16281→14764, scheduled controller path 811855585→648041233. Saved 1517 core cells and 163814352 path ticks (20.18%). Existing Q/U remain unchanged. `core+5=14769>8192`; path ticks exceed 2^29. Bounded 56-trial dependency-order/capacity search found a slightly faster path at capacity270: 647887321 ticks, core14778. Capacity256 was selected for the smaller core. No smaller colony/work period claimed.
 
-First NAND cut pass grew10452->10489 operations by duplicating shared nodes;
-archived and rejected. Typed low-bit masking pass gave10operations but lacks
-full-output proof; rejected. First ROM wrapper lost Python kwdefaults; corrected.
-One mutation test found a gap in recorded truth-label validation; checker fixed,
-search/ROM proof rerun as v2/v3 and tests nowPASS. First META singleton helper
-rejected unsupported negative affine query coefficient; successful limited
-checks use scoped adapter. Failed versions and logs remain. No physical-rule
-failure is claimed from these helper exceptions.
+## Validation and limitations
 
-A read-only count finds1746 two-NAND AND cones,1610 with exclusive inner NAND.
-Next first substantial candidate: add one fixed binary AND operation to physical
-F/controller; measure net self-description/ROM/core/travel after closure. Estimate
-and caveats in report. This is an opportunity count only, not implemented gain.
-Even fully fusing those pairs alone cannot fit Q8192/U2^29. ROM loops or a new
-execution layout may be required after this candidate. Do not reuse old macrostep
-or noise certificates without rechecking the new rule/ROM.
+`python -m unittest tests.fixed_rule.test_and_holder_candidate -v`: 8 tests passed in 4.678 s after final reorder and isolated parameter/projected-state refactors. Covers distinct opcodes, unchanged widths/radius, all raw local outputs on random and clock-boundary inputs, direct AND FETCH/READ_B local step, full-raw symbolic AND FETCH/READ_B local events for every canonical base Address, distance-eight locality, raw controller encoding/decoding, ROM identity across depths, verified dependency order, and negative mutation of `s2_pc`.
 
-## Evidence and commands
+`python -m experiments.fixed_rule.certify_and_holder_rom`: PASS on the preordered candidate in 3.621 s; final ordered candidate rerun through `measure_and_holder_candidate` PASS in 4.609 s. Exact structural equivalence of all 154 F outputs on arbitrary typed inputs; conditional symbolic own-ROM data flow over 15 colonies, 62010 histories, 310125 instructions, 2940 metadata queries, 26790 packets, both evaluations and Info commit/reset. Timing windows fit.
 
-Corrected seal figs/fixed_rule/compact16_compiler_optimization_evidence_v2.json:
-1149files+9external banks, all1086 prior files unchanged. v1 seal accidentally
-hashed its own in-progress empty log, and is preserved as invalid history.
-[Correction](COMPACT16_COMPILER_SEAL_CORRECTION.md). v2 excluded its own log and
-watch. Its watch PASS4.895s/53220KiB; the entire v2 manifest was separately
-rehash-checked. The new mutable STATUS and v2 own log/watch are not sealed.
+`python -m experiments.fixed_rule.certify_and_holder_read_b`: PASS in 0.876 s, 4158 full raw output words over AND READ_B and both FETCH geometries; local event premises explicit. `python -m experiments.fixed_rule.explore_and_holder_order --output figs/fixed_rule/and_holder_order_search_v1.json`: PASS, 56 trials, 7.275 s, 376136 KiB peak RSS. `python -m experiments.fixed_rule.measure_and_holder_candidate --output figs/fixed_rule/and_holder_candidate_v6.json`: PASS, 5.223 s, same sampled peak RSS. Receipt contains 71 source hashes, full final conditional certificate and physical local-event receipts. All 71 receipt hashes were independently rechecked. These are data receipts under excluded `figs/`, not for Git. Preordering v1 and earlier source-seal v2/v3/v4/v5 receipts are retained as history.
 
-python -m experiments.fixed_rule.bounded_cuda_probe --output figs/fixed_rule/compact16_compiler_search_v2_watch.json --seconds 60 --rss-mib 512 -- python -m experiments.fixed_rule.explore_compact16_compiler_v2
-python -m experiments.fixed_rule.bounded_cuda_probe --output figs/fixed_rule/compact16_compiler_rom_v3_watch.json --seconds 120 --rss-mib 1024 -- python -m experiments.fixed_rule.certify_compact16_holder_compiler_rom_v3
-python -m experiments.fixed_rule.bounded_cuda_probe --output figs/fixed_rule/compact16_compiler_tests_v2_watch.json --seconds 90 --rss-mib 512 -- python -m unittest tests.fixed_rule.test_compact16_compiler_candidate_v2 -v
-python -m experiments.fixed_rule.bounded_cuda_probe --output figs/fixed_rule/compact16_compiler_paths_v3_watch.json --seconds 120 --rss-mib 768 -- python -m experiments.fixed_rule.probe_compact16_compiler_paths_v3
-python -m experiments.fixed_rule.bounded_cuda_probe --output figs/fixed_rule/compact16_compiler_meta_hit_v3_watch.json --seconds 120 --rss-mib 768 -- python -m experiments.fixed_rule.probe_compact16_compiler_meta_hit_v3
-python -m experiments.fixed_rule.bounded_cuda_probe --output figs/fixed_rule/compact16_compiler_optimization_evidence_v2_watch.json --seconds 60 --rss-mib 512 -- python -m experiments.fixed_rule.seal_compact16_compiler_optimization_v2
+The conditional checker assumes physical instruction/packet path contracts. The new AND FETCH/READ_B one-step events have complete raw symbolic checks for all canonical base Addresses under stated premises. Complete changed-ROM physical path composition, continuous U-tick period, successive decoded depth-two macrosteps, repair, depth three and noise amplification are **not** verified. Earlier physical certificates belong to the old F/ROM and must not be transferred. Printed Flag2 persistence and computed-SimBit timing source qualifications remain.
 
-Prior63-cell repair audit remains valid only for the unchanged old-ROM candidate;
-its previous full status and independent evidence lineage are retained.
-Printed Flag2 persistence and computed-SimBit timing remain source qualifications.
-No further stochastic noise testing is planned at this stage.
+Failed approaches: making all `Builder.band` calls direct AND grew the core to16707 and path to861162314; rejected. First AND kind12 collided with HALT, and the symbolic gather missed its deadline despite an apparent 14815-cell fit; corrected to kind14 and guarded by tests. Both failures are documented in the report.
+
+## Ownership and next work
+
+Owned new files: `gacsca/fixed_rule/and_holder_*.py`, `wordcode_and.py`, `word_identity_and.py`, `word_allocation_and.py`, `word_and_fusion.py`; `experiments/fixed_rule/certify_and_holder_rom.py`, `certify_and_holder_read_b.py`, `measure_and_holder_candidate.py`, `explore_and_holder_order.py`; `tests/fixed_rule/test_and_holder_candidate.py`; `Report/fixed_rule/AND_OPCODE_CANDIDATE.md`; `figs/fixed_rule/and_holder_candidate_v1.json` through `and_holder_candidate_v6.json`, `and_holder_order_search_v1.json` (data, excluded from Git). Mutable owned file: this STATUS. Main-agent response file is read-only.
+
+The originally proposed next optimization priority was [OPTIMIZATION_ROUTES_20260928.md](OPTIMIZATION_ROUTES_20260928.md). Routes 1 and the cheap gather-sharing slice of route 2 are now implemented below; its 379383977-tick estimate has been superseded by measured candidate paths.
+
+## New early-branch and shared-gather candidates
+
+Gray pp.30–32 motivates short copying/comparison routines and ProgramBit projection; Gács §§9.2–9.3 allows a concise rule and identical or similar self-simulation. `branch_holder_*` adds fixed `BRANCH_THIRD` kind15 to compute only the Flag1/Flag2 backward slice during the early signal stage and fall through to a full raw evaluation later. This branch is included in the rule's own self-description, with no width, radius or depth-dependent kernel changes. At unchanged Q16384/U2^30: MEM3383, instructions11451, core14835, controller path383563835. `branch29_holder_*` independently retimes fixed reset/vote/capture/Wf windows to U2^29 and retains that same core and path. It passes complete raw own-ROM conditional symbolic dataflow and positive timing windows; it is not a physically executed U-tick trajectory.
+
+`gather29_holder_*` reuses one 691-instruction gather body for all three reset stages. A fixed high-bit `PHASE_MARK` on ADD destination/SEND target selects history offsets (0,2,3) by the local physical Age; the vote slot remains separate at offset1. Both marked-address behavior and its fixed age tests are in the full self-description. Current candidate: Q16384/U536870912, radius7, raw154 words/4090bits, projected105 words/2704bits, MEM3383, instructions10249, core13633, scheduled controller path357637146. Versus separate gathers at the same U, 1202 core cells and 25926689 path ticks are saved. The full physical F digest is `71152fe782db86266ec4dad8f2dc84adeb71be7b190f13ece48fcf39d117261e`; compiled digest `97504d9153a3f0e911a3a8cbcb704e1e9cbc9ed0aece470d1cd9109d65e168c9`; ROM SHA-256 `dc5cf26b450b29673c1a9e9011df4852f69bada3c612aa10e38c1437585898eb`. Q8192 still lacks 5446 cells, so this shared body alone cannot halve Q.
+
+`python -m unittest tests.fixed_rule.test_branch_holder -v`: 5 passed. `python -m unittest tests.fixed_rule.test_branch29_holder -v`: 5 passed. `python -m unittest tests.fixed_rule.test_gather29_holder -v`: 8 passed in 6.016 s after adding symbolic event tests. Earlier combined branch/branch29/gather run: 17 passed in 12.826 s before that test was added. Checks include arbitrary typed structural equality of all raw description outputs, random/clock-boundary scalar local F equality, local physical branch at both ages, marked ADD/SEND targets at all three gather ages, depth-independent ROM/width/radius, and mutations that must break symbolic dynamics. `python -m experiments.fixed_rule.measure_gather29_holder --output figs/fixed_rule/gather29_candidate_v2.json`: PASS in 4.354 s, process peak376136 KiB RSS. Receipt has source hashes and conditional symbolic dataflow over15 colonies,62010 histories,183510 instructions,2205 metadata queries,26790 packets, and all154 raw fields at final Hold/Info commit. New full-raw symbolic physical local events cover eight coherent branch/marked-ADD/marked-SEND cases and 11088 output words; they remain one-step events. Computed margins: gathers at least5423588 ticks, early capture6815617, stage3 stop9818369, final evaluation109935812.
+
+Final focused verification: `python -m unittest tests.fixed_rule.test_branch_holder tests.fixed_rule.test_branch29_holder tests.fixed_rule.test_gather29_holder -q`: 18 passed in 14.910 s. Independently rehashed all 75 Python source/test files recorded by the v2 receipt: zero mismatches. `git diff --check -- Report/fixed_rule/STATUS.md`: clean. `Report/fixed_rule/MAIN_AGENT_NOTES.md` was absent on read-only check; the requested reply path remains reserved and untouched.
+
+Implemented behavior now includes a fixed local scalar rule, self-description, initialized ROM, complete *conditional* own-ROM dataflow, explicit one-step full-raw symbolic physical branch/marked-target events, and two actual continuous accelerated lower work periods on 15 encoded upper cells as detailed below. Not yet established: a complete U-upper-step depth-two work period, general physical-event composition, damaged upper-state repair or noise robustness. No substantial GPU job started. Rejected a tempting three-slot history block: it would overwrite an original history before the second temporal vote and weaken its independence. Next retain the two-period regression while extending event composition and repair validation; coordinate with the main agent before GPU work. A larger counted-loop evaluator would be required for a plausible Q8192 attempt.
+
+Additional owned files: `gacsca/fixed_rule/branch_holder_*.py`, `branch29_holder_*.py`, `gather29_holder_*.py`; `experiments/fixed_rule/certify_branch_holder_rom.py`, `certify_branch29_holder_rom.py`, `certify_gather29_holder_rom.py`, `certify_gather29_holder_local_events.py`, `measure_gather29_holder.py`; corresponding three test modules; [BRANCH_AND_GATHER29_CANDIDATES.md](BRANCH_AND_GATHER29_CANDIDATES.md) and the amended routes report. `figs/fixed_rule/gather29_candidate_v1.json` and `v2.json` are data excluded from Git. Old AND modules and receipts are preserved. No shared interface change requested.
+
+## New full-period answer to the user's validation request
+
+The previous answer correctly said no full physical period had been run. That gap is now closed on a stated canonical domain. An isolated new-rule CPU physical backend (`gather29_holder_native`, `cpu_events`, `cpu_gather`, `cpu_boundary`, `cpu_general`, `flags_cpu`, `period_relation`, `quotient`, `word_native_and`) compiled its own binaries into `figs/fixed_rule/build/gather29_holder_*`. The packet guard was changed to this ROM's actual 689 gathered-input ranking; the flag kernel uses Q16384/U536870912 and the new Wf window. No old-rule binary, shared source, main-agent GPU job, or shared CUDA artifact was modified.
+
+`python -m experiments.fixed_rule.run_gather29_holder_cpu_general_periods --colonies 1 --periods 1 --output figs/fixed_rule/gather29_holder_cpu_period_pilot_v1.json`: PASS, one full 536870912-tick lower period in 12.061 s. Independent pilot audit PASS. `python -m experiments.fixed_rule.run_gather29_holder_cpu_general_periods --colonies 15 --periods 2 --output figs/fixed_rule/gather29_holder_cpu_periods_15_v1.json`: PASS, one retained physical world for 1073741824 lower ticks and 341.026 s, sampled process peak376136 KiB RSS. Every phase checked; each period checked 62010 actual gathered histories and all154 raw Hold words at final evaluation. Each boundary validated all245760 physical sites and decoded all15 upper cells, with changed projected words108/97 and represented controller words70/47. Across two periods,53580 actual packets emitted and delivered, zero drops, no live mail at commits. Both physical flags and both Signal sides were exercised. No host re-encoding between periods, and host scalar upper steps were blocked inside the physical executor.
+
+`python -m experiments.fixed_rule.audit_gather29_holder_cpu_general_periods --execution figs/fixed_rule/gather29_holder_cpu_periods_15_v1.json --output figs/fixed_rule/gather29_holder_cpu_periods_15_audit_v1.json`: PASS in0.518 s. Independently checks scalar F/full description on all30 upper output computations, 2310 committed raw words per period, flags, Signals, non-MEM Data, controller/mail emptiness, source/artifact hashes. `python -m experiments.fixed_rule.validate_gather29_holder_physical_events`: PASS, eight actual evolved marked ADD/SEND and early/late branch events agree with literal full-F steps at all16384 physical sites each (131072 site steps). `python -m unittest tests.fixed_rule.test_gather29_holder tests.fixed_rule.test_gather29_holder_physical_events -q`: 10 passed in10.143 s, including native C versus scalar raw local F. `python -m experiments.fixed_rule.seal_gather29_holder_periods --execution figs/fixed_rule/gather29_holder_cpu_periods_15_v1.json --audit figs/fixed_rule/gather29_holder_cpu_periods_15_audit_v1.json --output figs/fixed_rule/gather29_holder_cpu_periods_15_seal_v1.json`: PASS in4.292 s, source and six binary SHA-256 hashes sealed. Artifacts under `figs/` are data excluded from Git.
+
+The physical periods used guarded event acceleration and literal full-F boundary steps, not literal replay of every one of the billion ticks. Selected accelerated events were compared with literal F, but general backend equivalence remains a limitation. The result is **two lower work periods = two decoded upper transitions**, not a full upper U-step work period at depth two, and does not prove repair/noise robustness. This distinction is documented in [GATHER29_FULL_PERIOD.md](GATHER29_FULL_PERIOD.md). Additional owned files: the new `gather29_holder_{native,quotient,flags_cpu,cpu_events,cpu_gather,cpu_boundary,cpu_general,period_relation}` modules and their owned C/C++ sources, `word_native_and.py`, period run/audit/event/seal experiments, physical-event test, and report. No shared interface change requested.
+
+## Packed self-ROM optimization: Q8192, then U=2^28
+
+See [PACKED_ROM_Q8192_U28.md](PACKED_ROM_Q8192_U28.md) for the source-grounded architecture, exact evidence and limits. I created two *separate* fixed-rule candidates (`packed29_holder_*` and `packed28_holder_*`) so the earlier Q16384 and packed U2^29 evidence remains reproducible. The new fixed physical kind10 `PACK3` decodes up to three 40-bit ALU micro-ops from immutable static fields. It is included in the scalar physical F and the complete Boolean self-description; physical PC remains encoded in the existing controller field. No evolving transition calls the host `pack3_rom` compiler. Gray pp.31–32 motivates hard-wired specialized self-simulation after ProgramBit projection, and Gács §§9.2–9.3 explicitly permits the identical or a modified self-correcting rule. The full packed evaluator describes and executes its own decoder.
+
+Measured allocation for both candidates: Q8192, MEM3383, physical instruction cells4213, virtual instructions10606, core7597, core plus five reserved tail sites7602, free590, fixed radius7, raw154 words/4090bits, projected105 words/2704bits. Controller path205636692 ticks, versus357637146 and core13633 for the physically tested Q16384 shared-gather candidate. The U2^28 candidate retimes reset/vote/capture/forcing windows within one fixed physical rule; gather margins at least6981596 ticks, early capture5310425, early stop3311021, full late evaluation14941622. Gray's U=128Q is not achieved; the current ratio is32768, 256 times larger.
+
+Commands/results: `python -m experiments.fixed_rule.certify_packed29_holder_rom` PASS; `python -m experiments.fixed_rule.certify_packed28_holder_rom` PASS. Both check all154 own raw outputs, 188865 virtual instructions/15 colonies, 62010 history words, 26790 symbolic packets, final raw Hold and Info commit. `python -m experiments.fixed_rule.validate_packed29_holder_physical_events` and the corresponding `packed28` command PASS, each checking three naturally evolved PACK3 fetch slots against literal 8192-site steps and nine scalar full-F sites per slot. `python -m unittest -q tests.fixed_rule.test_packed29_holder tests.fixed_rule.test_packed28_holder`: 9 PASS in29.656 seconds, including depth-invariant rule/ROM tests, full raw encode/decode and random local-state equivalence, radius rejection, packed fetches, own-ROM tamper rejection, and one complete physical U2^28 period.
+
+`run_packed29_holder_cpu_general_periods --colonies 15 --periods 2` PASS, two continuous 536870912-tick lower periods (1073741824 total), 225.185 seconds, 52912 KiB peak process RSS. `run_packed28_holder_cpu_general_periods --colonies 15 --periods 2` PASS, two continuous 268435456-tick lower periods (536870912 total), 222.580 seconds, 50368 KiB peak RSS. Each period for each candidate validates122880 physical sites, all2310 committed raw upper words, and decoded changes108/97 projected words including70/47 represented controller words. Each two-period run emitted and delivered53580 packets, zero dropped/live. Both physical flags and Signal sides were exercised. The independent saved-boundary audits and source/binary seals passed for both. Retimed F digest `26487a8bd653e025ed8f570d39734a8cc2d802532df9616bff3fe54dc6c1a95a`; retimed ROM SHA-256 `663323a11ae6efae5328759daec2be5283f56ca421b33d018d343532c78b5252`. The physical run uses guarded event acceleration and literal full-F boundaries; no host upper transition is substituted.
+
+Owned new files: `gacsca/fixed_rule/pack3_rom.py`, `packed29_holder_*`, `packed28_holder_*`; candidate-specific certification, physical period, independent audit, physical-event and seal scripts in `experiments/fixed_rule/`; `tests/fixed_rule/test_packed29_holder.py`, `test_packed28_holder.py`; [PACKED_ROM_Q8192_U28.md](PACKED_ROM_Q8192_U28.md); data receipts and independent binaries only under `figs/fixed_rule/`. No shared module, main-agent note, shared CUDA artifact, GPU job, or tracked log/figure/data was edited. No commit made in this optimization turn. Source-only checkpoint `5fc10a7` remains the last commit.
+
+Outstanding: complete U-transition upper work period at depth two, whole Q-cell upper colony, accelerated backend equivalence beyond selected events, arbitrary damaged geometry/Signals, repair and noise amplification. Current U2^28 cannot simply be halved again: the 159058378-tick late evaluator alone exceeds2^27. Q4096 also cannot hold the 7597-site core. A measured *hypothetical* four-op packing of the unchanged virtual program gives a 6800-site core and 142371589 late traversal ticks before adding its own decoder, still above both next power-of-two thresholds; it was not implemented or validated as a new rule. A deeper evaluator/workspace change is required. The 15-cell test is two decoded upper transitions, not an upper U-step work period. Main agent may integrate these verified findings into shared reports; please place any reply in `Report/fixed_rule/MAIN_AGENT_NOTES.md`.
+
+## Gray U=128Q route analysis
+
+The user's 2^20 question is addressed in [GRAY_U20_ROUTES.md](GRAY_U20_ROUTES.md). No simulator code was changed in this analysis. Gray p.34 budgets 16Q=131072 ticks for each gather active period and 8Q=65536 for the final update at Q8192; his `3Q+a log Q+b` bound leaves `a,b` unspecified and says sufficiently large Q, so `Q>=2^13` elsewhere in the guide is not a concrete fit certificate. Measured current gather last-arrival12018404 ticks (91.7× that budget), early Flag computation10688979 (81.5×), and late full evaluation159058378 (2427×). Late stage has9903 serial virtual instructions at16062 ticks each. The actual own-rule word DAG has9531 operations but depth72, with1240 independent first-layer operations. This suggests parallel potential but not a proved local spatial schedule. Priorities: (1) collision-free parallel local mail streams retaining three voted histories and error isolation; (2) specialized spatial evaluator for the complete raw F with local routing and ≤8Q makespan; (3) close self-description around any new hardware, then rerun complete periods and repair; (4) trim live workspace. ROM packing, retiming and GPU acceleration alone cannot plausibly bridge the stage-wise gaps. The next concrete experiment is a one-direction streaming gather prototype with exact 16Q budget and actual physical local-step/packet checks, followed by a routed Address/Age/Flags evaluator pilot. No hidden Gray constant fit at Q8192,U2^20 is claimed.
