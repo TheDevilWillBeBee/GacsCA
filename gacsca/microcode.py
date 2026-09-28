@@ -2,9 +2,9 @@
 
 A *track* is a one-bit field of every cell, held R-fold redundantly (cell x keeps copies of the
 track bit of x+off for off in OFFS = [-(R-1)/2 .. (R-1)/2]).  Every step the value of a track bit
-is restored by majority over its R holders, then the op(s) scheduled at the cell's Age are applied
-(each op is a per-cell rule reading tracks of cells within reach D and the cell's Address), and
-the new copies are redistributed.  Ops are restricted to an address range [lo, hi).
+is restored by majority over its R holders. Each holder independently computes its output copies,
+using its own Age and offset-adjusted Address; it never trusts the target cell's raw clock/address.
+Ops read repaired tracks within reach D and are restricted to an address range [lo, hi).
 
 Op kinds (all per cell x, a = Address(x), V = repaired track values, P = new primaries):
   CONST  dst <- c                                   (a in [lo,hi))
@@ -26,7 +26,7 @@ import numpy as np
 class Tracks:
     """Track name registry.  ARG tracks are indexed by neighbour offset j in [-JMAX, JMAX]."""
 
-    def __init__(self, JMAX=6, wq=8, wu=14, R=3, ntemp=22):
+    def __init__(self, JMAX=6, wq=8, wu=14, R=3, ntemp=22, temporal_banks=False):
         """The registry is independent of Q/U (the tower needs identical registries at all levels):
         JMAX=6 arg tracks each side and ntemp=22 extra temporaries (BF0..)."""
         self.R, self.JMAX = R, JMAX
@@ -37,6 +37,10 @@ class Tracks:
         names += ["HOLD", "T0", "T1", "T2", "T3", "T4", "T5", "SIG", "ACC", "BC"]
         names += [f"BF{i}" for i in range(ntemp)]
         names += ["MAILL", "MAILR"]
+        if temporal_banks:
+            # A/B/C retain the three independent gathers; D is disposable
+            # input for the stage-three flag computation, never a history bank.
+            names += [f"ARG{bank}{j:+d}" for bank in "CD" for j in range(-JMAX, JMAX + 1)]
         self.names = names
         self.idx = {n: i for i, n in enumerate(names)}
         self.NT = len(names)
@@ -66,6 +70,7 @@ class Layout:
     with_tracks: bool = True
     Qss: int = None      # parameters of the level above the simulated one (for its SIMADDR/SIMAGE)
     Uss: int = None
+    full_registers: bool = False  # legacy narrow fields retained only for replay
 
     def __post_init__(self):
         if self.Qs is None: self.Qs = self.Q
@@ -76,6 +81,11 @@ class Layout:
         self.wu = (self.Us - 1).bit_length()
         self.wqs = (self.Qss - 1).bit_length()
         self.wus = (self.Uss - 1).bit_length()
+        if self.full_registers:
+            # Match the represented cell's actual GPU register alphabet, not
+            # just its normal control-value range. Whole-cell faults can set
+            # any of these bits, including out-of-range simulated controls.
+            self.wqs = self.wus = max(16, self.wqs, self.wus)
         self.fields: Dict[str, Tuple[int, int]] = {}
         p = 0
         for name, w in [("ADDR", self.wq), ("AGE", self.wu), ("F1", 1), ("F2", 1), ("WF1", 1), ("WF2", 1),
@@ -137,6 +147,7 @@ class Program:
         self.ops: List[Op] = []
         self.D = D
         self.U = U
+        self.nested_register_bits = 0  # optional second raw-input control pair; 0 preserves legacy layout
         self._by_age = None
 
     def add(self, op: Op):
@@ -183,8 +194,11 @@ class Compiler:
         if advance: self.t += 1
         return op
 
-    def mov(self, dst, src, rng=None, advance=True):
-        op = self.emit("MOV", dst=self.T[dst], src=self.T[src], rng=rng or (0, self.L.Q))
+    def mov(self, dst, src, rng=None, advance=True, computed_address=False):
+        # Gray p.35 signals select destinations using the holder's computed
+        # Address. Other instructions retain their existing input controls.
+        op = self.emit("MOV", dst=self.T[dst], src=self.T[src], rng=rng or (0, self.L.Q),
+                       param2=int(computed_address))
         if advance: self.t += 1
         return op
 

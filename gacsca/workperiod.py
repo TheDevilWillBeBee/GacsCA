@@ -22,10 +22,14 @@ class Schedule:
 
 def build_workperiod(p: Params, T: Tracks, L: Layout, D=3, variant=Variant(), gather_rest=None,
                      compute_margin=64, JMAX=6, c_list=(0,), prog_up=None, L_up=None, trickle_up=None,
-                     regwin_up=(0, 0)):
+                     regwin_up=(0, 0), nested_controls=False, inner_ctx=None):
     """prog_up/L_up/trickle_up: the simulated level's program, layout and trickle window; if given,
     the interpretation phase is emitted after Tr_local (stage 2)."""
     Q, U = p.Q, p.U
+    if inner_ctx is not None and not nested_controls:
+        raise ValueError("nested interpretation requires raw-input control loading")
+    if nested_controls and (not L.with_tracks or prog_up is None):
+        raise ValueError("nested controls require a represented full-track state")
     gather_rest = 2 * Q if gather_rest is None else gather_rest
     C = Compiler(T, L, D=D, t=1)
     K = L.K
@@ -61,16 +65,22 @@ def build_workperiod(p: Params, T: Tracks, L: Layout, D=3, variant=Variant(), ga
                                   src2=T.arg(sgn * j, "B"), src3=T[mail], param=0b11101000))
         C.t += n
         C.t += gather_rest
+    C.reg_window = (0, 0)
+    if nested_controls:
+        # Only the opt-in nested schedule changes: clear caches and load the
+        # voted input before computation, never speculative repaired HOLD.
+        C.emit("RESET", dst=T["T0"], param=T["T0"], param2=1)
+        C.t += 1
+        _interp.compile_register_load(C, "ARGA+0", "T0", nested=True)
     compute_start = C.t
     for c in c_list:
         tl = TrLocal(C, c=c, variant=variant)
         tl.build()
     iphase = None; ictx = None
-    C.reg_window = (0, 0)
     if prog_up is not None:
-        ictx = _interp.InterpCtx(L, T, prog_up, L_up, trickle_up, None, regwin_up=regwin_up)
+        ictx = _interp.InterpCtx(L, T, prog_up, L_up, trickle_up, None, regwin_up=regwin_up, inner=inner_ctx)
         t_i0 = C.t
-        _interp.compile_iphase(C, ictx, tl.al, tl.F1N)
+        _interp.compile_iphase(C, ictx, tl.al, tl.F1N, load_output_registers=not nested_controls)
         iphase = (t_i0, C.t)
     compute_end = C.t
     # F1*, F2* -> INFO at addresses Q-3 and 3 (Gray p.35)

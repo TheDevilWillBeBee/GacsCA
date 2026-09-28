@@ -6,6 +6,34 @@ rate. The entire contents of the cell is replaced with a random bit string.'
 import numpy as np
 
 
+def splitmix64(value):
+    """Scalar bit-exact oracle for the GPU PRNG (arithmetic modulo 2^64)."""
+    mask = (1 << 64) - 1
+    value = (value + 0x9E3779B97F4A7C15) & mask
+    value = ((value ^ (value >> 30)) * 0xBF58476D1CE4E5B9) & mask
+    value = ((value ^ (value >> 27)) * 0x94D049BB133111EB) & mask
+    return value ^ (value >> 31)
+
+
+def cell_noise_word(seed, t, batch, site, version=2):
+    """Counter-based GPU noise oracle. Version 1 only reproduces historical data.
+
+    Version 2 accepts 64-bit times and non-overlapping 32-bit batch/site indices.
+    Neither version is a cryptographic generator.
+    """
+    if not (0 <= seed < 1 << 64 and 0 <= t < 1 << 64 and
+            0 <= batch < 1 << 32 and 0 <= site < 1 << 32):
+        raise ValueError("counter outside its unsigned field width")
+    if version == 1:
+        counter = ((t << 40) ^ (batch << 28) ^ site) & ((1 << 64) - 1)
+        return splitmix64(seed ^ splitmix64(counter))
+    if version != 2:
+        raise ValueError("unknown noise version")
+    key = splitmix64(seed ^ 0xD2B74407B1CE6E93)
+    key = splitmix64(key ^ t)
+    return splitmix64(key ^ ((batch << 32) | site))
+
+
 def apply_noise_np(S, p, eps, rng, mask=None, addr_mode="valid"):
     """Replace each cell (independently, prob eps) by a random state.
     mask: optional (B,L) bool restricting where errors may occur (e.g. spatial bursts).

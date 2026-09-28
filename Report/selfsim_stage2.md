@@ -1,5 +1,12 @@
 # Stage 2: colonies of colonies — level-1 cells running the full rule (finite tower)
 
+**Historical results below concern the previous rule.** Redundant computation is
+corrected; all 48 clean phase transitions were rerun successfully. R=5,D=1 tower
+interpretation now passes damaged-state tests. A new checkpointed full-period run
+has now passed all 4096 transitions and the complete terminal-state check (R=3,
+one terminal cell, compressed schedule). The old depth-2 island job is stopped, unhealed at period
+11968. See [the audit](audit_20260920.md) and [current continuation](continuation_20260920.md).
+
 ## What was built
 `gacsca/interp.py` (NumPy semantics + compiler) and `gacsca/cuda/interp.cuh` (CUDA, bit-identical)
 add an **interpretation phase** to the level-0 work period. After Tr_local has computed the new
@@ -69,11 +76,13 @@ phase (a depth-3 tower, or a uniform rule), the level-0 colony would have to rep
 lookup, keyed by the level-2 age — one more integer register per nesting depth. A uniform rule
 would therefore need unboundedly many registers. Gács avoids this because in his construction the
 program counter is *data* on the `Cpt` track processed by a universal medium interpreting `My-rules`
-(Secs 9.2–9.3), at the price of an interpreter cost ∝ (|program|+1)² per simulated step that makes
-explicit multi-level runs infeasible. The finite tower is the executable compromise: depth d needs
+(Secs 9.2–9.3). His theorem supplies an upper time bound involving (|program|+1)²;
+it does not establish that explicit multi-level runs are infeasible. The finite tower is
+the currently implemented architecture: depth d needs
 d−1 register pairs (22 bits each), is a single well-defined CA rule at each level, and reproduces
-every mechanism of the hierarchy (colonies encoding cells, work periods, mailboxes, computation,
-encoding/decoding, redundancy repair, trickle-down) at every level.
+colony encoding, work periods, mailboxes, computation, redundant tracks, and
+trickle-down. This does **not** establish Gray's complete schedule, Gács's repeated
+decode/evaluate/encode refresh, a uniform rule, or arbitrary logical memory.
 
 ## Depth-2 noise (`experiments/depth2_noise.py`)
 Level-1 error rate per cell-period (a level-1 cell is wrong if *any* of its 220 decoded bits differs
@@ -91,7 +100,7 @@ One level-1 step = U₀ = 16384 level-0 steps; 64 colonies (16 384 cells) run at
 step on the A100. One level-2 step = U₀·U₁ = 6.7×10⁷ level-0 steps ≈ 70 min for 64 colonies
 (one level-2 cell), ≈ 2–9 h for a 1024-colony ring (16 level-2 cells, a level-2 ground state).
 
-## Depth-2 island (running; `experiments/depth2_island.py`)
+## Depth-2 island (historical, stopped unhealed; `experiments/depth2_island.py`)
 A misaligned *level-1* island (two full level-1 colonies = 128 level-0 colonies, shifted by 20
 colonies) inside a 1024-colony ring (16 level-2 cells = one level-2 colony); level-0 structure intact.
 - Before the first level-2 trickle window the island grows at the level-1 rules alone from 131 to 172

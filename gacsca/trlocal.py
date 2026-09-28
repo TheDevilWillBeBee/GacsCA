@@ -29,7 +29,7 @@ def temps_of(T):
 
 
 class TrLocal:
-    def __init__(self, C: Compiler, c: int = 0, variant: Variant = Variant(), out="HOLD", stage2=False):
+    def __init__(self, C: Compiler, c: int = 0, variant: Variant = Variant(), out="HOLD", stage2=False, arg_bank="A"):
         self.C, self.c, self.v, self.out = C, c, variant, out
         self.L, self.T = C.L, C.T
         self.Q, self.U = C.L.Qs, C.L.Us          # parameters of the simulated level
@@ -38,10 +38,11 @@ class TrLocal:
         self.FR = (self.L.b0, self.L.b0 + self.L.track_base)     # local part of the layout
         self.al = Alloc(temps_of(self.T))
         self.stage2 = stage2
+        self.arg_bank = arg_bank
 
     # ---- helpers ----
     def A(self, i):
-        return f"ARGA{self.c + i:+d}"
+        return f"ARG{self.arg_bank}{self.c + i:+d}"
 
     def dec(self, dst, rng):
         """broadcast the ACC of the token at hi-1 over the whole local range FR"""
@@ -190,10 +191,20 @@ class TrLocal:
         ca = self.count_init()       # zeros among F2_-i            -> d_ii needs zeros<=1
         anyL0 = al.get(); C.const(anyL0, 0, rng=two)   # OR_i (inL_i & !F2_-i)
         anyF2 = al.get(); C.const(anyF2, 0, rng=two)   # OR_i F2_-i
+        eraser = self.v.flag2_healthy_erase
+        count_low = None
+        if eraser == "at_most_one":
+            count_low = al.get(); C.const(count_low, 0, rng=two)
         for i in range(1, 6):
             C.bitop(t, lambda l, f, _: 1 - (l & f), inL[i], A(-i), rng=two); self.count_add(cz, t, rng=two)
             C.bitop(t, lambda f, _a, _b: 1 - f, A(-i), rng=two); self.count_add(ca, t, rng=two)
-            C.bitop(anyL0, lambda o, l, f: o | (l & (1 - f)), anyL0, inL[i], A(-i), rng=two, advance=False)
+            if eraser == "printed":
+                C.bitop(anyL0, lambda o, l, f: o | (l & (1 - f)), anyL0, inL[i], A(-i), rng=two, advance=False)
+            elif eraser == "no_ones":
+                C.bitop(anyL0, lambda o, l, f: o | (l & f), anyL0, inL[i], A(-i), rng=two, advance=False)
+            else:
+                C.bitop(t, lambda l, f, _: l & f, inL[i], A(-i), rng=two)
+                self.count_add((anyL0, count_low), t, rng=two)
             C.bitop(anyF2, lambda o, f, _: o | f, anyF2, A(-i), rng=two)
         DI, DII = al.get(), al.get()
         C.bitop(DI, lambda ge2, _a, _b: 1 - ge2, self.count_ge2(cz), rng=two, advance=False)
@@ -210,6 +221,8 @@ class TrLocal:
         C.bitop(F2N, lambda d3, d4, ab: 1 - ((1 - d3) & (1 - d4) & ab), DIII, DIV, a2, rng=two)
         C.bitop(F2N, lambda f, onv, off: off if f else onv, A(0), on, F2N, rng=two)
         al.put(*cz, *ca, anyL0, anyF2, DI, DII, DIV, a2, b2, DIII, AL1, *inL[1:], INC, EXG)
+        if count_low is not None:
+            al.put(count_low)
         C.spread(aF2, F2N, FR, F2N)
         # --- votes ---
         VRT = al.get()

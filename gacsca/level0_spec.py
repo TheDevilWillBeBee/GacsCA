@@ -128,6 +128,9 @@ def step_cell(cfg: Cfg, x: int, Q: int, U: int, variant: Variant = Variant()):
         F2 = 1 if (d_i or d_ii or d_iii or d_iv) else 0
     else:
         a = (F1 == 0) and all(cfg.f2[y] == 1 for y, _ in L_C)   # 'no site in L&C has Flag2 = 0'
+        if variant.flag2_healthy_erase != "printed":
+            limit = 0 if variant.flag2_healthy_erase == "no_ones" else 1
+            a = (F1 == 0) and sum(cfg.f2[y] for y, _ in L_C) <= limit
         b = (F1 == 1) and all(cfg.f2[y] == 0 for y, _ in L_all)  # 'no site in L has Flag2 = 1'
         F2 = 0 if ((not d_iii) and (not d_iv) and (a or b)) else 1
 

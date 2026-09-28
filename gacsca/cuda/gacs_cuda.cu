@@ -33,14 +33,16 @@ struct RuleParams {
     int flag1_ii_in_colony;   // 1: Gray (R(x)&C(x)); 0: Masumori (R(x))
     int flag2_iii_current;    // 0: Gray (computed Age); 1: Masumori (current Age)
     int plurality;            // 0: strict majority (>=3 of 5); 1: plurality
+    int flag2_healthy_erase;  // 0: printed; 1: no left one; 2: <=1 left one
 };
 
 struct NoiseParams {
-    float eps;
+    double eps;
     uint64_t seed;
-    int t;
+    uint64_t t;
     int addr_mode;   // 0: uniform in [0,Q) / [0,U); 1: uniform over bit width
     int use_mask;    // 1: multiply by mask[b, x]
+    int version;     // 1: historical 24-bit time packing; 2: full counter mixing
 };
 
 // ---- hash-based RNG (splitmix64) ----
@@ -50,7 +52,20 @@ __device__ __forceinline__ uint64_t splitmix64(uint64_t z) {
     z = (z ^ (z >> 27)) * 0x94D049BB133111EBull;
     return z ^ (z >> 31);
 }
-__device__ __forceinline__ float u01(uint64_t h) { return (float)(h >> 40) * (1.0f / 16777216.0f); }
+__device__ __forceinline__ uint64_t noise_word(const NoiseParams& N, int b, int x) {
+    if (N.version == 1)
+        return splitmix64(N.seed ^ splitmix64((N.t << 40) ^ ((uint64_t)b << 28) ^ (uint64_t)x));
+    // Mix time separately, without truncation or overlapping bit fields.
+    uint64_t key = splitmix64(N.seed ^ 0xD2B74407B1CE6E93ull);
+    key = splitmix64(key ^ N.t);
+    return splitmix64(key ^ (((uint64_t)b << 32) | (uint32_t)x));
+}
+__device__ __forceinline__ bool noise_hit(uint64_t h, const NoiseParams& N) {
+    if (N.version == 1)
+        return (float)(h >> 40) * (1.0f / 16777216.0f) < (float)N.eps;
+    // 53-bit draws also avoid the old 2^-24 minimum nonzero fault rate.
+    return (double)(h >> 11) * (1.0 / 9007199254740992.0) < N.eps;
+}
 
 // majority among 5 values with Gray's convention
 __device__ __forceinline__ int majority5(const int v[5], int current, int plurality) {
@@ -115,7 +130,11 @@ __device__ __forceinline__ void local_rule(const int* addr, const int* age, cons
     bool d_iii = !exists && (((P.flag2_iii_current ? cur_age : age_from_L) % 16) == 0);
     bool d_iv = cnt_iv >= 3;
     if (f2[5] == 0) F2 = (d_i || d_ii || d_iii || d_iv) ? 1 : 0;
-    else { bool a2 = (F1 == 0) && zerosLC == 0, b2 = (F1 == 1) && cnt_all == 0; F2 = (!d_iii && !d_iv && (a2 || b2)) ? 0 : 1; }
+    else {
+        bool erase = P.flag2_healthy_erase == 0 ? zerosLC == 0 : cnt_i <= P.flag2_healthy_erase - 1;
+        bool a2 = (F1 == 0) && erase, b2 = (F1 == 1) && cnt_all == 0;
+        F2 = (!d_iii && !d_iv && (a2 || b2)) ? 0 : 1;
+    }
     bool vote_right = exists && (F1 == 0 || F2 == 1);
     int av[5], gv[5];
     for (int i = 1; i <= 5; i++) {
@@ -165,8 +184,8 @@ __global__ void level0_step_kernel(const uint32_t* __restrict__ in, uint32_t* __
     local_rule(addr, age, f1, f2, wf1, wf2, sg, sa, P, ADDR, AGE, F1, F2, SIMAGE, SIMADDR);
     uint32_t FL = (F1 ? F1_BIT : 0) | (F2 ? F2_BIT : 0);
     if (N.eps > 0.f) {
-        uint64_t h = splitmix64(N.seed ^ splitmix64(((uint64_t)N.t << 40) ^ ((uint64_t)b << 28) ^ (uint64_t)x));
-        bool hit = u01(h) < N.eps;
+        uint64_t h = noise_word(N, b, x);
+        bool hit = noise_hit(h, N);
         if (N.use_mask) hit = hit && mask[(size_t)b * L + x];
         if (hit) {
             uint64_t h2 = splitmix64(h), h3 = splitmix64(h2), h4 = splitmix64(h3), h5 = splitmix64(h4);
@@ -186,19 +205,29 @@ __global__ void level0_step_kernel(const uint32_t* __restrict__ in, uint32_t* __
 
 using I32Array1D = nb::ndarray<int32_t, nb::shape<-1>, nb::c_contig, nb::device::cuda>;
 using I32Array2D = nb::ndarray<int32_t, nb::shape<-1, -1>, nb::c_contig, nb::device::cuda>;
+using I32HostArray1D = nb::ndarray<int32_t, nb::shape<-1>, nb::c_contig, nb::device::cpu>;
 
 void engine_step(U32Array3D in, U32Array3D out, I32Array2D ops, I32Array1D age_ptr, I32Array1D op_idx,
-                 I32Array1D cfg, int flag1_ii_in_colony, int flag2_iii_current, int plurality,
-                 float eps, uint64_t seed, int t, nb::object ops_up_o, nb::object age_ptr_up_o, nb::object op_idx_up_o) {
-    int c[96];
-    for (int i = 0; i < 96; i++) c[i] = 0;
-    cuda_check(cudaMemcpy(c, cfg.data(), sizeof(int) * std::min<size_t>(96, cfg.shape(0)), cudaMemcpyDeviceToHost));
+                 I32HostArray1D cfg, int flag1_ii_in_colony, int flag2_iii_current, int plurality,
+                 double eps, uint64_t seed, uint64_t t, nb::object ops_up_o, nb::object age_ptr_up_o, nb::object op_idx_up_o,
+                 int noise_version, uint64_t stream_handle) {
+    if (noise_version != 1 && noise_version != 2) throw std::runtime_error("unknown noise version");
+    if (cfg.shape(0) != 96 && cfg.shape(0) != 128 && cfg.shape(0) != 160)
+        throw std::runtime_error("configuration must have 96, 128 or 160 integers");
+    const int* c = cfg.data(); // immutable host config: no per-step device synchronization
     EngineCfg E;
     E.Q = c[0]; E.U = c[1]; E.R = c[2]; E.NW = c[3]; E.NT = c[4]; E.D = c[5];
     E.t_sig = c[6]; E.t_acc = c[7]; E.t_info = c[8]; E.t_maill = c[9]; E.t_mailr = c[10];
     E.tlo = c[11]; E.thi = c[12]; E.wipe = c[13];
     E.t_hold = c[14]; E.t_busup = c[15]; E.reg_lo = c[16]; E.reg_hi = c[17];
-    ICtx I;
+    E.reg_bits = c[18] == 0 ? 16 : c[18]; // accept historical packed16 configs
+    if (E.reg_bits < 16 || E.reg_bits > 31) throw std::runtime_error("register width must be 16..31");
+    E.tw0 = E.reg_bits == 16 ? 4 : 5;
+    E.nested_bits = c[80]; E.nested_base = E.tw0;
+    if (E.nested_bits != 0 && (E.nested_bits < 16 || E.nested_bits > 31))
+        throw std::runtime_error("nested register width must be 0 or 16..31");
+    E.tw0 += E.nested_bits == 0 ? 0 : E.nested_bits == 16 ? 1 : 2;
+    ICtx I{};
     I.has = c[20];
     I.b0 = c[21]; I.track_base = c[22]; I.K = c[23]; I.Qs = c[24]; I.Us = c[25]; I.D_up = c[26]; I.JI = c[27];
     I.addr_lo = c[28]; I.addr_hi = c[29]; I.age_lo = c[30]; I.age_hi = c[31]; I.wf1_pos = c[32]; I.wf2_pos = c[33];
@@ -214,32 +243,65 @@ void engine_step(U32Array3D in, U32Array3D out, I32Array2D ops, I32Array1D age_p
     for (int k = 0; k < 3; k++) for (int j = 0; j < 3; j++) I.t_s[k][j] = c[b++];
     I.t_blb = c[b++]; I.t_wfb = c[b++]; I.t_f1n = c[b++];
     I.U_up = c[b++];
+    for (int k = 0; k < 2; k++) { I.t_cm[k] = c[74 + k]; I.cm_addr[k] = c[76 + k]; }
+    I.up_trk_lo = c[78]; I.up_trk_hi = c[79];
     I.ops_up = nullptr; I.age_ptr_up = nullptr; I.op_idx_up = nullptr;
     if (I.has) {
         I32Array2D ou = nb::cast<I32Array2D>(ops_up_o); I32Array1D au = nb::cast<I32Array1D>(age_ptr_up_o); I32Array1D iu = nb::cast<I32Array1D>(op_idx_up_o);
         I.ops_up = ou.data(); I.age_ptr_up = au.data(); I.op_idx_up = iu.data();
-        if ((int)au.shape(0) != I.U_up + 1) throw std::runtime_error("age_ptr_up size");
+        if (cfg.shape(0) >= 128 && c[81]) {
+            if (c[81] < 1 || c[81] > 4 || !E.nested_bits || (c[81] == 4 && cfg.shape(0) != 160))
+                throw std::runtime_error("invalid nested context schema");
+            BCtx& J = I.inner;
+            J.has = c[81]; J.Qs = c[82]; J.D = c[83]; J.base = c[84]; J.t_bfound = c[85]; J.t_bval = c[86];
+            for (int k = 1; k <= 3; k++) { J.t_sig[k] = c[86 + k]; J.t_carry[k] = c[89 + k]; }
+            J.U = c[93]; J.NT = c[97];
+            if (J.has >= 2) for (int i = 0; i < 3; i++) for (int j = 0; j < 3; j++) J.t_s[i][j] = c[98 + 3 * i + j];
+            if (J.has >= 3) {
+                for (int i = 0; i < 3; i++) J.t_shsrc[i] = c[107 + i];
+                J.t_blb = c[110]; J.t_wfb = c[111]; J.t_bus = c[112]; J.wf1_pos = c[113]; J.wf2_pos = c[114];
+                J.simage_lo = c[115]; J.simage_hi = c[116]; J.simaddr_lo = c[117]; J.simaddr_hi = c[118];
+                J.up_age_lo = c[119]; J.up_age_hi = c[120]; J.up_addr_lo = c[121]; J.up_addr_hi = c[122];
+            }
+            if (J.has >= 4) {
+                for (int k = 0; k < 2; k++) { J.t_cm[k] = c[123 + k]; J.cm_addr[k] = c[125 + k]; }
+                J.up_trk_lo = c[127]; J.up_trk_hi = c[128];
+            }
+            if (J.Qs < 1 || J.D < 1 || J.D > 3 || J.U < 1 || J.NT != E.NT ||
+                c[94] < 0 || c[94] > (int)ou.shape(0) || c[95] != I.U_up + 1 ||
+                c[95] + J.U + 1 != (int)au.shape(0) || c[96] < 0 || c[96] > (int)iu.shape(0))
+                throw std::runtime_error("invalid nested table dimensions");
+            J.ops = ou.data() + (size_t)c[94] * OPW;
+            J.age_ptr = au.data() + c[95]; J.op_idx = iu.data() + c[96];
+        } else if ((int)au.shape(0) != I.U_up + 1) throw std::runtime_error("age_ptr_up size");
     }
     E.B = (int)in.shape(0); E.L = (int)in.shape(1); E.W = (int)in.shape(2);
-    if (E.W != 4 + E.R * E.NW) throw std::runtime_error("state width mismatch");
+    if (E.W != E.tw0 + E.R * E.NW) throw std::runtime_error("state width mismatch");
+    if (out.shape(0) != in.shape(0) || out.shape(1) != in.shape(1) || out.shape(2) != in.shape(2))
+        throw std::runtime_error("output shape mismatch");
     if (E.NW > NWMAX) throw std::runtime_error("too many tracks");
     if ((int)age_ptr.shape(0) != E.U + 1) throw std::runtime_error("age_ptr size must be U+1");
-    RuleParams P{E.Q, E.U, E.L, E.B, E.W, flag1_ii_in_colony, flag2_iii_current, plurality};
-    NoiseParams N{eps, seed, t, 0, 0};
+    if (c[19] < 0 || c[19] > 2) throw std::runtime_error("unknown Flag2 erasure variant");
+    RuleParams P{E.Q, E.U, E.L, E.B, E.W, flag1_ii_in_colony, flag2_iii_current, plurality, c[19]};
+    NoiseParams N{eps, seed, t, 0, 0, noise_version};
     dim3 block(128), grid((E.L + 127) / 128, E.B);
-    if (E.R == 3) engine_step_kernel<3><<<grid, block>>>(in.data(), out.data(), ops.data(), age_ptr.data(), op_idx.data(), E, P, N, I);
-    else if (E.R == 5) engine_step_kernel<5><<<grid, block>>>(in.data(), out.data(), ops.data(), age_ptr.data(), op_idx.data(), E, P, N, I);
+    cudaStream_t stream = reinterpret_cast<cudaStream_t>(stream_handle);
+    if (E.R == 3) engine_step_kernel<3><<<grid, block, 0, stream>>>(in.data(), out.data(), ops.data(), age_ptr.data(), op_idx.data(), E, P, N, I);
+    else if (E.R == 5) engine_step_kernel<5><<<grid, block, 0, stream>>>(in.data(), out.data(), ops.data(), age_ptr.data(), op_idx.data(), E, P, N, I);
     else throw std::runtime_error("R must be 3 or 5");
     cuda_check(cudaGetLastError());
 }
 
 void level0_step(U32Array3D in, U32Array3D out, nb::object mask_obj, int Q, int U, int flag1_ii_in_colony,
-                 int flag2_iii_current, int plurality, float eps, uint64_t seed, int t, int addr_mode) {
-    RuleParams P{Q, U, (int)in.shape(1), (int)in.shape(0), (int)in.shape(2), flag1_ii_in_colony, flag2_iii_current, plurality};
+                 int flag2_iii_current, int plurality, double eps, uint64_t seed, uint64_t t, int addr_mode, int noise_version,
+                 int flag2_healthy_erase) {
+    if (noise_version != 1 && noise_version != 2) throw std::runtime_error("unknown noise version");
+    if (flag2_healthy_erase < 0 || flag2_healthy_erase > 2) throw std::runtime_error("unknown Flag2 erasure variant");
+    RuleParams P{Q, U, (int)in.shape(1), (int)in.shape(0), (int)in.shape(2), flag1_ii_in_colony, flag2_iii_current, plurality, flag2_healthy_erase};
     if (P.W < 3) throw std::runtime_error("state needs >= 3 words");
     if (out.shape(0) != in.shape(0) || out.shape(1) != in.shape(1) || out.shape(2) != in.shape(2))
         throw std::runtime_error("shape mismatch");
-    NoiseParams N{eps, seed, t, addr_mode, 0};
+    NoiseParams N{eps, seed, t, addr_mode, 0, noise_version};
     const uint8_t* mask = nullptr;
     if (!mask_obj.is_none()) {
         U8Array2D m = nb::cast<U8Array2D>(mask_obj);
@@ -254,7 +316,8 @@ void level0_step(U32Array3D in, U32Array3D out, nb::object mask_obj, int Q, int 
 NB_MODULE(gacs_cuda, m) {
     m.def("engine_step", &engine_step, "in"_a, "out"_a, "ops"_a, "age_ptr"_a, "op_idx"_a, "cfg"_a,
           "flag1_ii_in_colony"_a, "flag2_iii_current"_a, "plurality"_a, "eps"_a, "seed"_a, "t"_a,
-          "ops_up"_a.none(), "age_ptr_up"_a.none(), "op_idx_up"_a.none());
+          "ops_up"_a.none(), "age_ptr_up"_a.none(), "op_idx_up"_a.none(), "noise_version"_a = 2, "stream_handle"_a = 0);
     m.def("level0_step", &level0_step, "in"_a, "out"_a, "mask"_a.none(), "Q"_a, "U"_a, "flag1_ii_in_colony"_a,
-          "flag2_iii_current"_a, "plurality"_a, "eps"_a, "seed"_a, "t"_a, "addr_mode"_a);
+          "flag2_iii_current"_a, "plurality"_a, "eps"_a, "seed"_a, "t"_a, "addr_mode"_a, "noise_version"_a = 2,
+          "flag2_healthy_erase"_a = 0);
 }

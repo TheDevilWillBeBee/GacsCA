@@ -1,5 +1,10 @@
 # Stage 1: level-0 colonies simulating level-1 cells (local structure only)
 
+**2026-09-20 audit:** quantitative results below are historical, for the pre-fix rule.
+A targeted single clock fault defeats that rule's replicated computation even with R=5.
+The claim of an exclusively adjacent-pair error channel is withdrawn. See
+[audit_20260920.md](audit_20260920.md) for the correction and new verification.
+
 ## What is implemented (all in `gacsca/`)
 | module | content |
 |---|---|

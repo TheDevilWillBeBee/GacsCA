@@ -43,6 +43,18 @@ class Variant:
     flag2_iii_age: str = "computed"      # or "current"
     majority: str = "strict"             # or "plurality"
     age_increment_always: bool = True
+    # D8 research hypotheses, NOT claimed corrections authorized by the source.
+    # printed: no left-colony zero; no_ones: no left-colony one;
+    # at_most_one: <=1 left-colony one (repairs adjacent isolated flag faults).
+    flag2_healthy_erase: str = "printed"
+
+    def __post_init__(self):
+        if self.flag2_healthy_erase not in ("printed", "no_ones", "at_most_one"):
+            raise ValueError("unknown Flag2 healthy erasure variant")
+
+    @property
+    def flag2_erase_code(self):
+        return ("printed", "no_ones", "at_most_one").index(self.flag2_healthy_erase)
 
     @staticmethod
     def gray():

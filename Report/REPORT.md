@@ -1,99 +1,143 @@
-# GacsCA: executable Gács/Gray noise-robust cellular automaton — project report
+# GacsCA — current research report
 
-Last updated: 2026-09-18 (evening). Sub-reports: [design_selfsim.md](design_selfsim.md),
-[discrepancies.md](discrepancies.md), [level0.md](level0.md), [selfsim_stage1.md](selfsim_stage1.md),
-[selfsim_stage2.md](selfsim_stage2.md).
+Updated 2026-09-24. Goal: a source-grounded Gray/Masumori local automaton,
+executable finite-depth self-simulation, and measured noise robustness. **The
+project is not complete.** No GKL work is included.
 
-## 0. Goal and status in one paragraph
-Build, verify and experimentally study an executable version of Gács' one-dimensional
-fault-tolerant cellular automaton in Gray's simplified presentation, up to finite-depth
-hierarchical self-simulation. **Status:** the level-0 automaton (Gray Sec 5.2: Address/Age/Flags
-majority repair, the part Masumori et al. implemented) is implemented three ways (literal scalar
-spec, vectorized NumPy, CUDA/nanobind), cross-tested, and characterised on the GPU. The
-self-simulation machinery is designed ([design_selfsim.md](design_selfsim.md)) and **stage 1 is
-implemented and verified** ([selfsim_stage1.md](selfsim_stage1.md)): colonies of 256 cells
-simulate level-1 cells (local structure) through timed mail streams, a bit-serial microprogram
-computing the level-1 transition, and trickle-down; the decoded level-1 trajectory equals the
-direct one; CUDA engine ≈2×10⁹ cell-updates/s. **Stage 2 is implemented and verified**
-([selfsim_stage2.md](selfsim_stage2.md)): a three-level finite tower in which level-0 colonies
-interpret the level-1 op table, so level-1 cells run the complete rule (tracks, mail streams,
-bit-serial computation of the level-2 transition, trickle-down, update) and simulate level-2
-cells; the decoded level-1 trajectory equals the direct level-1 engine in every phase. Hierarchy
-experiments: the induced level-1 error rate scales as ≈QUε² (adjacent-pair channel); a
-misaligned-colony island that level-0 rules cannot erode becomes a glider under trickle-down and
-is eliminated at the next level-2 boundary (healed at period 80 on a 512-colony ring).
+## Current result and its limits
 
-## 1. Sources and how they relate
-- Gács 2001 (J. Stat. Phys. 103) — the full construction: media, block codes, amplifiers, robust
-  media, a rule language, and the program (Secs 12–20). Nearest-neighbour, variable cell kinds.
-- Gray 2001 — Reader's Guide: a simplified range-5 model with fields Address, Age, Flags,
-  SimBit(5), Workspace, Mailbox; Q colony size, U = 128Q; Props 1–5.
-- Masumori, Sinapayen, Ikegami 2024 — Java implementation of Gray's local structure only
-  (no self-simulation), Q = 271, recovery vs error rate.
+A finite, level-specific **third simulation link** now executes one complete
+reduced middle work period: **16,384 middle transitions / 268,435,456 physical
+steps**, with every decoded field/raw copy checked. A separate CPU replay checks
+all 252 physical-derived diagnostic frames (12,321,792 state elements) and the
+independently decoded top-cell transition. Runtime: 4.51 h; 62,618,396 physical
+idle steps were skipped only after exact fixed-point certificates.
 
-## 2. Model (level 0) — implemented
-Ring of L = ncol·Q cells, neighbourhood N(x) = {x−5..x+5}. Fields: Address ∈ [0,Q),
-Age ∈ [0,U), Flag1, Flag2 (+ Workspace.Flag1/2 read from the simulation structure).
-Apparent colony C(x): the position v of x such that ≥3 of the five sites x+i (i=1..5) satisfy
-(Address(x+i) − i) mod Q = v. Inconsistency (i)–(iv), Flag1 and Flag2 rules, and the Address/Age
-majority votes are transcribed literally in `gacsca/level0_spec.py` (Gray pp. 20–22). Ambiguities
-and Masumori's modifications are catalogued in [discrepancies.md](discrepancies.md); the main
-finding is that two of Masumori's three "errors in Gray" are not errors (D2, D4).
+The top ring has **one cell**, so its neighbors alias. This is not a full top
+work period, the full Gray three-link geometry, an encoded universal interpreter,
+an infinite construction, or a proof of depth-dependent noise robustness.
+[Data, independent replay and scope](third_link_execution.md).
+**New non-vacuity finding:** its top track array does not change. An 11-cell
+counterexample exposes missing compressed input-cache initialization; supplied
+caches fix the macrostep (8 wrong track copies → 0). [Diagnosis](cache_initialization.md).
 
-Noise: each cell independently with probability ε per step is replaced by a uniformly random
-state (Address uniform in [0,Q), Age in [0,U), flags uniform) — Gray's ε-perturbation with a
-strictly positive ν.
+## Implementation and verification
 
-Code: `gacsca/level0_np.py` (NumPy, batch×L), `gacsca/cuda/gacs_cuda.cu` (CUDA, one thread per
-cell, hash-based reproducible noise), `gacsca/gpu.py` (torch front-end). Tests: `tests/`
-(spec ≡ NumPy ≡ CUDA on random and near-ground configurations; noise statistics).
+State fields, redundant bit tracks, encoding, local repair, microcode, work-period
+schedule, transport, noise and layer construction are separate modules. NumPy is
+the reference; CUDA uses local physical transitions and batched rings on the A100.
+All noisy steps use distinct version-2 counters; noisy graph replay is prohibited.
 
-## 3. Level-0 results (details in [level0.md](level0.md))
-- Qualitative reproduction of Masumori Fig. 7A: leftward Flag1 waves confined to colonies; after
-  the noise stops, Flag1 clears in a wave from the right end at speed ≈ 2.7 (Gray: ≥ 1.75).
-- Recovery threshold (500 noisy steps then 500 clean, Q=271, 4 colonies, 256 trials/point):
-  P(Address fully recovered) = 1.00 up to ε = 0.34, 0.92 at 0.38, 0.27 at 0.40, ≈0 at ≥ 0.42.
-  Masumori report failure only above ≈0.55–0.6; their noise protocol differs (D7). A corrected
-  mean-field recursion c' = (1−ε)[c + (1−c)g(c)], g(c) = P(Bin(5,c) ≥ 3), gives ε_c = 0.334;
-  spatial correlation (colony structure) pushes the real threshold up to ≈0.40.
-- Q dependence: smaller colonies are less robust (Q=32: threshold ≈0.33; Q ≥ 271: ≈0.40).
-  Larger systems fail slightly earlier (more colonies, more chances for one to fail).
-- The Masumori rule variant (Flag1 (ii) counting all of R(x)) is slightly less robust.
+| Implemented / checked | Evidence and remaining boundary |
+|---|---|
+| Scalar/NumPy/CUDA local colony rules | Source comparisons and damaged-state parity; printed-rule discrepancies remain below. [Audit](audit_20260920.md) |
+| Holder-local redundant computation | Single-fault clock/Address coupling fixed; R=3/5 tests. [Details](continuation_20260920.md) |
+| Gray's five-stage schedule | Q=8192, U=128Q, R=5; separate gathers, resets, full-register encoding. Four-scenario full-period checks pass. [Schedule](gray_schedule.md) |
+| Whole Gray upper colony | 67,108,864 physical cells; all 504 encoded bits of 8192 upper cells match after one lower period. Not a full upper period. [Evidence](exact_acceleration.md) |
+| Nested instruction machinery | Local IINIT/register loading/mail/carry/broadcast/evaluation; all emitted middle instructions retained. Dynamic dispatch handles 23 simultaneous clears. [Derivation/tests](nested_interpreter.md) |
+| Compact third link | Full 16-bit register alphabet at every layer; R=3/5 transition checks, restart, independent decoding. Complete R=3 middle period above. [Execution](third_link_execution.md) |
 
-![level-0 recovery](../figs/level0_recovery.png)
+The frozen nested-evaluation build passes **340 default tests**, one slow test
+deselected ([record](../figs/full_regressions_nested_ieval_20260923.xml)). Later
+execution/recorder and fault tools have **21 additional focused passing cases**;
+these are separate runs, not a claim of a newer full-suite execution. Exact
+[source/backend/data bundle](../figs/third_link_completion_sources_20260923.tar.gz),
+[67-member verified manifest](../figs/third_link_completion_identity_20260923.json).
+The corrected cache/phase tools separately pass **11 tests in 52.84 s**
+([record](../figs/cache_and_phase_verified_tests_20260924.xml)); core transitions
+were not changed for this initialization correction.
+[New source/audit/plot bundle](../figs/cache_phase_sources_20260924.tar.gz):
+[63 verified members and 18 external dataset hashes](../figs/cache_phase_sources_20260924.json),
+with all 22 core/backend files identical to the earlier tested archive.
 
-## 4. Self-simulation design (summary; full text in design_selfsim.md)
-Uniform rule; simulated state laid out one bit per cell on the Info track; R-fold redundant
-tracks; two timed mail streams retrieve all 10 neighbour colonies (sample MailL at t0+jQ);
-three gathering stages with majority; an Age-scheduled microprogram (compiled from a Python
-DSL into an op table) computes the simulated transition bit-serially; the same table is used to
-interpret the simulated cell's own microstep (self-reference without an interpreter string).
-Cost model: level-2 dynamics reachable for O(10–100) steps; level 3 static only.
+## What the robustness experiments actually show
 
-## 5. Stage-1 results (summary; details in selfsim_stage1.md)
-- Block simulation verified (decoded == direct). Work period 8010 steps (U = 8192), K = 210 bits.
-- ε₁ ≈ c·QU·ε² (c ≲ 1): the simulation structure survives iid noise only for ε ≲ 3×10⁻⁴; the
-  level-0 local structure survives up to 0.40. The hierarchy's benefit is against organised
-  islands, which must be injected.
-- Misaligned-colony island: fixed point for level-0 rules; with trickle-down it becomes a glider
-  (erodes 3 colonies/period on the left, invades 3 on the right) until a level-2 boundary.
+**Physical islands through the third link:** 24 trials plus a clean control,
+widths 1/21/101, one-step whole-cell replacements early or just before update,
+two outer periods. Late widths 21/101 damage one middle holder in 8/8 trials;
+all decoded fields/raw copies recover by the following period. Independent
+inspection verifies that the represented threefold majority restores the bits:
 
-## 6. Stage-2 results (summary; details in selfsim_stage2.md)
-- Tower: level 0 (Q=256, U=16384) → level 1 (Q=64, U=4096, full rule) → level 2 (Q=16, local-only).
-- Interpretation phase: 1505 level-0 steps per period; `tower_acid.py` ALL OK on 8 phase cases; a full
-  level-1 work period (6.7×10⁷ level-0 steps) reproduces the level-2 transition exactly
-  (`tower_full_period.py`: RESULT OK) — colonies of colonies verified end to end.
-- Self-reference boundary documented: a uniform rule needs one integer register pair per nesting
-  depth; Gács's data-driven interpreter avoids it at a cost that forbids explicit multi-level runs.
-- Cost: one level-2 step ≈ 6.7×10⁷ level-0 steps (≈1 h for one level-2 cell, hours for a ring).
-- Injected islands: 1 misaligned colony heals at level 0; 2–3 misaligned colonies are level-0
-  fixed points and heal at depth 1 (period 80); time-misaligned islands heal at depth 1 in 2
-  periods; random bursts (up to 2000 cells × 500 steps) heal at level 0 within 3 periods.
+\[
+V(x)=\operatorname{Maj}_{r=-1}^{1}X^{(r)}(x-r),\qquad
+V_{damaged}=V_{clean}.
+\]
 
-## 7. Next concrete steps
-1. Finish the full level-1 work period run (`tower_full_period.py`): decoded level-2 transition.
-2. Depth-2 noise characterisation: level-1 error rate when level-1 cells carry tracks.
-3. Depth-2 island experiment: a misaligned level-1 island (128 misaligned level-0 colonies) inside
-   a 16-level-2-cell ring — repaired by level-2 trickle-down (overnight run).
-4. Depth 3 (nested interpretation with a second register pair) if time permits.
-5. Gray's Flag2 right-end reversal; lifetime vs ε at moderate noise for depth 0/1.
+But physical **Flag2 remains set in 21/24 trials**, including 5/8 single-cell
+faults. Decoded recovery is not complete physical-state recovery. These cases
+occur during middle mail shifts, not its nested evaluation phase.
+[Counts, retained boundaries, recovery plots and mechanism](third_link_faults.md).
+
+New **nested-evaluation/rollover pilots** use 11 distinct top cells and target
+encoded control, Info and HOLD locations. Their CPU-prepared initial phases are
+explicitly distinguished from physical history; all subsequent evolution is
+physical. The original cold-cache pilots completed but did not activate the
+intended BITOP. Corrected pilots target a verified **1→0** computation with
+initialized controls. Both completed: control faults leave one wrong HOLD copy
+after computation, repaired on the next step; rollover recovery also passes a
+second decoding to the fresh top transition. All 12 faulty rings retain excess
+physical Flag2. [Audits, counts and plots](nested_phase_faults.md).
+
+**Persistent noise / local structure:** qualitative Masumori behavior is
+reproduced, but the reported ≈0.55–0.6 recovery threshold is not. Tested protocols
+lose original-phase recovery around ≈0.4; alternative state/noise conventions
+have not resolved the discrepancy. [Replication audit](level0.md).
+
+**Redundancy versus depth:** a matched one-link noise-v2 experiment at ε=0.003
+observes 1977/2048 decoded cell-period errors at R=3 and 44/2048 at R=5. This is
+a finite redundancy comparison, not a hierarchy exponent or threshold. Trials
+are independent rings; correlated cell-periods are not independent samples.
+[Parameters, uncertainty and raw links](history_through_20260923.md#8-new-matched-redundancy-experiment-corrected-rule).
+
+**Observer dependence:** at ε=0.30, whole-ring sampled phase failures decrease
+34→25→4/256 as colony count increases 1→4→16, while fixed-Q-window failures
+increase 34→73→131/256. A wrong-phase traveling region was independently replayed.
+Neither global averaging nor phase memory establishes arbitrary per-site payload
+memory. [Observables and replay](memory_observables.md).
+
+## Fidelity gaps that must remain explicit
+
+- **D8:** the literal printed Flag2 rule has an isolated-error persistence
+  counterexample. Defaults remain literal; `no_ones` / `at_most_one` are labeled
+  hypotheses, not uniquely source-authorized fixes. [Proof and experiments](flag2_recovery_gap.md).
+- **D10:** the computed-SimBit timing is unresolved. A literal post-wipe neighbor
+  interpretation has a radius-violation witness; the repaired-Info convention is
+  provisional. Computed Address/Age signal and Workspace timing defects were fixed.
+  [Discrepancies](discrepancies.md), [source audit](audit_20260920.md).
+- **Uniformity / payload:** immutable level-specific tables are not Gray's
+  ProgramBit fixed point or a universal encoded interpreter. Further nesting
+  beyond the supported control layout fails explicitly. Gács's arbitrary
+  per-site Refresh/Compute payload machinery is not implemented.
+- Earlier pre-fix hierarchy plots and a quadratic fault-law claim are not valid
+  evidence for the corrected rule. [Preserved history](history_through_20260923.md).
+
+## Active run and next concrete steps
+
+The corrected **11-top-cell** run has 2816 middle cells and 720,896 physical
+cells. Its 16-period physical pilot passes independent decoding (678,656 encoded
+bits); initialization separately passes full CPU and R=3/5 GPU middle periods.
+The corrected full physical run is now
+running at `figs/third_link_initialized_R3_20260924.npz`, with trace
+`figs/third_link_initialized_trace_20260924.npz`. Its immutable
+[pilot snapshot](../figs/third_link_initialized_pilot_snapshot_20260924.npz) and
+[audit](../figs/third_link_initialized_pilot_audit_20260924.json) remain separate.
+It still is not a whole Q=64 top colony. The older cold-cache non-aliased run
+was stopped at its saved 192-period prefix; its metadata still says `running`.
+Do not resume that old run as valid top-transition evidence. [Exact paths and reason](cache_initialization.md).
+
+1. Complete and independently audit the non-aliased middle period; then test
+   whole top colonies and additional periods without substituting host transitions.
+2. Extend the phase pilots to low Address bits and multiple middle holders,
+   then persistent iid noise, matched sizes/depths and lifetimes
+   with independent-ring uncertainty and explicit decoder definitions.
+3. Resolve D8/D10 and the Masumori protocol discrepancy alongside these executable
+   tests; do not silently modify the source baseline.
+4. Develop the missing encoded-program and arbitrary-payload machinery. Finite
+   opcode closure and successful noiseless simulation do not replace this work.
+
+Sources: Gray (2001), especially §§5.2–5.5; Masumori, Sinapayen & Ikegami (2024);
+Gács (2001), especially §§12–20. [Source relationships and audit](audit_20260920.md).
+Latest [hierarchy space-time figure](../figs/third_link_space_time_20260923.png),
+[physical island figure](../figs/third_link_islands_verified_20260923_space_time.png).
+Full prior chronology, equations, older measurements and failed approaches are
+preserved in [history_through_20260923.md](history_through_20260923.md) and linked sub-reports.

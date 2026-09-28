@@ -111,6 +111,9 @@ def step(S, p: Params, variant: Variant = Variant(), reg_window=(0, 0)):
     d_iv = ((wf2_R * inR_C).sum(-1) + (wf2_L * inL_C).sum(-1) + wf2 * exists) >= 3
     on2 = d_i | d_ii | d_iii | d_iv
     a2 = (F1 == 0) & (((1 - f2_L) * inL_C).sum(-1) == 0)
+    if variant.flag2_healthy_erase != "printed":
+        limit = 0 if variant.flag2_healthy_erase == "no_ones" else 1
+        a2 = (F1 == 0) & ((f2_L * inL_C).sum(-1) <= limit)
     b2 = (F1 == 1) & (f2_L.sum(-1) == 0)
     off2 = (~d_iii) & (~d_iv) & (a2 | b2)
     F2 = np.where(f2 == 0, on2.astype(f2.dtype), np.where(off2, 0, 1).astype(f2.dtype))
@@ -126,7 +129,7 @@ def step(S, p: Params, variant: Variant = Variant(), reg_window=(0, 0)):
     out.update(addr=ADDR.astype(addr.dtype), age=AGE.astype(age.dtype), f1=F1, f2=F2)
     # simulated-cell registers (Report/design_selfsim.md, stage 2): repaired by majority like Address
     inwin = (age >= reg_window[0]) & (age < reg_window[1])     # register-load window: keep own value
-    for k in ("simage", "simaddr"):
+    for k in ("simage", "simaddr", "simage2", "simaddr2"):
         if k in S:
             v = S[k]
             # colony-local majority: voters restricted to R(x)&C(x) (resp. L(x)&C(x)); a value needs

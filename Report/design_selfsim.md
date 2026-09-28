@@ -1,15 +1,20 @@
 # Design: self-simulation machinery (uniform rule, finite-depth executable hierarchy)
 
-Status: design fixed 2026-09-18, implementation in progress. Sources: Gray (2001) Secs 5.3-5.5;
+Status: initial design 2026-09-18; revised and audited 2026-09-20. Sections 2–4
+retain the initial architecture proposal; the actual finite tower is described in §5
+and [the current audit](audit_20260920.md). Sources: Gray (2001) Secs 5.3-5.5;
 Gacs (2001) Secs 4.2-4.5, 9.2-9.3, 12, 18, 19.
 
 ## 1. Why not Gacs' interpreter literally
 Gacs (Sec 9.3, Thm 9.2) evaluates the simulated transition Tr* on a universal computing track
 (`Cpt`) by interpreting a rule program `My-rules` (written into the colony as a hard-wired constant,
-Alg. 9.7 / 19.5). The interpreter time is `interpr-coe (|P|+1)^2 |S|` steps; for any realistic
-program (|P| ~ 10^3-10^4 bits) this forces U ~ 10^7+, and a level-2 step costs U^2 level-0 steps.
-Explicit level-2 dynamics would then be impossible. Gray (Sec 5.3) explicitly leaves the
-computation "implicit".
+Alg. 9.7 / 19.5). Theorem 9.2 gives a **time upper bound**
+`interpr-coe (|P|+1)^2 ||S||`, where `||S||` is the state-description length;
+it is not a lower bound or a benchmark. The earlier assertion that this forces
+U ~ 10^7+ and makes explicit dynamics impossible was unjustified. A literal
+interpreter is expected to be expensive but requires implementation and measurement.
+Gray (Sec 5.3) leaves the computation implicit; the compiled microprogram was
+chosen as an inspectable first implementation, not as proof that universality is infeasible.
 
 ## 2. Chosen architecture: Age-scheduled distributed microprogram
 The transition function is uniform (same rule at all levels) and consists of:
@@ -65,9 +70,10 @@ computed Flag1 = 1) blocks communication through damaged/misaligned regions.
 ## 4. Cost model and what is reachable
 Level-1 step = U level-0 steps on Q cells; level-2 step = U^2 on Q^2 cells. With Q=256,
 U ~ 50Q ~ 1.3e4: one level-2 cell-step ~ 1e13 cell-updates (~1e3 s on the A100 at ~1e10
-updates/s). Consequence: level-1 dynamics can be studied for thousands of level-1 steps; level-2
-dynamics for O(10-100) steps; level 3 only as static encoded structure. This is intrinsic to any
-faithful implementation (Gray's U=128Q is worse); it is documented rather than worked around.
+updates/s). Under direct per-cell, per-step execution, level-1 dynamics can be studied for
+thousands of steps, while level-2 dynamics and higher become expensive. These estimates
+are for this execution strategy, not a lower bound on all faithful implementations.
+Certified skipping of quiet phases or other exact acceleration remains a research option.
 
 ## 5. Revision after stage 2 (finite tower)
 Section 2.4's "same op table used to interpret the simulated cell" holds for one nesting level:
@@ -79,7 +85,7 @@ affordable (U₀U₁ ≈ 6.7×10⁷ level-0 steps instead of U² ≈ 2.7×10⁸)
 
 ## 6. Interpretation choices vs Gray/Masumori (see Report/discrepancies.md)
 
-## 7. Depth 3 (design, not implemented)
+## 7. Depth 3 (partial components, complete link not implemented)
 A fourth level (level-2 cells running the full rule, simulating local-only level-3 cells) requires
 the level-1 cells to carry an interpretation phase, hence the level-0 interpreter must reproduce
 level-1 ops of kinds IINIT/ILATCH/ICHAIN/IBC/IEVAL/IWF/REGWIN/BUSLATCH_INT. Each of these is a
@@ -92,6 +98,17 @@ computes the level-1 cell's latch/eval decision from (level-2 active ops at `sim
 address = `simaddr`, level-1 slot geometry of the level-1 layout L1, level-1 pass step
 = `simage` − op.t0) and reads the corresponding level-1 bits from the passes (they are ordinary
 track bits of the level-1 neighbours). Cost: U₁ grows to ≈ 2·U₁ (its own I-phase), a level-3 step
-is U₀U₁U₂ ≈ 3×10¹¹ level-0 steps — its dynamics are unobservable; only the static structure and
-per-phase correctness (acid test at level 1 through its I-phase, ≈ 25 GPU-minutes per phase) can
-be verified. Deferred in favour of depth-2 experiments.
+is U₀U₁U₂ ≈ 3×10¹¹ level-0 steps under the estimated parameters. Direct long trajectories
+would be costly; static structure and per-phase correctness are the first validation targets.
+These are planning estimates, not measured limits. Extension follows the fidelity corrections
+and depth-2 experiments, with exact acceleration still worth investigating.
+
+The first component is now executable: nested `IINIT` depends only on the middle
+cell's slot geometry and repaired source, so it needs no additional register pair.
+Full reduced-parameter outer periods and full-Q Gray stage-five tests pass.
+Nested register loading is now also implemented and tested, using each middle
+instruction's actual source track. The four remaining emitted control-dependent
+instruction kinds are not implemented. A program inventory distinguishes the
+nonempty middle register-load window from the empty deeper window queried by
+its REGWIN instruction; the latter needs no new machinery for this three-link target.
+[Current derivation and validation scope](nested_interpreter.md).

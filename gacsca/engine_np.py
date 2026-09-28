@@ -58,7 +58,15 @@ def apply_ops(V, addr, age, prog: Program, T: Tracks, mask_age=None, S=None, ctx
                 _interp.apply_iop(P, V, S, m, am, op, int(a) - op.t0, ctx, T, D)
             elif k == "CONST":
                 P[:, :, op.dst][m] = op.param
+            elif k == "RESET":
+                P[:, :, op.dst:op.param][m] = 0
+                if op.param2 and S is not None:
+                    for name in ("simage", "simaddr", "simage2", "simaddr2"):
+                        if "_" + name in S:
+                            S["_" + name][m] = 0
             elif k == "MOV":
+                if op.param2:
+                    m = am & _in_range(S["_computed_addr"], op.lo, op.hi)
                 P[:, :, op.dst][m] = V[:, :, op.src][m]
             elif k == "BITOP":
                 b1 = V[:, :, op.src].astype(np.int32)
@@ -158,11 +166,23 @@ class Engine:
     def __init__(self, p: Params, tracks: Tracks, layout: Layout, prog: Program, variant=Variant(),
                  wipe_rules=True):
         self.p, self.T, self.L, self.prog, self.v = p, tracks, layout, prog, variant
+        self.register_bits = max(16, (layout.Us - 1).bit_length(), (layout.Qs - 1).bit_length())
+        self.nested_register_bits = getattr(prog, "nested_register_bits", 0)
+        if not isinstance(self.nested_register_bits, int) or (self.nested_register_bits and not 16 <= self.nested_register_bits <= 31):
+            raise ValueError("nested register width must be 0 or 16..31")
+        self.register_names = ("simage", "simaddr") + (("simage2", "simaddr2") if self.nested_register_bits else ())
+        for op in prog.ops:
+            if op.kind == "BUSLATCH_INT" and (op.param not in (0, 1) or (op.param == 1 and
+                    self.nested_register_bits < max(layout.fields["SIMAGE"][1], layout.fields["SIMADDR"][1]))):
+                raise ValueError("register-load pair is absent or too narrow")
         self.wipe_rules = wipe_rules
 
     def initial(self, B, info_bits=None):
         p = self.p
         S = l0.initial(p, B)          # includes wf1, wf2 arrays
+        if self.nested_register_bits:
+            for name in ("simage2", "simaddr2"):
+                S[name] = np.zeros((B, p.L), np.int32)
         trk = np.zeros((B, p.L, self.T.NT, self.T.R), np.uint8)
         if info_bits is not None:                        # (B, L) primary Info bits
             trk[:, :, self.T["INFO"], :] = redistribute(info_bits.astype(np.uint8), self.T.R)[..., :]
@@ -170,16 +190,52 @@ class Engine:
         return S
 
     def step(self, S):
+        if not self.nested_register_bits and ("simage2" in S or "simaddr2" in S):
+            raise ValueError("extended controls cannot be dropped into a legacy schema")
         p, T = self.p, self.T
         V = repair(S["trk"])
         Sl = dict(addr=S["addr"], age=S["age"], f1=S["f1"], f2=S["f2"], wf1=S["wf1"], wf2=S["wf2"],
                   simage=S["simage"], simaddr=S["simaddr"])
+        Sl.update({k:S[k] for k in self.register_names})
         N = l0.step(Sl, p, self.v, reg_window=getattr(self, "reg_window", (0, 0)))
         N.pop("_info")
-        Sx = dict(S); Sx["_simage"] = N["simage"].copy(); Sx["_simaddr"] = N["simaddr"].copy()
-        P = apply_ops(V, S["addr"], S["age"], self.prog, T, S=Sx, ctx=getattr(self, "ictx", None))
-        N["simage"], N["simaddr"] = Sx["_simage"], Sx["_simaddr"]
-        trk = redistribute(P, T.R)
+        # Each holder executes its own redundant computation (Gray pp.33-34).
+        # For target y=x+o, holder x supplies Age(x) and inferred address
+        # (Address(x)+o) mod Q. Sharing the target's raw controls makes a
+        # single clock/address fault corrupt all R replicas simultaneously.
+        primary_state = dict(S)
+        primary_state["_layout"] = self.L
+        primary_state["_computed_addr"] = N["addr"]
+        for k in self.register_names:
+            primary_state["_" + k] = N[k].copy()
+        primary = apply_ops(V, S["addr"], S["age"], self.prog, T,
+                            S=primary_state, ctx=getattr(self, "ictx", None))
+        copies = []
+        for o in offs(T.R):
+            if o == 0:
+                copies.append(primary)
+                continue
+            Sx = dict(S)
+            Sx["_layout"] = self.L
+            Sx["addr"] = (roll(S["addr"], -o) + o) % p.Q
+            Sx["age"] = roll(S["age"], -o)
+            Sx["_computed_addr"] = (roll(N["addr"], -o) + o) % p.Q
+            for k in self.register_names:
+                Sx[k] = roll(S[k], -o)
+                Sx["_" + k] = N[k].copy()
+            # Reuse identical computations in a healthy configuration. This
+            # is an exact shortcut, guarded by equality of every control.
+            if (all(np.array_equal(Sx[k], S[k]) for k in ("addr", "age") + self.register_names)
+                    and np.array_equal(Sx["_computed_addr"], N["addr"])):
+                P = primary
+            else:
+                P = apply_ops(V, Sx["addr"], Sx["age"], self.prog, T,
+                              S=Sx, ctx=getattr(self, "ictx", None))
+            copies.append(roll(P, o))
+        # Integer register loads belong to the holder itself.
+        for k in self.register_names:
+            N[k] = primary_state["_" + k]
+        trk = np.stack(copies, axis=-1)
         F1 = N["f1"] == 1
         if self.wipe_rules:
             # Gray p.33 (holder form): a cell with computed Flag1 = 1 clears every Mailbox bit it
@@ -190,7 +246,9 @@ class Engine:
             trk[wipe] = 0
         # Workspace.Flag1/2 (Gray p.41-42) with computed Address/Age and the *current* (repaired)
         # SimBit at the site with address Q-3 (resp. 3) of x's colony.
-        A = N["addr"]; G = N["age"]; Q = p.Q; L = p.L
+        # The local rule also acts on arbitrary periodic configurations; the
+        # initial-state factory's colony count is not the input ring length.
+        A = N["addr"]; G = N["age"]; Q = p.Q; L = A.shape[1]
         x = np.arange(L)[None, :]
         site1 = (x - A + (Q - 3)) % L
         site2 = (x - A + 3) % L
@@ -204,14 +262,21 @@ class Engine:
         out = dict(addr=N["addr"], age=N["age"], f1=N["f1"], f2=N["f2"],
                    wf1=wf1.astype(np.int8), wf2=wf2.astype(np.int8), trk=trk,
                    simage=N["simage"], simaddr=N["simaddr"])
+        out.update({k:N[k] for k in self.register_names})
         return out
 
     def trickle_window(self):
         return self.trickle if getattr(self, "trickle", None) else (3 * self.p.U // 4, 3 * self.p.U // 4 + 2 * self.p.Q)
 
 
-def apply_noise(S, p, eps, rng):
+def apply_noise(S, p, eps, rng, register_bits=16, nested_register_bits=0):
     """Whole-cell replacement noise including all track copies."""
+    if not isinstance(register_bits, int) or not 16 <= register_bits <= 31:
+        raise ValueError("register_bits must be an integer in [16,31]")
+    if ("simage2" in S) != ("simaddr2" in S):
+        raise ValueError("both nested control fields must be present")
+    if "simage2" in S and (not isinstance(nested_register_bits, int) or not 16 <= nested_register_bits <= 31):
+        raise ValueError("explicit nested register width required for extended state")
     if eps <= 0:
         return S
     B, L = S["addr"].shape
@@ -219,8 +284,11 @@ def apply_noise(S, p, eps, rng):
     n = int(hit.sum())
     out = dict(S)
     if n:
-        for k, hi in (("addr", p.Q), ("age", p.U), ("simage", 1 << 16), ("simaddr", 1 << 16)):
+        for k, hi in (("addr", p.Q), ("age", p.U), ("simage", 1 << register_bits), ("simaddr", 1 << register_bits)):
             a = S[k].copy(); a[hit] = rng.integers(0, hi, n, dtype=a.dtype); out[k] = a
+        for k in ("simage2", "simaddr2"):
+            if k in S:
+                a = S[k].copy(); a[hit] = rng.integers(0, 1 << nested_register_bits, n, dtype=a.dtype); out[k] = a
         for k in ("f1", "f2", "wf1", "wf2"):
             a = S[k].copy(); a[hit] = rng.integers(0, 2, n).astype(a.dtype); out[k] = a
         trk = S["trk"].copy()

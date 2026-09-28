@@ -91,3 +91,5 @@ if __name__ == "__main__":
         ok &= run(age1, 4, tag)
     ok &= run(s1.trickle[0] - 2, 8, "trickle-signalled", signal=True)
     print("ALL OK" if ok else "MISMATCH")
+    if not ok:
+        raise SystemExit(1)

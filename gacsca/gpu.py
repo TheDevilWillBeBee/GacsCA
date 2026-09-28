@@ -37,14 +37,18 @@ def initial(p: Params, B: int, W=W_LEVEL0):
 
 
 class Level0GPU:
-    def __init__(self, p: Params, variant: Variant = Variant(), seed: int = 0, addr_mode="valid"):
+    def __init__(self, p: Params, variant: Variant = Variant(), seed: int = 0, addr_mode="valid", noise_version=2):
+        if noise_version not in (1, 2):
+            raise ValueError("noise_version must be 1 (legacy) or 2")
+        self.noise_version = noise_version
         self.p, self.v, self.seed = p, variant, seed
         self.addr_mode = 0 if addr_mode == "valid" else 1
 
     def step(self, st, out, t, eps=0.0, mask=None):
         gacs_cuda.level0_step(st, out, mask, self.p.Q, self.p.U, int(self.v.flag1_ii_in_colony),
                               int(self.v.flag2_iii_age == "current"), int(self.v.majority == "plurality"),
-                              float(eps), int(self.seed), int(t), self.addr_mode)
+                              float(eps), int(self.seed), int(t), self.addr_mode, self.noise_version,
+                              self.v.flag2_erase_code)
         return out
 
     def run(self, st, T, eps_schedule, t0=0, mask=None, callback=None):

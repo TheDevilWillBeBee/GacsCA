@@ -1,0 +1,140 @@
+from dataclasses import replace
+from functools import lru_cache
+import json
+from pathlib import Path
+import random
+import unittest
+from gacsca.fixed_rule import compact16_holder_rule as f, compact16_holder_core as c
+from gacsca.fixed_rule import compact16_holder_program as p, compact16_holder_projected as r
+from gacsca.fixed_rule import compact16_holder_initial as initial, compact16_holder_native as native
+from gacsca.fixed_rule import compact16_holder_period_relation as relation
+from gacsca.fixed_rule.wordcode import Program
+from experiments.fixed_rule import certify_compact16_holder_quiet_barriers as quiet
+from experiments.fixed_rule import prove_compact16_holder_reset_encoding as reset
+from experiments.fixed_rule import join_compact16_holder_signal_schedule as join
+
+
+class Compact16Barriers(unittest.TestCase):
+    def physical(self, logical, at):
+        # These tests quantify raw F metadata, including reset marks and entry
+        # words. Projected lift alone intentionally replaces it with fixed ROM.
+        cells = tuple(replace(r.lift(initial.coherent_cell(logical, at+j)),
+                              **{f'p{d+3}_{name}': getattr(logical(at+j+d), name)
+                                 for d in f.STATIC_OFFSETS for name in c.STATIC})
+                      for j in f.NEIGHBORHOOD)
+        actual = native.local_step(cells)
+        self.assertEqual(actual, f.local_step(cells))
+        return actual
+
+    def test_literal_reset_entries_and_simultaneous_vote_priority(self):
+        entries = (17, 23, 31, 41, 59)
+        def first(age):
+            def logical(pos):
+                values = dict(r.record(pos % f.Q), address=pos % f.Q, age=age, data=123)
+                if pos == 0:
+                    values.update(first=1, a=entries[0]+(entries[1]<<32),
+                                  b=entries[2]+(entries[3]<<32), d=entries[4])
+                return c.Cell(**values)
+            return self.physical(logical, 0)
+        for age, pc in zip(c.RESET_AGES, entries):
+            actual = first(age)
+            self.assertEqual((actual.s2_head, actual.s2_pc, actual.s2_data), (1, pc, 0))
+            self.assertEqual(actual.age, age+1)
+        actual = first(c.VOTE_AGES[0])
+        self.assertEqual((actual.s2_head, actual.s2_pc, actual.s2_data), (1, entries[4], 123))
+        at = 100
+        for age in c.VOTE_AGES:
+            def logical(pos):
+                return c.Cell(kind=c.MEM, index=pos % f.Q, address=pos % f.Q, age=age,
+                              a=c.VOTE|31, data={at-1: 0xAA, at+1: 0xCC, at+2: 0xF0}.get(pos, 123))
+            # At RESET_AGES[4] all four operands are reset-marked. The vote
+            # nevertheless uses old operands, overriding its own reset clear.
+            actual = self.physical(logical, at)
+            self.assertEqual(actual.s2_data, 0xE8)
+
+    def test_literal_commit_and_clock_wrap(self):
+        at = p.layout().info[f.COL['s2_pc']]
+        def logical(pos):
+            values = dict(r.record(pos % f.Q), address=pos % f.Q, age=f.U-1,
+                          data=0x123456789ABCDEF0 if pos == at+1 else 77)
+            return c.Cell(**values)
+        actual = self.physical(logical, at)
+        self.assertEqual(actual.s2_data, 0x123456789ABCDEF0)
+        self.assertEqual(actual.age, 0)
+        self.assertEqual(actual.s2_head, 0)
+
+    def test_capture_reads_old_corrected_Data_then_forcing_uses_old_Signal(self):
+        for target in (3, f.Q-3):
+            def logical(pos):
+                return c.Cell(**dict(r.record(pos % f.Q), address=pos % f.Q,
+                                     age=c.CAPTURE_AGE-1, data=int(abs(pos-target)<=2)))
+            captured = self.physical(logical, target)
+            self.assertEqual(captured.signal, 4)
+        for primary, address, name in ((f.Q-3, f.Q-1, 'w2_wf1'), (3, 0, 'w2_wf2')):
+            def logical(pos):
+                return c.Cell(**dict(r.record(pos % f.Q), address=pos % f.Q,
+                                     age=c.WF_START-1, data=0,
+                                     signal=int(pos == primary)))
+            # coherent_cell does not construct Signal replicas; supply the
+            # literal stationary five-holder bit pattern in the raw states.
+            cells = []
+            for pos in range(address-7, address+8):
+                raw = r.lift(initial.coherent_cell(logical, pos))
+                signal = 1 << (primary-pos+2) if abs(primary-pos)<=2 else 0
+                cells.append(replace(raw, signal=signal))
+            actual = native.local_step(tuple(cells))
+            self.assertEqual(actual, f.local_step(tuple(cells)))
+            self.assertEqual(getattr(actual, name), 1)
+
+    def test_missing_raw_controller_output_and_reset_pc_are_rejected(self):
+        desc = f.self_description()
+        outputs = list(desc.outputs)
+        outputs[f.COL['s2_pc']] = 7*f.FIELDS+f.COL['s2_pc']
+        wrong = Program(desc.inputs, desc.operations, tuple(outputs))
+        with self.assertRaises(AssertionError):
+            quiet.certify(wrong)
+        with self.assertRaises(AssertionError):
+            reset.prove(wrong)
+
+    def test_complete_entry_relation_preserves_arbitrary_controller_and_scratch(self):
+        rng = random.Random(20260927)
+        parent = r.Cell(**{name: rng.getrandbits(width) for name, width in r.SCHEMA})
+        self.assertNotEqual(parent.s2_pc, 0)
+        @lru_cache(maxsize=64)
+        def read(pos):
+            return relation.encode_at(lambda _: parent, 1, pos,
+                                      scratch=lambda site: site*37+1, signal=lambda site: site%32)
+        result = relation.validate_ring(read, 1, parent=lambda _: parent)
+        self.assertEqual(result['validated_sites'], f.Q)
+        self.assertEqual(relation.decode_colony(read, 1, 0), parent)
+        obligations = relation.layout_obligations()
+        self.assertEqual(obligations['info_words'], f.FIELDS)
+        at = p.layout().info[f.COL['s2_pc']]
+        def missing_pc(pos):
+            cell = read(pos)
+            return replace(cell, s2_data=0) if pos%f.Q == at else cell
+        with self.assertRaises(ValueError):
+            relation.validate_at(missing_pc, 1, at, parent=lambda _: parent)
+        self.assertNotEqual(relation.decode_colony(missing_pc, 1, 0), parent)
+        metadata_at = p.layout().info[f.COL['p3_kind']]
+        def bad_metadata(pos):
+            cell = read(pos)
+            return replace(cell, s2_data=cell.s2_data^1) if pos%f.Q == metadata_at else cell
+        with self.assertRaises(ValueError):
+            relation.decode_colony(bad_metadata, 1, 0)
+
+    def test_schedule_join_rejects_missing_signal_buffer(self):
+        paths = json.loads(Path('figs/fixed_rule/compact16_holder_paths_v1.json').read_text())
+        proof = json.loads(Path('figs/fixed_rule/compact16_holder_barriers_v1.json').read_text())
+        schedule = paths['packet_schedule']
+        schedule['descriptor_sha256'] = f.self_description().digest()
+        self.assertTrue(join.check(schedule, proof['signal_flag_boundaries'])['passed'])
+        third = next(row for row in schedule['phases'] if row['name']=='third_evaluation')
+        index = next(i for i, row in enumerate(third['packets']) if row[4]==c.LEFT)
+        del third['packets'][index]
+        with self.assertRaises(AssertionError):
+            join.check(schedule, proof['signal_flag_boundaries'])
+
+
+if __name__ == '__main__':
+    unittest.main()
