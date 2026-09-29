@@ -31,7 +31,7 @@ Address/Age recovery alone cannot certify flag recovery.
 Scalar, NumPy and CUDA agree on singleton/two-/three-cell witnesses at three
 phases, including the trickle window and clock rollover. The alternating
 pattern is separately checked. **9 tests pass**:
-[tests](../tests/test_flag2_recovery_gap.py), [record](../../../figs/flag2_recovery_gap_20260920.xml).
+[tests](../tests/test_flag2_recovery_gap.py), [record](../../../figs/legacy_tower/flag2_recovery_gap_20260920.xml).
 These passing tests establish a **fidelity discrepancy**, not noise robustness.
 
 ## Explicit candidate variants, not source-authorized corrections
@@ -60,13 +60,13 @@ Backend agreement covers all 64 self/left flag patterns at six boundary/interior
 positions, random damaged states, full colony computations and two successive
 damaged upper transitions with all raw track copies. Together with the literal
 witnesses and exact RNG tests, **29 tests pass**
-([record](../../../figs/flag2_variants_20260920.xml)). A further **33 tests pass**,
+([record](../../../figs/legacy_tower/flag2_variants_20260920.xml)). A further **33 tests pass**,
 including the full-Q six-phase Gray interpreter under candidate B
-([record](../../../figs/flag2_gray_regressions_20260920.xml)). Candidate B adds 11
+([record](../../../figs/legacy_tower/flag2_gray_regressions_20260920.xml)). Candidate B adds 11
 microsteps to local computation; it still fits the prescribed active intervals.
 
 Three further [recovery-contract tests](../tests/test_flag2_repair_contracts.py)
-pass at Q=8192 ([record](../../../figs/flag2_repair_contracts_20260920.xml)):
+pass at Q=8192 ([record](../../../figs/legacy_tower/flag2_repair_contracts_20260920.xml)):
 256 adjacent two-site local-field faults (all eight flag-input bits exhausted,
 Address/Age sampled at boundary/interior locations and three phases); a healthy
 200-bit Flag2 wave whose leading and trailing fronts move two sites per step
@@ -106,8 +106,8 @@ both flags within the sampled (4096,8192]-step bracket after its end.
 All final physical flags are zero. Decoded outcomes are identical to the printed
 run: one bad Address/Age cell at period 1, none at period 2. This is a paired
 single-seed case study, not evidence of improved logical error probability.
-[Checkpoint](../../../figs/gray_physical_faults_erase1_20260920.npz),
-[source/binary archive](../../../figs/gray_physical_faults_erase1_sources_20260920.tar.gz).
+[Checkpoint](../../../figs/legacy_tower/gray_physical_faults_erase1_20260920.npz),
+[source/binary archive](../../../figs/legacy_tower/gray_physical_faults_erase1_sources_20260920.tar.gz).
 
 Residual-state analysis separates encoded data, scratch, unused Info, and
 inactive packed-word padding. At the second boundary the early/late bursts
@@ -118,12 +118,12 @@ but not unused Info or inactive padding (160/150 differing padding bits).
 All encoded payload bits and reserved flag-signal bits are already correct.
 Thus neither burst has exact full-state recovery; address/flag, simulated-state,
 and full-state recovery must remain distinct metrics.
-[Candidate analysis and reset probe](../../../figs/gray_faults_erase1_residuals_20260921.json),
-[printed static analysis](../../../figs/gray_faults_printed_residuals_20260921.json).
+[Candidate analysis and reset probe](../../../figs/legacy_tower/gray_faults_erase1_residuals_20260921.json),
+[printed static analysis](../../../figs/legacy_tower/gray_faults_printed_residuals_20260921.json).
 
-![Completed candidate-B fault trajectories](../../../figs/gray_physical_faults_erase1_20260920.png)
+![Completed candidate-B fault trajectories](../../../figs/legacy_tower/gray_physical_faults_erase1_20260920.png)
 
-The separate [paired local-noise audit](../../../figs/flag2_noise_audit_20260920.json)
+The separate [paired local-noise audit](../../../figs/legacy_tower/flag2_noise_audit_20260920.json)
 completed 36 points: Gray/Masumori × valid/bit-width replacements ×
 ε=0.4,0.5,0.6 × three erasers, with 128 independent rings per point,
 Q=271, four colonies, 500 noisy + 500 clean steps, Workspace noise disabled,

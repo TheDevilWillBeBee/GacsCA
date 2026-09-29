@@ -1,7 +1,0 @@
-noiseless: level-1 mismatch rate per period = [0.0, 0.0, 0.0, 0.0]  level-0 damage = [0.0, 0.0, 0.0, 0.0]  (3s)
-eps=1e-05: level-1 error rate per cell-period = 0.0004 (per period: [0.0, 0.0, 0.0, 0.001, 0.0, 0.001]), level-0 damaged fraction = 0.0000  (9s)
-eps=3e-05: level-1 error rate per cell-period = 0.0012 (per period: [0.0, 0.001, 0.0, 0.001, 0.002, 0.002]), level-0 damaged fraction = 0.0000  (9s)
-eps=0.0001: level-1 error rate per cell-period = 0.0049 (per period: [0.0068, 0.0088, 0.0039, 0.002, 0.0068, 0.0029]), level-0 damaged fraction = 0.0001  (9s)
-eps=0.0003: level-1 error rate per cell-period = 0.0320 (per period: [0.0605, 0.0371, 0.0264, 0.0225, 0.0371, 0.0371]), level-0 damaged fraction = 0.0003  (9s)
-eps=0.001: level-1 error rate per cell-period = 0.2652 (per period: [0.7471, 0.249, 0.2471, 0.2549, 0.2646, 0.3105]), level-0 damaged fraction = 0.0010  (9s)
-eps=0.003: level-1 error rate per cell-period = 0.7576 (per period: [0.9658, 0.8672, 0.7881, 0.7178, 0.7109, 0.7041]), level-0 damaged fraction = 0.0030  (12s)

@@ -8,7 +8,7 @@ universal-program fixed point. No noisy depth-scaling result is established.
 ## Geometry and state alphabet
 
 The compact outer geometry passed all-family transition tests at both R=3/5
-([two tests, 14.20 s](../../../figs/third_link_compact_20260923.xml)). Those first fixtures
+([two tests, 14.20 s](../../../figs/legacy_tower/third_link_compact_20260923.xml)). Those first fixtures
 retained the historical narrow inner encoding. The long-run configuration instead
 sets `full_registers=True` at **every** layer, preserving all 16 bits of each own
 simulated Age/Address register. This matters for faulty states, even when normal
@@ -55,20 +55,20 @@ instruction-free physical fixed-point intervals, using the existing audited
 
 Validation before the long trajectory:
 
-- [Six full-alphabet tests pass](../../../figs/third_link_full_alphabet_20260923.xml)
+- [Six full-alphabet tests pass](../../../figs/legacy_tower/third_link_full_alphabet_20260923.xml)
   (19.63 s): R=3/5 compact all-family execution, exact direct-versus-certified
   checkpoint/restart parity, idempotent completed resume, overwrite/identity
   rejection and invalid geometry. The earlier narrow pilot's four tests are
   retained separately and do not support the full-alphabet claim.
-- [Two independent middle-period tests pass](../../../figs/third_link_middle_period_20260923.xml)
+- [Two independent middle-period tests pass](../../../figs/legacy_tower/third_link_middle_period_20260923.xml)
   (2.99 s): execute a complete middle work period **directly at the middle layer**
   and compare all decoded fields/raw copies with the direct top transition,
   including controls 65535 and 43210. This tests the endpoint expected by the long
   run, not its physical realization through the third link.
 
-The current unified [12-test execution/decoder run](../../../figs/third_link_execution_verified_20260923.xml)
+The current unified [12-test execution/decoder run](../../../figs/legacy_tower/third_link_execution_verified_20260923.xml)
 passes in 88.17 s. The read-only diagnostic recorder passes
-[three additional tests](../../../figs/third_link_recorder_20260923.xml) in 1.42 s:
+[three additional tests](../../../figs/legacy_tower/third_link_recorder_20260923.xml) in 1.42 s:
 irregular sampling without invented intermediate frames, completed resume,
 source identity changes and backward-progress rejection. Its live output is
 `figs/third_link_trace_20260923.npz`; each sampled actual decoded middle state
@@ -81,7 +81,7 @@ The first full-alphabet R=3 physical run uses
 `figs/third_link_R3_full_alphabet_20260923.npz` and certified execution. Its
 **16-period pilot passed**: 262,144 physical steps, zero decoded mismatches or
 physical Address/clock errors, 84,304 skipped steps through 96 certificates,
-13.23 s elapsed. The [source/backend archive](../../../figs/third_link_R3_full_alphabet_20260923_sources.tar.gz)
+13.23 s elapsed. The [source/backend archive](../../../figs/legacy_tower/third_link_R3_full_alphabet_20260923_sources.tar.gz)
 has 26 verified members and SHA-256
 `80441ebf620cdc80b1d35c16073260fa68c8f733befe913b590f98d1f97c1b22`.
 The same physical trajectory **completed all 16,384 middle transitions**:
@@ -90,31 +90,31 @@ physical Address/clock errors. Runtime was **16,230.83 s (4.51 h)**, including
 62,618,396 skipped idle steps certified by 71,309 fixed-point probes. No host
 reference transition was installed in the physical state. Both the physical
 and direct middle states decode to the expected single top-cell transition.
-[Completed packed-state audit](../../../figs/third_link_complete_audit_20260923.json).
+[Completed packed-state audit](../../../figs/legacy_tower/third_link_complete_audit_20260923.json).
 
-An [independent CPU audit of the saved 128-period prefix](../../../figs/third_link_prefix_audit_20260923.json)
+An [independent CPU audit of the saved 128-period prefix](../../../figs/legacy_tower/third_link_prefix_audit_20260923.json)
 checks **61,696 encoded bits**, zero mismatches, zero Info-copy disagreements,
 zero physical Address/clock errors and source/archive hashes. It pins the exact
 checkpoint bytes (SHA-256 recorded) despite live atomic replacements. Its direct
 packed-word decoder is separate from the GPU Info decoder and passed
-[two fault-injection tests](../../../figs/third_link_independent_decoder_20260923.xml):
+[two fault-injection tests](../../../figs/legacy_tower/third_link_independent_decoder_20260923.xml):
 a minority of damaged holders preserves the decoded bit, while a majority flip
 is detected. This compares with the saved NumPy reference, **not a fresh replay
 of the entire trajectory**. The later completed-run replay below provides a
 separate stronger check; the prefix audit alone does not establish completion.
 
 The later **384-period prefix** (6,291,456 physical steps) is retained as an
-[immutable checkpoint](../../../figs/third_link_prefix_snapshot_20260923.npz) and also
-[passes independent CPU decoding](../../../figs/third_link_snapshot_audit_20260923.json).
+[immutable checkpoint](../../../figs/legacy_tower/third_link_prefix_snapshot_20260923.npz) and also
+[passes independent CPU decoding](../../../figs/legacy_tower/third_link_snapshot_audit_20260923.json).
 Its exact bytes, the current sources/backend, 15 passing verification cases and
-recorder are [archived together](../../../figs/third_link_execution_sources_20260923.tar.gz)
-with [verified fingerprints](../../../figs/third_link_execution_identity_20260923.json):
+recorder are [archived together](../../../figs/legacy_tower/third_link_execution_sources_20260923.tar.gz)
+with [verified fingerprints](../../../figs/legacy_tower/third_link_execution_identity_20260923.json):
 39 members, SHA-256 `2ede3272011762344901ec30ce69054c9a1b817cb54525aefc5f82fc3479d4e2`.
 This saved prefix remains separate from the completed final checkpoint.
 
 The final checkpoint SHA-256 is
 `ec9858af2553613ec38bdd67279d6c2311204a14808c6a6d3f78cf854c7c68ee`.
-A [fresh CPU replay](../../../figs/third_link_fresh_replay_20260923.json), rebuilt from
+A [fresh CPU replay](../../../figs/legacy_tower/third_link_fresh_replay_20260923.json), rebuilt from
 the seed and initial-state prescription, independently executes all **16,384
 middle steps**, checks all **252 actual recorded frames** (12,321,792 state
 elements), and matches the final packed physical decoding and saved reference.
@@ -130,7 +130,7 @@ are not counted as Address/clock errors. Physical cells with any flag (including
 Workspace flags) peak at 52.73%, explaining why the no-flags skip certificate
 does not remain applicable throughout the trajectory.
 
-![Actual sampled hierarchy evolution](../../../figs/third_link_space_time_20260923.png)
+![Actual sampled hierarchy evolution](../../../figs/legacy_tower/third_link_space_time_20260923.png)
 
 This establishes **one full middle work period and one top microstep** in the
 reduced, level-specific third link. It does not establish a full top work period,
@@ -138,8 +138,8 @@ non-aliased top geometry, the full Gray three-link schedule, a universal encoded
 interpreter, or hierarchy-depth noise scaling.
 
 The completed physical data, independent replay, both burst boundaries and their
-analysis/plots are [frozen together](../../../figs/third_link_completion_sources_20260923.tar.gz)
-with [verified fingerprints](../../../figs/third_link_completion_identity_20260923.json):
+analysis/plots are [frozen together](../../../figs/legacy_tower/third_link_completion_sources_20260923.tar.gz)
+with [verified fingerprints](../../../figs/legacy_tower/third_link_completion_identity_20260923.json):
 67 members, SHA-256 `581e71dfdff7b8361173f566b4a43b5212c7451aea93e4ef894012611129ca01`.
 The archived nested-evaluation backend separately passes all **340 default tests**
 (one slow test deselected, 4007.00 s); later experiment tests are recorded separately.

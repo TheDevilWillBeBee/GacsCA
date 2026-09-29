@@ -20,15 +20,15 @@ logical-memory storage. Four trials per condition support a pilot, not a failure
 probability curve. Top-neighborhood aliasing remains explicit.
 
 [Experiment](../experiments/third_link_faults.py),
-[completed state/data](../../../figs/third_link_islands_20260923.npz),
-[quantitative summary](../../../figs/third_link_islands_verified_20260923.json).
+[completed state/data](../../../figs/legacy_tower/third_link_islands_20260923.npz),
+[quantitative summary](../../../figs/legacy_tower/third_link_islands_verified_20260923.json).
 Runtime: **165.34 s** for 25 rings and 32,768 physical steps.
-[Six protocol/plot tests pass](../../../figs/third_link_islands_verified_20260923.xml)
+[Six protocol/plot tests pass](../../../figs/legacy_tower/third_link_islands_verified_20260923.xml)
 in 5.88 s: box placement, raw-copy versus repaired-Info observables, full-state
 injection and large absolute counters, sampled recovery censoring and plots.
 Exact source/backend, both boundary checkpoints and analyses are included in the
-[completed third-link evidence bundle](../../../figs/third_link_completion_sources_20260923.tar.gz),
-with [verified hashes](../../../figs/third_link_completion_identity_20260923.json).
+[completed third-link evidence bundle](../../../figs/legacy_tower/third_link_completion_sources_20260923.tar.gz),
+with [verified hashes](../../../figs/legacy_tower/third_link_completion_identity_20260923.json).
 
 ## Results
 
@@ -53,16 +53,16 @@ decoded structural fields or majority-repaired middle Info bits differed at
 either period boundary. Middle Info here is an encoded working state, not an
 implemented arbitrary logical payload.
 
-![Physical recovery and retained flags](../../../figs/third_link_islands_verified_20260923_recovery.png)
+![Physical recovery and retained flags](../../../figs/legacy_tower/third_link_islands_verified_20260923_recovery.png)
 
-![Sampled spatial recovery](../../../figs/third_link_islands_verified_20260923_space_time.png)
+![Sampled spatial recovery](../../../figs/legacy_tower/third_link_islands_verified_20260923_space_time.png)
 
 ## Direct inspection of the repair mechanism
 
 The first boundary was replayed with identical seed, batch indices and absolute
-counters, then retained [separately](../../../figs/third_link_islands_first_boundary_20260923.npz).
+counters, then retained [separately](../../../figs/legacy_tower/third_link_islands_first_boundary_20260923.npz).
 Its entire first commit reproduces the original result. An
-[independent CPU audit](../../../figs/third_link_islands_repair_20260923.json) decodes
+[independent CPU audit](../../../figs/legacy_tower/third_link_islands_repair_20260923.json) decodes
 both physical boundaries directly from packed words and checks source archives.
 
 In all eight damaged cases, **only middle holder 128** has incorrect raw track
@@ -83,7 +83,7 @@ operations. This witnesses repair through the represented layer, not merely a
 vanishing mismatch counter or an overwrite of the damaged tracks by mail shifts.
 It is a concrete finite witness, not a general robustness theorem.
 
-![Decoded errors and subsequent repair](../../../figs/third_link_islands_verified_20260923_decoded.png)
+![Decoded errors and subsequent repair](../../../figs/legacy_tower/third_link_islands_verified_20260923_decoded.png)
 
 Figures were visually checked; initial plots with misleading negative/near-zero
 autoscaled axes were retained under the older `...analysis...` prefix, and corrected

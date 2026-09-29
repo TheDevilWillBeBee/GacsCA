@@ -38,16 +38,16 @@ All noisy steps use distinct version-2 counters; noisy graph replay is prohibite
 | Compact third link | Full 16-bit register alphabet at every layer; R=3/5 transition checks, restart, independent decoding. Complete R=3 middle period above. [Execution](third_link_execution.md) |
 
 The frozen nested-evaluation build passes **340 default tests**, one slow test
-deselected ([record](../../../figs/full_regressions_nested_ieval_20260923.xml)). Later
+deselected ([record](../../../figs/legacy_tower/full_regressions_nested_ieval_20260923.xml)). Later
 execution/recorder and fault tools have **21 additional focused passing cases**;
 these are separate runs, not a claim of a newer full-suite execution. Exact
-[source/backend/data bundle](../../../figs/third_link_completion_sources_20260923.tar.gz),
-[67-member verified manifest](../../../figs/third_link_completion_identity_20260923.json).
+[source/backend/data bundle](../../../figs/legacy_tower/third_link_completion_sources_20260923.tar.gz),
+[67-member verified manifest](../../../figs/legacy_tower/third_link_completion_identity_20260923.json).
 The corrected cache/phase tools separately pass **11 tests in 52.84 s**
-([record](../../../figs/cache_and_phase_verified_tests_20260924.xml)); core transitions
+([record](../../../figs/legacy_tower/cache_and_phase_verified_tests_20260924.xml)); core transitions
 were not changed for this initialization correction.
-[New source/audit/plot bundle](../../../figs/cache_phase_sources_20260924.tar.gz):
-[63 verified members and 18 external dataset hashes](../../../figs/cache_phase_sources_20260924.json),
+[New source/audit/plot bundle](../../../figs/legacy_tower/cache_phase_sources_20260924.tar.gz):
+[63 verified members and 18 external dataset hashes](../../../figs/legacy_tower/cache_phase_sources_20260924.json),
 with all 22 core/backend files identical to the earlier tested archive.
 
 ## What the robustness experiments actually show
@@ -119,8 +119,8 @@ bits); initialization separately passes full CPU and R=3/5 GPU middle periods.
 The corrected full physical run is now
 running at `figs/third_link_initialized_R3_20260924.npz`, with trace
 `figs/third_link_initialized_trace_20260924.npz`. Its immutable
-[pilot snapshot](../../../figs/third_link_initialized_pilot_snapshot_20260924.npz) and
-[audit](../../../figs/third_link_initialized_pilot_audit_20260924.json) remain separate.
+[pilot snapshot](../../../figs/legacy_tower/third_link_initialized_pilot_snapshot_20260924.npz) and
+[audit](../../../figs/legacy_tower/third_link_initialized_pilot_audit_20260924.json) remain separate.
 It still is not a whole Q=64 top colony. The older cold-cache non-aliased run
 was stopped at its saved 192-period prefix; its metadata still says `running`.
 Do not resume that old run as valid top-transition evidence. [Exact paths and reason](cache_initialization.md).
@@ -137,7 +137,7 @@ Do not resume that old run as valid top-transition evidence. [Exact paths and re
 
 Sources: Gray (2001), especially §§5.2–5.5; Masumori, Sinapayen & Ikegami (2024);
 Gács (2001), especially §§12–20. [Source relationships and audit](audit_20260920.md).
-Latest [hierarchy space-time figure](../../../figs/third_link_space_time_20260923.png),
-[physical island figure](../../../figs/third_link_islands_verified_20260923_space_time.png).
+Latest [hierarchy space-time figure](../../../figs/legacy_tower/third_link_space_time_20260923.png),
+[physical island figure](../../../figs/legacy_tower/third_link_islands_verified_20260923_space_time.png).
 Full prior chronology, equations, older measurements and failed approaches are
 preserved in [history_through_20260923.md](history_through_20260923.md) and linked sub-reports.

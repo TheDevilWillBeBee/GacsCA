@@ -60,7 +60,7 @@ rest interval (excluding the next-period commit), independent history storage,
 and NumPy/CUDA agreement with inconsistent copies and damaged holder controls.
 Reset tests include nonzero workspace registers and the third packed word.
 The combined schedule/backend/RNG/graph set passed **28 tests**
-([record](../../../figs/gray_schedule_backend_20260920.xml)).
+([record](../../../figs/legacy_tower/gray_schedule_backend_20260920.xml)).
 
 A complete **fifth-stage computation**, on a 16-cell non-aliased upper ring,
 passes five adversarial scenarios: clean; complemented A; complemented B;
@@ -68,7 +68,7 @@ complemented C; complemented A+B. Each single corrupted history produces the
 clean direct transition in every field. Two corrupted histories produce the
 transition of the complemented input and differ from the clean result—the
 negative control verifies the vote's actual correction limit.
-[Test record](../../../figs/gray_temporal_vote_20260920.xml).
+[Test record](../../../figs/legacy_tower/gray_temporal_vote_20260920.xml).
 This tests temporal voting, not a physically localized burst or iid fault law.
 
 `experiments/gray_protocol.py` completed a work period on four
@@ -77,11 +77,11 @@ retrieved bits, third-stage flags, fifth-stage output and committed output;
 checks simulation fields across every rest; and checks physical Address/Age.
 The fault controls complement one entire gathered record after its retrieval.
 Every chunk is checkpointed; a deliberately stopped 32768-step run was resumed.
-[Checkpoint](../../../figs/gray_protocol_20260920.npz): **1048576/1048576** steps,
+[Checkpoint](../../../figs/legacy_tower/gray_protocol_20260920.npz): **1048576/1048576** steps,
 1058.62 s wall time. All three gathers match every expected bit before injection,
 all five complete rests preserve simulation fields, and signals, HOLD and commit
 match all eight upper fields in all four scenarios. Its source and binary are archived
-for exact replay ([archive](../../../figs/gray_protocol_sources_20260920.tar.gz)); every
+for exact replay ([archive](../../../figs/legacy_tower/gray_protocol_sources_20260920.tar.gz)); every
 member used in the checkpoint fingerprint has been hash-verified. This run used
 the **older K=34 encoding**, not the expanded alphabet below. Its fifth-stage
 evaluation ended at 922789; those timings should not be used for current runs.
@@ -91,16 +91,16 @@ Complete R=3/R=5 lower periods match a direct upper rule with disjoint reset
 ranges, nonzero registers, inconsistent copies, a faulty clock, and a changed
 Address. A faulty clock correctly skips its own reset; out-of-range registers
 are retained. All encoded fields/raw copies match. Unsupported upper opcodes now
-fail explicitly. **3 tests pass** ([record](../../../figs/interpreted_reset_20260920.xml)).
+fail explicitly. **3 tests pass** ([record](../../../figs/legacy_tower/interpreted_reset_20260920.xml)).
 This primitive by itself did not supply the reload schedule; that integration is below.
 
 The combined reset-extension regression run passed **66 tests** in 156 s
-([record](../../../figs/gray_reset_regressions_20260920.xml)). A final refinement clears
+([record](../../../figs/legacy_tower/gray_reset_regressions_20260920.xml)). A final refinement clears
 unused ±6 history slots at every stage and permits four simultaneous no-input
 reset operations without reading nonexistent value-latch slots; all 12 affected
-tests pass ([record](../../../figs/gray_reset_padding_20260920.xml)).
+tests pass ([record](../../../figs/legacy_tower/gray_reset_padding_20260920.xml)).
 The final fivefold/damaged-state/backend checks also pass: **11 tests**
-([record](../../../figs/reset_final_backend_20260920.xml)).
+([record](../../../figs/legacy_tower/reset_final_backend_20260920.xml)).
 The completed full-period run uses the archived pre-refinement rule. Its padding
 tracks are zero initially and at the inspected 491520-step checkpoint, have no
 non-reset writers, and are not touched by the ±5-bank fault injections. Thus
@@ -114,7 +114,7 @@ The CUDA backend now supports **16–31-bit** integer simulation registers. Widt
 dynamic track offset. Width is automatically sufficient for the represented
 Address/Age. Invalid or truncated values are rejected. NumPy/CUDA, version-1/2
 noise vectors, graph replay, and a complete interpreted transition across the
-20-bit clock wrap pass ([20-test record](../../../figs/wide_registers_20260920.xml)).
+20-bit clock wrap pass ([20-test record](../../../figs/legacy_tower/wide_registers_20260920.xml)).
 
 **D13:** legacy encoding allocated only log2(Uss), log2(Qss) bits for the represented
 registers, while the upper implementation's noise could set every one of 16 bits.
@@ -122,7 +122,7 @@ A legal value 65535 therefore could not be encoded in its 11-bit field. New
 `full_registers=True` encodes the actual upper alphabet (shared width at least 16);
 Gray mode defaults to it and Gray towers require it. Compressed defaults remain
 legacy/replay-only in this respect. Random full-width values, the 65535 witness,
-and full interpreted transitions pass ([12-test record including schedule tests](../../../figs/register_alphabet_20260920.xml)).
+and full interpreted transitions pass ([12-test record including schedule tests](../../../figs/legacy_tower/register_alphabet_20260920.xml)).
 
 Each Gray stage clears scratch registers. Before stage-five interpretation,
 two local bus passes now load **input** Age/Address from the voted A record.
@@ -147,13 +147,13 @@ and commit. Every field/raw copy matches the direct upper rule; each lower
 register holds the input controls. A separate commit microstep passes, without
 claiming the intervening rest was executed. A NumPy ring-length assumption found
 by this test was corrected. **3 tests pass** including the compressed 20-bit-clock
-regression ([record](../../../figs/gray_tower_reload_20260920.xml)).
+regression ([record](../../../figs/legacy_tower/gray_tower_reload_20260920.xml)).
 Broader schedule/reset/tower/alphabet/noise/graph/checkpoint regressions:
-**51 passed in 138.45 s** ([record](../../../figs/gray_integration_regressions_20260920.xml)).
+**51 passed in 138.45 s** ([record](../../../figs/legacy_tower/gray_integration_regressions_20260920.xml)).
 
 The full-period protocol completed with K=51 and arbitrary full16-bit
-input registers, including 65535: [checkpoint](../../../figs/gray_protocol_full_registers_20260920.npz),
-[hash-verified source/binary archive](../../../figs/gray_protocol_full_registers_sources_20260920.tar.gz).
+input registers, including 65535: [checkpoint](../../../figs/legacy_tower/gray_protocol_full_registers_20260920.npz),
+[hash-verified source/binary archive](../../../figs/legacy_tower/gray_protocol_full_registers_sources_20260920.tar.gz).
 **1048576/1048576 steps, 1222.66 s wall time**: all three gathers, five rests,
 signals, HOLD and committed eight-field outputs pass in all four scenarios.
 This is independent evidence for the full-register encoding, not a transfer of
@@ -167,13 +167,13 @@ faults were injected in this protocol-level gather-corruption test.
 probability one **inside** the space-time box and zero outside, using counter RNG
 v2. Faults replace states after the transition; no stochastic step is graph-captured.
 The masking helper matches an explicit clean/noisy kernel reference and split
-execution (**2 tests**, [record](../../../figs/spatial_faults_20260920.xml)).
+execution (**2 tests**, [record](../../../figs/legacy_tower/spatial_faults_20260920.xml)).
 Two full periods measure physical Address/Age recovery, flags, spatial damage
 bins, and every decoded field against both the ground trajectory and the direct
 transition of the previous decoded state. These are single-seed diagnostics,
 not iid sweeps, independent-trial intervals, or logical-memory measurements.
-[Checkpoint](../../../figs/gray_physical_faults_20260920.npz),
-[hash-verified archive](../../../figs/gray_physical_faults_sources_20260920.tar.gz).
+[Checkpoint](../../../figs/legacy_tower/gray_physical_faults_20260920.npz),
+[hash-verified archive](../../../figs/legacy_tower/gray_physical_faults_sources_20260920.tar.gz).
 The 32768-step pilot was deliberately stopped and resumed. In its early burst,
 106 sites still have bad Address/Age 16 steps after noise stops; none do at the
 57-step sample. Thus sampled structural recovery is bracketed by (16,57] steps,
@@ -191,7 +191,7 @@ repairs this particular first-period error. Final physical Flag2 counts remain
 The [source-confirmed D8 counterexample and candidate tests](flag2_recovery_gap.md)
 now explain why those residual flags must not be called recovery.
 
-![Sampled physical damage and residual flags; completed printed-rule run](../../../figs/gray_physical_faults_20260920.png)
+![Sampled physical damage and residual flags; completed printed-rule run](../../../figs/legacy_tower/gray_physical_faults_20260920.png)
 
 Candidate B (`--flag2-erase at_most_one`) completed the same two-period boxes
 and counter draws in **1408.82 s**. Final physical flags are all zero;
@@ -211,7 +211,7 @@ an unrelated cell with the signal's raw Address receives a spurious primary
 write. Local structure repairs in the same step and Flag1 remains zero, so
 wiping cannot hide this distinction. The witnesses are about fidelity, not a
 proof that one fault defeats the redundant logical signal.
-[Failing baseline record](../../../figs/signal_address_before_20260921.xml).
+[Failing baseline record](../../../figs/legacy_tower/signal_address_before_20260921.xml).
 
 Gray signal MOV instructions now select their destinations using each holder's
 own computed Address, plus the offset of the copy it holds. This keeps the
@@ -229,18 +229,18 @@ computation/interpretation and compares **every field/raw track copy**, with
 faults forcing both signal guards to differ from raw Address. This is not a
 whole upper colony or a complete lower work period.
 **3 targeted tests pass in 59.63 s**
-([record](../../../figs/signal_address_targeted_20260921.xml)); the broader reset,
+([record](../../../figs/legacy_tower/signal_address_targeted_20260921.xml)); the broader reset,
 six-phase tower, locality, fivefold and graph suite passes **28 tests in 155.60 s**
-([record](../../../figs/signal_address_regressions_20260921.xml), includes the two direct witnesses).
+([record](../../../figs/legacy_tower/signal_address_regressions_20260921.xml), includes the two direct witnesses).
 Lower interpretation gains 762 steps, ending at **954200 < 983040**; both
 Gray links still compile within their active intervals. Earlier full-period
 archives predate this correction and remain labelled by their exact sources.
 
 Direct packed GPU initialization now matches NumPy initialization exactly for
 R=3/5 and 16/20-bit register storage (**3 tests**,
-[record](../../../figs/gpu_initial_20260921.xml)). This avoids a roughly 29 GB unpacked
+[record](../../../figs/legacy_tower/gpu_initial_20260921.xml)). This avoids a roughly 29 GB unpacked
 host track array when initializing a whole 67,108,864-cell Gray lower ring.
-The [whole-colony benchmark](../../../figs/gray_whole_colony_benchmark_20260921.json)
+The [whole-colony benchmark](../../../figs/legacy_tower/gray_whole_colony_benchmark_20260921.json)
 ran 256 genuine trajectory steps on **67,108,864 physical cells** in 17.34 s
 (including graph setup), with zero Address/Age errors and 26.86 GB peak PyTorch
 allocation. Its average 67.7 ms/step extrapolates to 19.7 hours per lower period
@@ -258,20 +258,20 @@ executor, preserving the direct checkpoint. Its whole upper colony starts at the
 arbitrary workspace/raw copies/registers and one damaged Address; the reference
 includes a signal change 0→1 at that damaged site. The end check compares all
 504 encoded bits per cell against a direct upper transition.
-[Checkpoint](../../../figs/gray_whole_colony_transition_20260921.npz),
-[archive](../../../figs/gray_whole_colony_transition_20260921_sources.tar.gz).
-The [certified continuation](../../../figs/gray_whole_colony_certified_20260921.npz)
+[Checkpoint](../../../figs/legacy_tower/gray_whole_colony_transition_20260921.npz),
+[archive](../../../figs/legacy_tower/gray_whole_colony_transition_20260921_sources.tar.gz).
+The [certified continuation](../../../figs/legacy_tower/gray_whole_colony_certified_20260921.npz)
 has now completed the lower period: **all 504 encoded bits of all 8192 upper
 cells match**, with no sampled physical Address/Age damage. This validates
 **one upper microstep**, not a whole upper work period. Continuation timing,
 657,947 certified skipped steps, and the explicit direct-process stop are in the
 [acceleration report](exact_acceleration.md).
-The fresh [four-scenario protocol rerun](../../../figs/gray_protocol_signal_fix_20260921.npz)
+The fresh [four-scenario protocol rerun](../../../figs/legacy_tower/gray_protocol_signal_fix_20260921.npz)
 completed **1,048,576 steps in 1505.72 s** under the corrected signal rule.
 Every gather, five complete rests, signal, computation and commit check passes
-([verified archive](../../../figs/gray_protocol_signal_fix_sources_20260921.tar.gz)).
+([verified archive](../../../figs/legacy_tower/gray_protocol_signal_fix_sources_20260921.tar.gz)).
 The complete default regression suite passes **140 tests**, with one slow test
-deselected, in 1551.51 s ([record](../../../figs/full_regressions_20260921.xml)); the
+deselected, in 1551.51 s ([record](../../../figs/legacy_tower/full_regressions_20260921.xml)); the
 subsequently added phase-observer tests separately pass three cases.
 
 ## Remaining integration requirements

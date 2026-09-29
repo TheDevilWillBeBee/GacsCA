@@ -56,4 +56,4 @@ original-phase recovery at ε=0.5 and 0.6 was zero. These alternatives do not
 explain the published higher recovery threshold. Shifted ordered states do
 appear, qualitatively consistent with Masumori Fig.8. Their distinction from
 correct-phase recovery is essential for future lifetime measurements.
-[All configurations and trial phases](../../../figs/masumori_noise_audit_20260920.json).
+[All configurations and trial phases](../../../figs/legacy_tower/masumori_noise_audit_20260920.json).

@@ -84,7 +84,7 @@ cell, hash-based reproducible noise), `gacsca/gpu.py` (torch front-end). Tests: 
   recovery is 0/128 in every tested variant, although 15–22/128 rings recover spatial
   order at another phase. [Details and counts](level0.md#replication-audit-2026-09-20).
 
-![level-0 recovery](../../../figs/level0_recovery.png)
+![level-0 recovery](../../../figs/legacy_tower/level0_recovery.png)
 
 ## 4. Self-simulation design (summary; full text in design_selfsim.md)
 Level-specific finite rules; simulated state laid out one bit per cell on the Info track; R-fold redundant
@@ -149,14 +149,14 @@ the full Gray three-link schedule and noise-depth robustness remain unvalidated.
   retained scratch-slot bounds. Full middle programs now compile together at
   the tested geometries; the full Gray diagnostic has 10,766 active steps spare.
   Opcode closure is not an encoded universal interpreter or long-time validation.
-  [Updated inventory](../../../figs/nested_inventory_closed_20260923.json).
+  [Updated inventory](../../../figs/legacy_tower/nested_inventory_closed_20260923.json).
 - The archived **pre-IEVAL dispatch build** completed **304 default tests**, one
   slow test deselected, in 2436.13 s. This broad result does **not** cover the
-  later nested-evaluation changes. [Record](../../../figs/full_regressions_dispatch_20260923.xml).
+  later nested-evaluation changes. [Record](../../../figs/legacy_tower/full_regressions_dispatch_20260923.xml).
 - The subsequent frozen nested-evaluation build completed **340 default tests**,
   one slow test deselected, in 4007.00 s. The later experiment/recorder and fault
   tools have 21 additional focused passing cases, reported separately.
-  [Full-suite record](../../../figs/full_regressions_nested_ieval_20260923.xml).
+  [Full-suite record](../../../figs/legacy_tower/full_regressions_nested_ieval_20260923.xml).
 - Compact third-link geometries now pass execution checks. A new checkpointed
   runner preserves the **full register alphabet at every layer**, checks each
   physical-to-middle transition and compares the top endpoint independently.
@@ -183,8 +183,8 @@ the full Gray three-link schedule and noise-depth robustness remain unvalidated.
   four existing CUDA/NumPy engine tests pass after the correction. Two damaged-state tower
   tests pass after fixing Workspace flags to use computed simulated Address/Age.
 - Clean tower rerun: all 48 simulated transitions match every encoded field/track;
-  [saved log](../../../figs/tower_audit_20260920.log). Earlier audit: **56 tests passed**: 52 in the full default
-  suite (1066 s; [record](../../../figs/verification_20260920.xml)), plus two locality tests
+  [saved log](../../../figs/legacy_tower/tower_audit_20260920.log). Earlier audit: **56 tests passed**: 52 in the full default
+  suite (1066 s; [record](../../../figs/legacy_tower/verification_20260920.xml)), plus two locality tests
   including Q=8192 and two simultaneous-clock-fault threshold tests added during that run.
 - The old depth-2 island process is **stopped**, not running: its log ends at period 11968
   with 236 misaligned level-1 cells. Recovery has not been demonstrated in that run.
@@ -197,9 +197,9 @@ the full Gray three-link schedule and noise-depth robustness remain unvalidated.
   via `experiments/tower_checkpoint.py` (R=3, one terminal cell): **4096/4096 transitions**,
   every encoded field/raw copy checked, zero mismatches or physical Address/Age damage.
   Both decode routes match every terminal field after the top transition.
-  [Checkpoint and all diagnostics](../../../figs/tower_checked_R3_20260920.npz); 1637 s wall time
+  [Checkpoint and all diagnostics](../../../figs/legacy_tower/tower_checked_R3_20260920.npz); 1637 s wall time
   with other GPU jobs running. This remains a reduced-parameter, one-terminal-cell baseline.
-- Combined current regressions: **50 passed** in 53.44 s ([record](../../../figs/continuation_regressions_20260920.xml)).
+- Combined current regressions: **50 passed** in 53.44 s ([record](../../../figs/legacy_tower/continuation_regressions_20260920.xml)).
   Full-Q schedule audit confirms a clean third-gather write during Gray's first rest
   (D12); [timing comparison and witness](continuation_20260920.md#fidelity-priority).
   Two additional tests demonstrate a scratch island surviving the required period-boundary
@@ -299,11 +299,11 @@ advantage is inferred. Zero observed errors are not proof of zero risk: with 16 
 rings, the one-sided 95% bound on **a ring having any error in four periods** is 0.171.
 The 2048 cell-periods are correlated; they are not 2048 independent Bernoulli trials.
 
-![Matched redundancy and independent-ring uncertainty](../../../figs/redundancy_comparison_20260920.png)
+![Matched redundancy and independent-ring uncertainty](../../../figs/legacy_tower/redundancy_comparison_20260920.png)
 
 Raw trial counts, physical structure damage, seeds, parameters, environment and source hashes:
-[low-noise JSON](../../../figs/redundancy_noise_20260920.json),
-[high-noise JSON](../../../figs/redundancy_noise_high_20260920.json).
+[low-noise JSON](../../../figs/legacy_tower/redundancy_noise_20260920.json),
+[high-noise JSON](../../../figs/legacy_tower/redundancy_noise_high_20260920.json).
 
 Version-2 replication (same geometry and trial count, independent pseudorandom streams):
 
@@ -318,5 +318,5 @@ At ε=0.003, R=5 rate = 0.02148, ring-bootstrap 95% interval 0.01563–0.02783;
 0.171 one-sided bound on four-period ring risk. The qualitative redundancy
 contrast survives the RNG correction; zero versus two observed errors at the
 lower rate does not establish a change in the underlying error law.
-[Raw v2 trials](../../../figs/redundancy_noise_v2_20260920.json),
-[v2 figure](../../../figs/redundancy_noise_v2_20260920.png).
+[Raw v2 trials](../../../figs/legacy_tower/redundancy_noise_v2_20260920.json),
+[v2 figure](../../../figs/legacy_tower/redundancy_noise_v2_20260920.png).

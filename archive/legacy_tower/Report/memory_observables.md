@@ -43,7 +43,7 @@ one-terminal-cell aliasing geometry when interpreting phase diversity.
 `experiments/phase_memory.py` implements the observer and stores every sampled
 ring outcome, phase mass, final phase histogram, and first-observed failure
 interval. CPU/CUDA observer and censoring tests pass (**3 tests**,
-[record](../../../figs/phase_observer_20260921.xml)). Configuration: Q=271, four
+[record](../../../figs/legacy_tower/phase_observer_20260921.xml)). Configuration: Q=271, four
 colonies, 64 independent rings (32 per initial bit), phases 0/135, strict-majority
 threshold, sample interval 10, persistent valid-field replacement noise v2,
 Workspace flags forced zero as in the local-only protocol, seed 922.
@@ -68,10 +68,10 @@ sampled horizon. These are pointwise bounds, not simultaneous across the sweep.
 excursions. Do not label the first erasure irreversible memory loss, infer a
 critical threshold from this short run, or treat time samples/cells as independent
 trials. The small printed/B differences do not establish a candidate improvement.
-[1000-step pilot](../../../figs/phase_memory_pilot_20260921.json),
-[10000-step near-transition run](../../../figs/phase_memory_transition_20260921.json).
+[1000-step pilot](../../../figs/legacy_tower/phase_memory_pilot_20260921.json),
+[10000-step near-transition run](../../../figs/legacy_tower/phase_memory_transition_20260921.json).
 
-![Persistent phase retention and sampled first-failure survival](../../../figs/phase_memory_transition_20260921.png)
+![Persistent phase retention and sampled first-failure survival](../../../figs/legacy_tower/phase_memory_transition_20260921.png)
 
 ## Finite-size observer control (2026-09-21)
 
@@ -109,14 +109,14 @@ must remain separate from irreversible-memory-loss claims. Initial-bit strata
 and paired contingency tables are retained for uncertainty analysis; cells,
 samples and the two observers are not extra independent trials.
 
-[Pilot](../../../figs/phase_size_20260921.json),
-[independent replication](../../../figs/phase_size_replication_20260921.json),
-[nine combined observer/uncertainty tests](../../../figs/phase_size_complete_tests_20260921.xml).
+[Pilot](../../../figs/legacy_tower/phase_size_20260921.json),
+[independent replication](../../../figs/legacy_tower/phase_size_replication_20260921.json),
+[nine combined observer/uncertainty tests](../../../figs/legacy_tower/phase_size_complete_tests_20260921.xml).
 Plotting via `experiments/plot_phase_size.py` uses pointwise 95% Wilson
 intervals **separately for each initial bit**, not a pooled iid assumption
 across different phase encodings.
 
-![Size dependence changes with the observer](../../../figs/phase_size_replication_20260921.png)
+![Size dependence changes with the observer](../../../figs/legacy_tower/phase_size_replication_20260921.png)
 
 An exact replay of the .30/16-colony point matches **512,512 observer outputs
 and all corresponding original-phase masses**, across every sampled time,
@@ -127,10 +127,10 @@ eliminated**: at t=10,000 it still occupies 11.12% of the ring, versus 53.02%
 for the original phase. Thus window recovery can reflect domain motion,
 not actual removal of the error region. This is one exploratory trajectory,
 not a population-level domain-speed or lifetime estimate.
-[Replay and all phase histograms](../../../figs/phase_excursion_20260921.npz),
+[Replay and all phase histograms](../../../figs/legacy_tower/phase_excursion_20260921.npz),
 [replay driver](../experiments/phase_excursion.py).
 
-![Wrong-phase region crosses the observation window](../../../figs/phase_excursion_20260921.png)
+![Wrong-phase region crosses the observation window](../../../figs/legacy_tower/phase_excursion_20260921.png)
 
 Every-step first-passage/recovery tracking is next; its proposed implementation
 has not yet been applied. Future recovery analyses must distinguish observer

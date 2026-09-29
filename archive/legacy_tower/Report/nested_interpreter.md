@@ -71,13 +71,13 @@ Validation covers:
   unrouted fivefold initialization.
 
 [Tests](../tests/test_nested_iinit.py),
-[initial unsupported baseline](../../../figs/nested_iinit_before_20260921.xml),
-[seven-test final run](../../../figs/nested_iinit_final_20260921.xml): **7 passed in
+[initial unsupported baseline](../../../figs/legacy_tower/nested_iinit_before_20260921.xml),
+[seven-test final run](../../../figs/legacy_tower/nested_iinit_final_20260921.xml): **7 passed in
 55.34 s**, including the constructor-rejection witness. The source and binary
-snapshot is [archived](../../../figs/nested_iinit_sources_20260921.tar.gz), with
-[fingerprints](../../../figs/nested_iinit_identity_20260921.json). Broad default
+snapshot is [archived](../../../figs/legacy_tower/nested_iinit_sources_20260921.tar.gz), with
+[fingerprints](../../../figs/legacy_tower/nested_iinit_identity_20260921.json). Broad default
 regressions on that archived build completed: **170 passed**, one slow test
-deselected, in 1353.26 s ([record](../../../figs/full_regressions_nested_iinit_20260921.xml)).
+deselected, in 1353.26 s ([record](../../../figs/legacy_tower/full_regressions_nested_iinit_20260921.xml)).
 That process had loaded the pre-register-load backend; its result must not be
 attributed to the subsequent `BUSLATCH_INT` change.
 
@@ -87,7 +87,7 @@ The previous interpreter nominally accepted `BUSLATCH_INT`, but its source
 bus was permanently disabled. Two end-to-end witnesses failed: 29/64 and
 19/64 simulated Age registers disagreed at R=3/5 because timed writes used
 zero instead of the middle instruction's source bit.
-[Failing record](../../../figs/nested_buslatch_before_20260921.xml).
+[Failing record](../../../figs/legacy_tower/nested_buslatch_before_20260921.xml).
 
 For a represented field bit at middle colony address X, middle Address a,
 pass direction s∈{−1,+1}, speed D and elapsed pass time τ, set
@@ -105,7 +105,7 @@ loaded field, are preserved from the independently computed local transition.
 The source is `op.src`, not a global bus override. Invalid source/direction
 descriptors are rejected. No additional integer registers or tracks are needed.
 
-**Eleven tests pass** in 145.35 s ([record](../../../figs/nested_buslatch_all_fields_20260922.xml)):
+**Eleven tests pass** in 145.35 s ([record](../../../figs/legacy_tower/nested_buslatch_all_fields_20260922.xml)):
 complete 65,536-step outer periods at R=3/5; both directions and zero/nonzero
 pass times; arbitrary raw copies and register values; Address/clock faults;
 high-bit preservation; non-vacuous NumPy/CUDA latch and evaluation witnesses;
@@ -118,11 +118,11 @@ every final HOLD field/raw copy. This is **not a full Gray outer period or a
 whole middle colony**. The later test refactor briefly introduced an undefined
 fixture variable (two errors); that test-only defect was corrected before the
 final run. **53 existing hierarchy/register/execution tests also pass** on the
-new backend, in 250.56 s ([record](../../../figs/nested_register_regressions_20260922.xml)).
+new backend, in 250.56 s ([record](../../../figs/legacy_tower/nested_register_regressions_20260922.xml)).
 Together with the 11 register-load cases, these cover 64 distinct tests, not a
 new full-suite run. [Tests](../tests/test_nested_buslatch.py),
-[source/binary archive](../../../figs/nested_buslatch_sources_20260922.tar.gz),
-[verified fingerprints](../../../figs/nested_buslatch_identity_20260922.json).
+[source/binary archive](../../../figs/legacy_tower/nested_buslatch_sources_20260922.tar.gz),
+[verified fingerprints](../../../figs/legacy_tower/nested_buslatch_identity_20260922.json).
 
 ## Actual remaining three-link opcode dependencies
 
@@ -168,7 +168,7 @@ state which itself has a second pair is explicitly rejected, not silently
 truncated; a general fourth link is outside this schema's current scope.
 
 **21 tests pass in 24.80 s** ([tests](../tests/test_nested_controls.py),
-[record](../../../figs/nested_controls_final_20260922.xml)). They cover R=3/5 complete
+[record](../../../figs/legacy_tower/nested_controls_final_20260922.xml)). They cover R=3/5 complete
 local loads, pair widths 16/17/20/31, isolated repair at colony boundaries,
 load-window boundaries, joint field/track damage, full-replacement counter
 oracles, stochastic checkpoint restart at time 2^40, invalid schema rejection,
@@ -184,10 +184,10 @@ For that Q=8192, U=1,048,576 case, the two-pair load window is
 [917518,950294), interpretation is [960965,972255), and the stage-five active
 deadline is 983040: **10,785 steps remain**. The full default regression run on
 this backend completed: **202 passed**, one slow test deselected, in 1492.57 s
-([record](../../../figs/full_regressions_nested_controls_20260922.xml)).
-The exact [source/backend snapshot](../../../figs/nested_controls_sources_20260922.tar.gz)
+([record](../../../figs/legacy_tower/full_regressions_nested_controls_20260922.xml)).
+The exact [source/backend snapshot](../../../figs/legacy_tower/nested_controls_sources_20260922.tar.gz)
 has 28 independently hash-verified members
-([identity](../../../figs/nested_controls_identity_20260922.json)); its archived report
+([identity](../../../figs/legacy_tower/nested_controls_identity_20260922.json)); its archived report
 predates completion of this full run. The earlier 170-test result belongs to
 the separate archived IINIT backend.
 
@@ -221,8 +221,8 @@ cache. This change is opt-in; ordinary compressed schedules are unchanged.
 Gray already has the tested stage-five reset/input-load path.
 
 **20 new tests pass** across two runs: 11 in 125.78 s
-([periods, branch table, fault containment and Gray](../../../figs/nested_ibc_extended_20260922.xml)),
-and nine in 3.61 s ([timed latches and rejection guards](../../../figs/nested_ibc_latch_20260922.xml)).
+([periods, branch table, fault containment and Gray](../../../figs/legacy_tower/nested_ibc_extended_20260922.xml)),
+and nine in 3.61 s ([timed latches and rejection guards](../../../figs/legacy_tower/nested_ibc_latch_20260922.xml)).
 [Tests](../tests/test_nested_ibc.py) cover:
 
 - Complete 65,536-step outer periods at R=3/5, actual middle IBC and inner
@@ -244,10 +244,10 @@ and nine in 3.61 s ([timed latches and rejection guards](../../../figs/nested_ib
 
 The preceding 202-test full-suite result belongs to the archived control-pair
 snapshot, **not to this newer nested-IBC backend**. A broad regression process
-was started on the [IBC source/backend archive](../../../figs/nested_ibc_sources_20260922.tar.gz)
-([identity](../../../figs/nested_ibc_identity_20260922.json)) before the carry changes
+was started on the [IBC source/backend archive](../../../figs/legacy_tower/nested_ibc_sources_20260922.tar.gz)
+([identity](../../../figs/legacy_tower/nested_ibc_identity_20260922.json)) before the carry changes
 below. It completed with **222 passed**, one slow test deselected, in 1864.10 s
-([record](../../../figs/full_regressions_nested_ibc_20260922.xml)), using its imported
+([record](../../../figs/legacy_tower/full_regressions_nested_ibc_20260922.xml)), using its imported
 Python modules and mapped old binary. Tests do not reload core modules or
 spawn fresh interpreters. This result is not attributed to subsequent builds.
 
@@ -293,29 +293,29 @@ uses this case; the R=3 reduced program exercises real carry computation.
   all eligible middle copy/pass combinations and both k=2/3. Complete
   65,536-step outer periods reproduce every middle field/raw copy after local
   input-cache loading. The test includes inconsistent input backups and an
-  isolated raw inner-clock fault. [Seven-test record](../../../figs/nested_ichain_after_20260922.xml).
+  isolated raw inner-clock fault. [Seven-test record](../../../figs/legacy_tower/nested_ichain_after_20260922.xml).
 - Two concurrent SWEEPs with distinguishable operands, including a later
   instruction that is ineligible for one target: complete outer-period output
   matches the direct last-eligible write. Isolated faults in each physical
   inner control alter only that holder's copies and are repaired by the next
-  full transition. [Three-test record](../../../figs/nested_ichain_order_faults_20260922.xml).
+  full transition. [Three-test record](../../../figs/legacy_tower/nested_ichain_order_faults_20260922.xml).
 - Every D=1 middle ICHAIN phase as an exact no-op, through a reduced complete
   outer period and full-Q Gray stage five (16 represented cells, all 512 bits,
   20-bit registers). Unsupported scratch-slot concurrency is rejected.
-  [Record](../../../figs/nested_ichain_order_gray_20260922.xml), which also contains an
+  [Record](../../../figs/legacy_tower/nested_ichain_order_gray_20260922.xml), which also contains an
   earlier version of the concurrent-write witness subsequently strengthened.
 - Ten strict-boundary/control-guard cases, including an out-of-table Age,
   excluded middle Address, invalid encoded geometry and full-alphabet raw
-  SimAddr. [Record](../../../figs/nested_ichain_guards_20260922.xml).
+  SimAddr. [Record](../../../figs/legacy_tower/nested_ichain_guards_20260922.xml).
 
-The [initial seven-test baseline](../../../figs/nested_ichain_before_20260922.xml)
+The [initial seven-test baseline](../../../figs/legacy_tower/nested_ichain_before_20260922.xml)
 failed at the unsupported-opcode check. A misplaced CUDA block caused one
 intermediate compile failure; correcting its location produced the tested
 backend. Neither is a scientific counterexample to the rule. A combined
 82-test nested-component regression run completed on the archived carry build:
-**82 passed in 599.35 s** ([record](../../../figs/nested_interpreter_closure_20260922.xml),
-[source/backend archive](../../../figs/nested_ichain_sources_20260922.tar.gz),
-[identity](../../../figs/nested_ichain_identity_20260922.json)).
+**82 passed in 599.35 s** ([record](../../../figs/legacy_tower/nested_interpreter_closure_20260922.xml),
+[source/backend archive](../../../figs/legacy_tower/nested_ichain_sources_20260922.tar.gz),
+[identity](../../../figs/legacy_tower/nested_ichain_identity_20260922.json)).
 **Neither a complete third link nor noisy hierarchy scaling is established.**
 
 ## Nested mail latching (ILATCH)
@@ -351,7 +351,7 @@ successful requests therefore read the same middle BUS displacement. The code
 also retains request order explicitly, matching the direct instruction.
 
 **46 tests pass in 153.80 s** ([tests](../tests/test_nested_ilatch.py),
-[record](../../../figs/nested_ilatch_verified_20260922.xml)):
+[record](../../../figs/legacy_tower/nested_ilatch_verified_20260922.xml)):
 
 - Complete 65,536-step outer periods at (R,D)=(3,3),(3,2),(5,1), both mail
   directions and every copy slot. Spatially distinct BUS bits make incorrect
@@ -370,20 +370,20 @@ also retains request order explicitly, matching the direct instruction.
   caches also equal the raw input controls, not the repaired output. This uses
   prepared gather banks, **not a whole middle colony or complete Gray period**.
 
-The [initial baseline](../../../figs/nested_ilatch_before_20260922.xml) failed at the
+The [initial baseline](../../../figs/legacy_tower/nested_ilatch_before_20260922.xml) failed at the
 unsupported-opcode check. Earlier component records are retained; the 46-test
 record above reruns the final strengthened fixtures together. The archived
 latch build subsequently completed **148 component/backend tests in 1146.07 s**
-([record](../../../figs/nested_latch_regressions_20260922.xml),
-[source/backend archive](../../../figs/nested_ilatch_sources_20260922.tar.gz),
-[identity](../../../figs/nested_ilatch_identity_20260922.json)). The process handle was
+([record](../../../figs/legacy_tower/nested_latch_regressions_20260922.xml),
+[source/backend archive](../../../figs/legacy_tower/nested_ilatch_sources_20260922.tar.gz),
+[identity](../../../figs/legacy_tower/nested_ilatch_identity_20260922.json)). The process handle was
 lost during an environment reset, but its complete saved XML reports zero
 failures/errors. The run was not restarted or attributed to a later backend.
 
 ## Full-program closure requires more than the last opcode
 
 The [reproducible inventory](../experiments/nested_inventory.py)
-([result](../../../figs/nested_inventory_20260922.json)) finds a distinct barrier:
+([result](../../../figs/legacy_tower/nested_inventory_20260922.json)) finds a distinct barrier:
 
 | Middle program | Largest batch | Age | Former interpreter cap |
 |---|---:|---:|---:|
@@ -411,7 +411,7 @@ Incompatible batches are rejected, not assigned nonexistent scratch tracks.
 Work-period budgets still bound the compiled computation.
 
 **13 tests pass in 40.72 s** ([tests](../tests/test_instruction_batches.py),
-[record](../../../figs/instruction_batches_verified_20260923.xml)):
+[record](../../../figs/legacy_tower/instruction_batches_verified_20260923.xml)):
 
 - Actual 23-clear initialization at R=3/5 through complete 65,536-step outer
   periods, plus full-Q Gray stage five on 16 represented cells. All 23 writes
@@ -428,9 +428,9 @@ Work-period budgets still bound the compiled computation.
   IEVAL. These projection tests are compilation/budget diagnostics, not
   third-link execution.
 
-The [baseline](../../../figs/instruction_batches_before_20260923.xml) failed on the
+The [baseline](../../../figs/legacy_tower/instruction_batches_before_20260923.xml) failed on the
 four-instruction assertion in all three real-clear cases. The updated
-[inventory](../../../figs/nested_inventory_20260923.json) records no fixed dispatch
+[inventory](../../../figs/legacy_tower/nested_inventory_20260923.json) records no fixed dispatch
 cap (`null`), while retaining three operand slots:
 
 | All-but-IEVAL diagnostic | Encoded bits | Compute end | Deadline | Slack |
@@ -442,7 +442,7 @@ cap (`null`), while retaining three operand slots:
 These are stage-computation margins, not total-runtime bounds or proof of a
 completed hierarchy. Broader regressions on the archived dispatch build completed:
 **304 passed**, one slow test deselected, in 2436.13 s
-([record](../../../figs/full_regressions_dispatch_20260923.xml)). They must not be
+([record](../../../figs/legacy_tower/full_regressions_dispatch_20260923.xml)). They must not be
 attributed to the subsequent nested-evaluation build.
 
 ## Nested evaluation and full opcode closure (2026-09-23)
@@ -466,8 +466,8 @@ and a found source. Register writes retain their field-bit timing and raw range
 guard. Nonempty deeper REGWIN, concurrent represented IEVAL, negative indices,
 and an encoded upper state with a second control pair are explicitly rejected.
 
-**30 component tests pass** across [19 extended tests](../../../figs/nested_ieval_extended_20260923.xml)
-(281.17 s) and [11 register/fault tests](../../../figs/nested_ieval_fault_register_20260923.xml)
+**30 component tests pass** across [19 extended tests](../../../figs/legacy_tower/nested_ieval_extended_20260923.xml)
+(281.17 s) and [11 register/fault tests](../../../figs/legacy_tower/nested_ieval_fault_register_20260923.xml)
 (4.14 s). [Test source](../tests/test_nested_ieval.py). Coverage includes:
 
 - Actual value and emitted token/broadcast transitions through complete 65,536-step
@@ -489,7 +489,7 @@ all six carry kinds in the actual top program. Corrected tests use Gray for that
 MOV and separate synthetic truth tables from emitted-program witnesses. These
 were test assumptions, not transition-rule counterexamples.
 
-**Full-program integration:** [five tests pass](../../../figs/third_link_initial_20260923.xml)
+**Full-program integration:** [five tests pass](../../../figs/legacy_tower/third_link_initial_20260923.xml)
 in 190.36 s: three full-program compilation checks (R=3, R=5, Gray), plus two
 unprojected R=3/5 execution checks through complete outer periods. Execution
 batches cover every emitted middle instruction family, inner value families,
@@ -497,30 +497,30 @@ rollover, inconsistent backups and control faults on 16-cell middle rings.
 These integration checks are supplemented by the non-vacuous component witnesses;
 they do not establish every possible faulty state or long-time behavior.
 **Two consecutive-transition tests also pass** in 678.50 s
-([record](../../../figs/third_link_consecutive_20260923.xml)): whole 256-cell (R=3)
+([record](../../../figs/legacy_tower/third_link_consecutive_20260923.xml)): whole 256-cell (R=3)
 and 512-cell (R=5) middle colonies, each followed through four physical outer
 periods without state reinitialization. Two independent initial conditions cross
 the evaluation boundary and middle rollover. All decoded fields/raw copies match
 the direct middle evolution after every period. Physical rings contain 262,144
 and 524,288 cells respectively. Each ring represents only one top cell, so
 next-level neighborhood aliasing is explicit; this is not a complete middle or
-top work-period result. Two [factory tests](../../../figs/third_link_factory_20260923.xml)
+top work-period result. Two [factory tests](../../../figs/legacy_tower/third_link_factory_20260923.xml)
 verify `make_simulation_layer` preserves the entire middle program, whole-colony
 geometry, full register alphabet and explicit rejection of unsupported further nesting.
 
-The [full inventory](../../../figs/nested_inventory_closed_20260923.json) now has **no
+The [full inventory](../../../figs/legacy_tower/nested_inventory_closed_20260923.json) now has **no
 unsupported emitted opcode** and the same budgets as the historical partial table
 above, including 10,766 active-stage steps spare in Gray. The middle instructions
 are neither dropped nor retimed. This is finite, level-specific instruction-table
 closure—not Gray's encoded universal interpreter/ProgramBit fixed point
 (Gray §5.3, pp.30–32), and not a proof of noise robustness.
 
-The exact source, backend and passing records are [archived](../../../figs/nested_ieval_sources_20260923.tar.gz)
-with [verified fingerprints](../../../figs/nested_ieval_identity_20260923.json): 43 members,
+The exact source, backend and passing records are [archived](../../../figs/legacy_tower/nested_ieval_sources_20260923.tar.gz)
+with [verified fingerprints](../../../figs/legacy_tower/nested_ieval_identity_20260923.json): 43 members,
 39 passing component/integration/factory cases, archive SHA-256
 `22c3d822842cead80fa159be540c0f3694c6a92f2fd3bfd4de56f9c1913a6895`.
 Broader default regressions on this build completed: **340 passed**, one slow test
-deselected, in 4007.00 s ([record](../../../figs/full_regressions_nested_ieval_20260923.xml)).
+deselected, in 4007.00 s ([record](../../../figs/legacy_tower/full_regressions_nested_ieval_20260923.xml)).
 The earlier 304-test result belongs to the separate pre-evaluation archive.
 Later [physical execution](third_link_execution.md) completed a full reduced
 middle period, with independent replay and a single-top-cell endpoint check.

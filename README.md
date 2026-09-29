@@ -30,5 +30,6 @@ The separate level-specific finite tower and its reports are in
 [`archive/legacy_tower/`](archive/legacy_tower/). These are preserved as
 historical references, not part of the current test suite. Supplied PDFs are
 in [`papers/`](papers/); extracted paper text remains in `papers_txt/`.
-Generated receipts and build products remain in `figs/` and are excluded from
-new source commits.
+Generated receipts and build products are kept locally in `figs/fixed_rule/`
+for the current candidate and `figs/legacy_tower/` for the archived tower.
+The entire `figs/` tree is ignored by Git.

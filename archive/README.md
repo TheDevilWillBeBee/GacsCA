@@ -8,5 +8,6 @@
 
 The archive is for inspection and reproduction from the source checkpoint
 `bae5fd2`. Archived tests and drivers are excluded from current discovery;
-their original import paths belong to that checkpoint. No historical data,
-figures, logs, or running jobs were moved into this archive.
+their original import paths belong to that checkpoint. Generated outputs for
+the older tower are kept locally in `figs/legacy_tower/`, separate from the
+current `figs/fixed_rule/` receipts. Neither output tree is tracked by Git.

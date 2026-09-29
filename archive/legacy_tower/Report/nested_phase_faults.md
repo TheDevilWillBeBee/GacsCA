@@ -13,7 +13,7 @@ pass. No transition rule was changed.
 **Corrected pilots (completed, 2026-09-24):** schema 2 initializes these caches and
 targets top cell 8, middle holder **2133**, where the clean IEVAL actually changes
 HOLD **1→0**. A preflight gate rejects inactive/value-preserving targets. Eight
-[revised protocol/audit/plot tests](../../../figs/nested_phase_cached_tests_20260924.xml)
+[revised protocol/audit/plot tests](../../../figs/legacy_tower/nested_phase_cached_tests_20260924.xml)
 pass. Prefixes are `figs/nested_evaluation_cached_20260924` and
 `figs/nested_rollover_cached_20260924`. The older protocol below is retained to
 explain the failed setup; its target holder 1365 is not the corrected target.
@@ -23,8 +23,8 @@ explain the failed setup; its target holder 1365 is not the corrected target.
 Both seven-ring pilots completed **49,152 physical steps**: evaluation in
 446.87 s and rollover in 478.66 s, with concurrent GPU work. All three retained
 boundaries pass independent packed decoding and fresh middle-transition checks.
-[Evaluation audit](../../../figs/nested_evaluation_cached_verified_20260924.json),
-[rollover audit](../../../figs/nested_rollover_cached_verified_20260924.json).
+[Evaluation audit](../../../figs/legacy_tower/nested_evaluation_cached_verified_20260924.json),
+[rollover audit](../../../figs/legacy_tower/nested_rollover_cached_verified_20260924.json).
 
 | Window / physical target | Trials | Decoded erroneous middle cells after boundaries 1 → 2 → 3 | Raw track-copy errors at boundary 1 | Final excess physical Flag2 cells |
 |---|---:|---|---|---|
@@ -60,14 +60,14 @@ scope limitation is preserved rather than treating all register faults alike.
 At rollover boundary 2, a **second independent decoding** of all seven physical
 rings matches a fresh top transition in every field/copy. This uses a CPU-prepared
 prior middle prefix, not a full physical middle history. The same audit on the
-[cold rollover](../../../figs/nested_rollover_cold_reaudit_20260924.json) finds eight
+[cold rollover](../../../figs/legacy_tower/nested_rollover_cold_reaudit_20260924.json) finds eight
 wrong top track copies in *every* ring, including the clean control, even though
 its physical-to-middle simulation is exact. This is the distinguishing negative
 control for the initialization correction.
 
-![Corrected evaluation diagnostics](../../../figs/nested_evaluation_cached_verified_20260924.png)
+![Corrected evaluation diagnostics](../../../figs/legacy_tower/nested_evaluation_cached_verified_20260924.png)
 
-![Corrected rollover diagnostics](../../../figs/nested_rollover_cached_verified_20260924.png)
+![Corrected rollover diagnostics](../../../figs/legacy_tower/nested_rollover_cached_verified_20260924.png)
 
 Figures were visually inspected. Counts are exact sampled outcomes, colors use
 per-panel log(1+count), and two trials are not a failure-probability estimate.
@@ -123,8 +123,8 @@ the CPU-prepared prefix is not counted as prior physical evolution.
 [independent packed-boundary audit](../experiments/analyze_nested_phase_faults.py),
 [diagnostic plotter](../experiments/plot_nested_phase_faults.py).
 
-Five [protocol/restart/audit tests](../../../figs/nested_phase_faults_audit_tests_20260923.xml)
-pass in 52.23 s; one [plot test](../../../figs/nested_phase_plot_tests_20260923.xml) passes
+Five [protocol/restart/audit tests](../../../figs/legacy_tower/nested_phase_faults_audit_tests_20260923.xml)
+pass in 52.23 s; one [plot test](../../../figs/legacy_tower/nested_phase_plot_tests_20260923.xml) passes
 in 1.47 s. Tests check actual opcode/holder/field placement, CPU preparation by
 evolution rather than clock relabeling, bit-exact split/resume, idempotent
 completion, immutable retained boundaries, source identity, independent packed
@@ -144,8 +144,8 @@ The cold evaluation pilot completed 49,152 physical steps in 522.55 s. All six
 faulty rings match the clean *cold-cache* middle state after period 2, but this
 is not active-BITOP robustness. The cold rollover pilot also completed, in
 369.10 s, with all decoded errors gone after period 2. Independent packed audits
-pass for [evaluation](../../../figs/nested_evaluation_cold_audit_20260923.json) and
-[rollover](../../../figs/nested_rollover_cold_audit_20260924.json). These
+pass for [evaluation](../../../figs/legacy_tower/nested_evaluation_cold_audit_20260923.json) and
+[rollover](../../../figs/legacy_tower/nested_rollover_cold_audit_20260924.json). These
 names deliberately remain unchanged so the failed setup and its sources stay
 reproducible.
 Exact checkpoint prefixes:

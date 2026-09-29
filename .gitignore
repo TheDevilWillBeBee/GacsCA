@@ -5,3 +5,4 @@ build/
 *.so
 .ipynb_checkpoints/
 .pytest_cache/
+/figs/

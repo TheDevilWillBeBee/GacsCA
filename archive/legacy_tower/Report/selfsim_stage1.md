@@ -67,9 +67,9 @@ Two adjacent misaligned full colonies (address 0 at site 20Q+100) inside a 256-c
   within two periods, and the level-1 trail heals: **fully repaired (level 0 and level 1) at
   period 80** (6.6×10⁵ steps). With trickle-down disabled the island persists indefinitely.
 
-![island](../../../figs/island_trickle_n2_s100.png)
+![island](../../../figs/legacy_tower/island_trickle_n2_s100.png)
 
-![depth results](../../../figs/depth_results.png)
+![depth results](../../../figs/legacy_tower/depth_results.png)
 
 Note on the amplifier plot: at small ε the measured ε₁ is *linear* (≈40ε ≈ 2×10⁻⁵ per hit), so a rare
 single-hit channel exists that the 40-trial single-hit diagnostic could not resolve; the

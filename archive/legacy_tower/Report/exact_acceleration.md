@@ -39,7 +39,7 @@ Fourteen tests pass, comparing every packed word against ordinary execution at
 R=3 compressed and R=5 Gray settings. Tests include mixed active/quiet spans,
 subsequent graph replay, rejection without state mutation for five damage types,
 and rejection at clock-dependent boundaries.
-[Tests](../tests/test_quiescent.py), [record](../../../figs/quiescent_20260921.xml).
+[Tests](../tests/test_quiescent.py), [record](../../../figs/legacy_tower/quiescent_20260921.xml).
 
 The optional second control pair has an additional fixed-point witness in
 [test_nested_controls.py](../tests/test_nested_controls.py): a repairable
@@ -56,9 +56,9 @@ to the completed ordinary trajectory. It skips 647,847 of 1,048,576 steps in
 23 certified intervals. Measured wall times are 490.50 s certified versus
 1505.72 s direct; differing shared-GPU load makes that an observational timing
 comparison, not a controlled speedup benchmark.
-[Checkpoint](../../../figs/gray_protocol_certified_skip_20260921.npz),
-[verified archive](../../../figs/gray_protocol_certified_skip_sources_20260921.tar.gz),
-[bitwise comparison](../../../figs/quiescent_protocol_parity_20260921.json).
+[Checkpoint](../../../figs/legacy_tower/gray_protocol_certified_skip_20260921.npz),
+[verified archive](../../../figs/legacy_tower/gray_protocol_certified_skip_sources_20260921.tar.gz),
+[bitwise comparison](../../../figs/legacy_tower/quiescent_protocol_parity_20260921.json).
 
 The whole-colony validator also supports an explicit `--fork-from` operation.
 It preserves the parent checkpoint and records its hash, original identity and
@@ -70,7 +70,7 @@ requires exact identity. A full-geometry fork from step 237824 completed a
 a read-only comparison process: **all 1,342,177,280 packed words equal the
 direct run's state at step 246016**. The comparison refuses ordinary fallback
 steps that could hide an incorrect skip by subsequent repair.
-[Full-geometry parity record](../../../figs/quiescent_full_geometry_parity_20260921.json).
+[Full-geometry parity record](../../../figs/legacy_tower/quiescent_full_geometry_parity_20260921.json).
 This validates a quiet interval at full scale, not a whole lower or upper period.
 
 The certified fork **completed all 1,048,576 lower steps**. Every one of the
@@ -84,9 +84,9 @@ An independent CPU decoder subsequently checked all **4,128,768 encoded bits**
 directly from saved packed words, without the GPU Info decoder. Every field
 matches a freshly recomputed upper transition; all five Info copies agree at
 the encoded positions. Source/archive hashes and final physical Address/Age
-also pass. [Independent verification record](../../../figs/gray_whole_colony_independent_check_20260921.json).
-[Checkpoint](../../../figs/gray_whole_colony_certified_20260921.npz),
-[separate source archive](../../../figs/gray_whole_colony_certified_20260921_sources.tar.gz).
+also pass. [Independent verification record](../../../figs/legacy_tower/gray_whole_colony_independent_check_20260921.json).
+[Checkpoint](../../../figs/legacy_tower/gray_whole_colony_certified_20260921.npz),
+[separate source archive](../../../figs/legacy_tower/gray_whole_colony_certified_20260921_sources.tar.gz).
 Its elapsed time excludes the inherited direct prefix, whose time and identity
 remain in `forked_from`; skipped steps are recorded separately from total
 physical time represented by the state.

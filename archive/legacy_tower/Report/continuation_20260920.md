@@ -38,11 +38,11 @@ at times through 2⁶⁴−1, tests the removed time/batch aliases, chunk/restar
 equality, and an engineered probability-resolution witness at ε=2⁻³⁰.
 Version 1 remains selectable for reproducibility. Historical JSON files
 without a noise-version field used version 1 and are not rewritten.
-[Noise/backend record](../../../figs/noise_counter_v2_20260920.xml).
+[Noise/backend record](../../../figs/legacy_tower/noise_counter_v2_20260920.xml).
 The matched redundancy sweep was repeated under version 2: at ε=0.001,
 R=3/R=5 errors are 628/0 of 2048 cell-periods; at ε=0.003, 1977/44.
 There are 16 independent rings, not 2048 independent observations.
-[Trial data](../../../figs/redundancy_noise_v2_20260920.json).
+[Trial data](../../../figs/legacy_tower/redundancy_noise_v2_20260920.json).
 
 **Exact clean acceleration.** Full-engine configuration is now host-resident,
 eliminating a device-to-host synchronization each microstep; kernel launches
@@ -70,17 +70,17 @@ period diagnostics, parameters, source and binary hashes. Resume rejects
 changed identities or a failed run. Unexpected termination may lose work
 since the last checkpoint but cannot turn an incomplete file into a success.
 
-Ten graph/checkpoint tests pass ([record](../../../figs/checkpoint_graph_20260920.xml)),
+Ten graph/checkpoint tests pass ([record](../../../figs/legacy_tower/checkpoint_graph_20260920.xml)),
 including simulated replacement failure that preserves the old checkpoint.
 A real GPU restart probe (2+2 periods) is bit-identical in all 18 arrays and
 all diagnostics to an uninterrupted four-period run:
-[resumed](../../../figs/tower_resume_probe_20260920.npz),
-[continuous](../../../figs/tower_continuous_probe_20260920.npz).
+[resumed](../../../figs/legacy_tower/tower_resume_probe_20260920.npz),
+[continuous](../../../figs/legacy_tower/tower_continuous_probe_20260920.npz).
 These probes do not complete an upper work period.
 
 Combined RNG, fivefold interpreter, damaged-control, graph, and checkpoint
 regressions: **50 passed in 53.44 s**
-([record](../../../figs/continuation_regressions_20260920.xml)).
+([record](../../../figs/legacy_tower/continuation_regressions_20260920.xml)).
 
 Completed run: `figs/tower_checked_R3_20260920.npz`, **4096/4096** lower
 periods = 67108864 physical microsteps. Every upper transition matches in all
@@ -88,7 +88,7 @@ fields/raw track copies, physical Address/Age damage is zero, and the terminal
 transition matches via both decode routes in every field. Wall time 1637.36 s
 with concurrent GPU jobs; this is not an isolated throughput benchmark.
 The exact pre-Gray-schedule source and binary for this run are preserved in
-[this archive](../../../figs/tower_checked_R3_sources_20260920.tar.gz); all files listed
+[this archive](../../../figs/legacy_tower/tower_checked_R3_sources_20260920.tar.gz); all files listed
 in its checkpoint identity have been hash-verified against the archive. As the
 current tree has advanced, a restart must use the archived source in a separate
 directory, not bypass identity checking or overwrite the current worktree.
@@ -115,18 +115,18 @@ Actual trickle is `[210142,226526)`, versus prescribed `[786432,802816)`.
 The initial witness selection mistakenly assumed gather two lay in that rest;
 inspection of compiled ages corrected it to gather three. The period-boundary
 commit is not counted as a rest violation: it produces the next period's Age=0.
-[Raw audit](../../../figs/gray_schedule_audit_20260920.json).
+[Raw audit](../../../figs/legacy_tower/gray_schedule_audit_20260920.json).
 
 A second witness isolates the missing reset: set one scratch primary `BF0[100]`
 to 1, with all R consistent holder copies, just before the period boundary.
 The island occupies only R neighboring cells. It survives transitions to Ages
 0,1,2 with healthy physical structure. Gray's first-stage Workspace reset must
 erase it. Both R=3 at Q=256 and R=5 at Q=8192 reproduce this
-([tests](../tests/test_schedule_gaps.py), [record](../../../figs/schedule_gap_witnesses_20260920.xml)).
+([tests](../tests/test_schedule_gaps.py), [record](../../../figs/legacy_tower/schedule_gap_witnesses_20260920.xml)).
 These two passing witness tests document nonconformance of the compressed rule;
 they must not be counted as tests certifying Gray fidelity.
 
-![Source versus implemented timing](../../../figs/gray_schedule_audit_20260920.png)
+![Source versus implemented timing](../../../figs/legacy_tower/gray_schedule_audit_20260920.png)
 
 Gács [Algorithms 19.5–19.8, pp.188–190](../../../papers_txt/gacs_2001.txt) additionally
 repeats decode/evaluate/encode three times, votes the results, and separately

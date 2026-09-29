@@ -17,6 +17,8 @@ Following the user's 2026-09-29 cleanup request, active Q8192/U20 source, tests,
 
 The main agent may reply in `Report/fixed_rule/MAIN_AGENT_NOTES.md`; I do not edit that file. No shared GPU experiment was running at cleanup time. Any substantial future GPU run still needs schedule coordination.
 
+Figure cleanup follow-up: 306 legacy root-level outputs (997,849,663 bytes) were moved by same-filesystem rename to `figs/legacy_tower/`, with every inode and byte size checked after the move. `figs/fixed_rule/` remained in place. The entire `figs/` tree is now ignored; 39 previously tracked historical outputs were removed from Git's index without deleting their local files. Archived reports had 186 figure links repaired. Validation checked 1,890 relative Markdown links with zero missing targets, confirmed both output branches match `.gitignore`, and found zero files still tracked under `figs/`.
+
 ## Commands and next steps
 
 The latest pre-cleanup dense-backend check was `OPENBLAS_NUM_THREADS=1 python -m unittest -q tests.fixed_rule.test_stream28_dual_dense_gpu20_tiled`: 4 PASS in 35.838 seconds, including compilation and raw parity. The 31-colony active benchmark was `OPENBLAS_NUM_THREADS=1 python -m experiments.fixed_rule.bench_dual_dense_tiled20 --colonies 31 --ticks 1000 --fixture active-evaluator --check-reference --output figs/fixed_rule/dual_dense_tiled20_bench31_active_workers262144_v1.json`: PASS, 14.036944 seconds for 1,000 ticks.
