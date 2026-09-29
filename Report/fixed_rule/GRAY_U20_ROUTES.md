@@ -2,7 +2,7 @@
 
 2026-09-28. This is a research roadmap, not a claim that Q=8192,
 U=1048576 has been constructed. It uses the measured `packed28_holder_*`
-candidate in [PACKED_ROM_Q8192_U28.md](PACKED_ROM_Q8192_U28.md) and the
+candidate in [PACKED_ROM_Q8192_U28.md](../../archive/fixed_rule/past_attempts/Report/fixed_rule/PACKED_ROM_Q8192_U28.md) and the
 supplied Gray/Gács texts. The current candidate has a fixed physical rule
 and two physically executed lower periods, but its clock is U=2^28.
 
