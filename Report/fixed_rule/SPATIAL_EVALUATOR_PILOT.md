@@ -1,6 +1,7 @@
 # Spatial evaluator pilot for the fixed-rule candidate
 
-Updated 2026-09-28. This is an isolated physical-rule experiment, **not** a
+Updated 2026-09-28. The later full-DAG result is documented in
+[FULL_SPATIAL_DAG_SCHEDULE.md](FULL_SPATIAL_DAG_SCHEDULE.md). This is an isolated physical-rule experiment, **not** a
 replacement for the integrated `stream28_holder_*` simulator. Its measured
 advance is a local route and gate-reuse schedule for the first nine dependency
 layers of that candidate's own compiled transition description. Here *dependency
@@ -120,8 +121,9 @@ before reset, then all 371 ninth-layer outputs at the end, plus **245,760**
 literal site transitions across 30 sampled whole-ring steps. Both agree
 field-for-field with the independent trajectory witness; the latter checks
 packet launches, flights, arrivals and the reset boundary. Final receipts
-are `figs/fixed_rule/spatial_epoch_eight_v2.json` and
-`figs/fixed_rule/spatial_epoch_ninth_v4.json`.
+are `figs/fixed_rule/spatial_epoch_eight_v3.json` and
+`figs/fixed_rule/spatial_epoch_ninth_v5.json` after the later packet
+pass-through refinement.
 `python -m unittest tests.fixed_rule.test_spatial_epoch -v` passed five
 tests in 18.751 seconds. The tests cover the same rule identity/width across
 encoded prefixes, actual switching and second-result emission with one
@@ -146,19 +148,9 @@ further duplication. `python -m experiments.fixed_rule.measure_spatial_full_fano
 --output figs/fixed_rule/spatial_full_fanout_v1.json` records this inventory.
 No complete placement or routing certificate follows from the count.
 
-The next bounded optimization experiment is to synthesize those shared
-subexpressions into a load-balanced static placement, closing any new
-fanout overflows iteratively. Only then can the second and third encoded
-gate epochs be scheduled with operand/result lifetime and packet-phase
-checks, followed by literal local-rule audits. This attacks a concrete
-route-table obstruction without widening the physical alphabet for the
-next DAG layer.
-
-This pilot does **not** yet include the spatial evaluator in the integrated
-`stream28_holder_*` rule, describe the new evaluator's own 2,375-bit state
-and transition in its ROM, decode a new complete macrostep, show an entire
-stage-five physical run, or establish repair/noise tolerance. Its 2,375-bit
-alphabet is a separate rule, not spare capacity proven inside the existing
-4,090-bit integrated raw state. Any integrated replacement must recompile
-and validate a description of its *changed complete transition*, including
-all local packet and gate mechanics, and repeat the full macrostep audit.
+The later [complete-DAG report](FULL_SPATIAL_DAG_SCHEDULE.md) records the
+resolved fanout, placement and phase scheduling, physical output commitment,
+and a 2,334-bit, 4Q successor pilot. The older 2,375-bit measurements above
+are historical. The successor is still separate from the integrated
+`stream28_holder_*` rule; no complete self-description, integrated macrostep,
+or repair/noise result follows from this prefix experiment.

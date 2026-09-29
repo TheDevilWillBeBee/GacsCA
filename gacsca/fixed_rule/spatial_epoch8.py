@@ -1,11 +1,10 @@
-"""Fixed radius-one, finite-state spatial evaluator with encoded gate epochs.
+"""Fixed radius-one 8Q spatial evaluator with late output-latch routes.
 
-This remains an isolated pilot, not the complete self-simulating physical
-rule. Each cell has one dynamic operand pair and result register. Three
-static gate descriptions and a static switch tick are encoded in its initial
-state. Advancing an epoch reuses the same dynamic workspace. The three-slot
-bound is a fixed hardware choice for the *one* own-rule DAG, not a hierarchy
-depth selector. No evolving transition invokes a host DAG interpreter.
+This is a successor-rule candidate, not a closed self-simulator. Its 16-bit
+Age gives a fixed 8Q evaluator window. A marked output gate stores its value
+in source_value through later gate-slot reuse; a static leftward output route
+can emit that value after all rightward operand traffic clears. The local
+rule and state alphabet are independent of hierarchy depth.
 """
 from dataclasses import dataclass,replace
 
@@ -13,7 +12,7 @@ from . import spatial_layer1 as base
 from .wordcode_and import NAND,ADD,SHR,EQ,LT,LIT,AND,arithmetic
 
 Q=base.Q
-AGE_BITS=15
+AGE_BITS=16
 PERIOD=1<<AGE_BITS
 ROUTE_SLOTS=base.ROUTE_SLOTS
 GATE_SLOTS=3
@@ -183,6 +182,9 @@ def local_step(neighbors):
         for route in c.routes:
             if not route.valid or route.launch!=age:continue
             if c.kind==SOURCE:
+                value=c.source_value
+            elif (route.target_gate_slot==3 and
+                  c.gates[route.source_gate_slot].opcode in OUTPUT_BASE_OPCODE):
                 value=c.source_value
             elif route.source_gate_slot==active and done:
                 value=result
