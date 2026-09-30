@@ -518,6 +518,61 @@ class MuxFrontEquivalenceTest(unittest.TestCase):
         self.assertGreater(arrivals, N)
 
 
+class SelFrontEquivalenceTest(unittest.TestCase):
+    """sel_front (select the arriving front's five register and lane copies,
+    then one majority) computes the same state transition as mux_front (a
+    majority for every candidate source, then select), on random inputs and
+    on inputs where a front of the G14 comb arrives at a random slot,
+    including match passes. Outside arrivals only the don't-care lookup
+    outputs (psel, laddr) may differ."""
+
+    def test_same_transition_as_mux_front(self):
+        for mode in (1, 2):
+            self._check(mode)
+
+    def _check(self, mode):
+        c = candidates.load('G14')
+        p0 = c.p
+        p1 = replace(p0, sel_front=mode).check()
+        comp0 = c.comp
+        _, comp1 = p1.fam().cached(p1)
+        self.assertLess(len(comp1.gates), len(comp0.gates))
+        rng = np.random.default_rng(5)
+        N = 2048
+        arrivals = 0
+        for forced in (False, True, True, True):
+            vals = {nm: rng.random(N) < 0.5 for nm in comp0.inputs}
+            if forced:
+                pg = rng.integers(0, p0.NP, N)
+                pg[: N // 4] = p0.MP
+                d = rng.integers(-2, 3, N)
+                j = rng.integers(0, p0.fronts, N)
+                t = rng.integers(0, p0.PL, N)
+                front = np.where(pg % 2 == 0, p0.lo - p0.H + t + j * p0.delta,
+                                 p0.hi - 1 - t + j * p0.delta)
+                a0 = front - d
+                codes = np.array([p0.age_code(int(x)) for x in p0.E0 + pg * p0.PL + t])
+                for jj in range(-5, 6):
+                    a = (a0 + jj) % p0.Q
+                    for i in range(p0.k):
+                        vals[('x', jj, 'addr', i)] = ((a >> i) & 1).astype(bool)
+                    for i in range(p0.m):
+                        vals[('x', jj, 'age', i)] = ((codes >> i) & 1).astype(bool)
+                    for f in ('f1', 'f2', 'wf1', 'wf2'):
+                        vals[('x', jj, f, 0)] = np.zeros(N, bool)
+            o0 = comp0.evaluate(vals, dtype=bool)
+            o1 = comp1.evaluate(vals, dtype=bool)
+            arr = o0[('arrive', 0)]
+            self.assertTrue(np.array_equal(arr, o1[('arrive', 0)]))
+            arrivals += int(arr.sum())
+            for k in o0:
+                if k[0] in ('psel', 'laddr'):
+                    self.assertTrue(np.array_equal(o0[k][arr], o1[k][arr]), k)
+                else:
+                    self.assertTrue(np.array_equal(o0[k], o1[k]), k)
+        self.assertGreater(arrivals, 2 * N)
+
+
 def _gpu_available():
     import os
     import shutil

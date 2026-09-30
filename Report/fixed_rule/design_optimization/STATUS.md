@@ -36,13 +36,22 @@ opt-in slow test).
   (64/64), all bit-identical.
 - G13 is done: b31–b33 (before the match-gate fix) and b34–b36 (after it)
   gave 192/192 each, all bit-identical.
-- `level1_campaign/run_g14.sh`: the same three stages on G14 (b41–b43).
+- G14 is done: b41–b43 gave 192/192, all bit-identical. G8 b5 (full 1M-site
+  colonies) gave 8/8. G9 b6–b7 are still queued in `run_queue2.sh`.
 
 Logs are in `figs/fixed_rule/design_optimization/level1_campaign/b*.log`.
 
+## Compiler work after G14 (REPORT §24)
+
+- Select-then-vote (`sel_front`) is the same function with 14% fewer gates.
+  It shortens the one-front program by about 14%, but not the comb's.
+- About fifteen scheduler and partition variants gave no candidate better
+  than G14.
+- The five-front finish time is front 0's serial stream.
+
 ## Next
 
-The compiler is the limit (REPORT §23). With unlimited registers the final
+The compiler is the limit (REPORT §§23–24). With unlimited registers the final
 program needs 77 passes on one front and 22 on four; the in-order scheduler
 needs about 500 and about 200.
 

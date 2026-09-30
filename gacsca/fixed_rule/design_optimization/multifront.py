@@ -258,6 +258,16 @@ def partition(sched, F, holds, root_owner, leaf_owner, combine='front0', cut=Tru
         elif combine == 'spread':
             _, a, b = sched.mops[g]
             assign[g] = assign.get(a, assign.get(b, 0)) if a in gates else assign.get(b, 0)
+        elif combine == 'owned':
+            # follow an operand owned by a single front (lane or gate), else
+            # the front of a computed operand
+            _, a, b = sched.mops[g]
+            own = [cls.get(z, -1) for z in (a, b) if cls.get(z, -1) >= 0]
+            if own:
+                assign[g] = own[0]
+            else:
+                fr = [assign[z] for z in (a, b) if z in assign]
+                assign[g] = fr[0] if fr else 0
         else:
             assign[g] = 0
     # gates derived only from constants and front 0's registers: computed on
@@ -388,9 +398,93 @@ def asap_times(sched, comb, gates):
     return T
 
 
+def sweep_order(sched, comb, roots, gates, lam=50.0, window=300, dfs=None):
+    """Issue order from a sequential model of the front: one instruction per
+    tick, a gate reading a lane runs at the lane cell's next visit (two lanes
+    on different cells: a load at one, then the gate at the other), other
+    gates one tick later. Among the ready gates within `window` of the
+    depth-first frontier, the next one minimizes (ticks until it can run)
+    + lam * (change in the number of live computed values); ties by
+    depth-first rank. Registers are not modelled (the in-order executor
+    handles them)."""
+    import bisect
+    lo, H, PL, F, dl = comb.lo, comb.H, comb.PL, comb.F, comb.delta
+    mops, lane_loc = sched.mops, sched.lane_loc
+
+    def visit(c, t0):
+        pg0 = t0 // PL
+        for pg in range(pg0, pg0 + 3):
+            best = None
+            for j in range(F):
+                tt = c - (lo - H) - j * dl
+                t = tt if pg % 2 == 0 else PL - 1 - tt
+                T = pg * PL + t
+                if T >= t0 and (best is None or T < best):
+                    best = T
+            if best is not None:
+                return best
+        raise AssertionError
+    if dfs is None:
+        dfs = sched.dfs_order(roots, gates)
+    rank = {g: i for i, g in enumerate(dfs)}
+    cons = defaultdict(list)
+    for g in dfs:
+        _, a, b = mops[g]
+        for z in {a, b}:
+            if z in gates:
+                cons[z].append(g)
+    rem = {g: len(cons[g]) for g in dfs}
+    held = set(roots)
+    ndep = {g: len({z for z in mops[g][1:] if z in gates}) for g in dfs}
+    ready = sorted(rank[g] for g in dfs if ndep[g] == 0)
+    done = set()
+    frontier = 0
+    T = 0
+    out = []
+    while ready:
+        best = None
+        lim = frontier + window
+        for r in ready:
+            if r >= lim and best is not None:
+                break
+            g = dfs[r]
+            _, a, b = mops[g]
+            cells = sorted({lane_loc[z][0] for z in (a, b) if z in lane_loc})
+            if not cells:
+                t = T + 1
+            elif len(cells) == 1:
+                t = visit(cells[0], T + 1)
+            else:
+                x, y = cells
+                t = min(visit(y, visit(x, T + 1) + 1), visit(x, visit(y, T + 1) + 1))
+            kills = sum(1 for z in {a, b} if z in gates and rem[z] == 1 and z not in held)
+            dlive = (1 if (cons[g] or g in held) else 0) - kills
+            key = (t - T + lam * dlive, r)
+            if best is None or key < best[0]:
+                best = (key, r, g, t)
+        _, r, g, t = best
+        T = t
+        out.append(g)
+        done.add(g)
+        ready.remove(r)
+        for z in set(mops[g][1:]):
+            if z in rem:
+                rem[z] -= 1
+        for u in cons[g]:
+            ndep[u] -= 1
+            if ndep[u] == 0:
+                bisect.insort(ready, rank[u])
+        while frontier < len(dfs) and dfs[frontier] in done:
+            frontier += 1
+    assert len(out) == len(dfs)
+    sched.last_model_ticks = T
+    return out
+
+
 def run_multi(sched, comb, prog, pages, targets_hold, init_regs, assign, store_owner,
               lookahead=300, ooo=32, targets_reg=None, eager_export=True, free_floor=10**9,
-              order_kind='dfs', profile=None):
+              order_kind='dfs', profile=None, jit=0.0, rate_floor=0.01, trace=None, hop_order=0,
+              boost_shared=False):
     """In-order issue per front (the global depth-first order restricted to
     the front's gates) with lane prefetch, Belady replacement and export of
     values other fronts need through scratch. init_regs are front 0's."""
@@ -399,7 +493,11 @@ def run_multi(sched, comb, prog, pages, targets_hold, init_regs, assign, store_o
     roots = list(targets_reg) + [v for v, _ in targets_hold]
     gates = sched.cone(roots)
     order = sched.dfs_order(roots, gates)
-    if isinstance(order_kind, dict):
+    if isinstance(order_kind, (tuple, list)) and order_kind[0] == 'interleave':
+        order = sched.interleaved_order(roots, gates, order_kind[1])
+    elif isinstance(order_kind, tuple) and order_kind[0] == 'sweep':
+        order = sweep_order(sched, comb, roots, gates, lam=order_kind[1], window=order_kind[2], dfs=order)
+    elif isinstance(order_kind, dict):
         # explicit priority (e.g. execution ticks of an earlier schedule)
         rank = {g: q for q, g in enumerate(order)}
         order = sorted(order, key=lambda g: (order_kind.get(g, 10**12), rank[g]))
@@ -412,6 +510,27 @@ def run_multi(sched, comb, prog, pages, targets_hold, init_regs, assign, store_o
         T = asap_times(sched, comb, gates)
         rank = {g: q for q, g in enumerate(order)}
         order = sorted(order, key=lambda g: (T[g] // comb.PL, rank[g]))
+    if boost_shared:
+        # the cone of values consumed on several fronts is issued first, so
+        # that it is exported before the other fronts need it
+        fr_use = defaultdict(set)
+        for g in gates:
+            _, a, b = sched.mops[g]
+            for z in (a, b):
+                if z in gates:
+                    fr_use[z].add(assign[g])
+        shared = [g for g in gates if len(fr_use[g] | {assign[g]}) > 1]
+        cone = sched.cone(shared) & gates
+        pos0 = {g: q for q, g in enumerate(order)}
+        order = sorted(order, key=lambda g: (g not in cone, pos0[g]))
+    if hop_order:
+        # per front: work with fewer cross-front hops on its longest input path first
+        rd = {}
+        for g in sched.topo_sorted(gates):
+            _, a, b = sched.mops[g]
+            rd[g] = max([rd[z] + (assign[z] != assign[g]) for z in (a, b) if z in rd] or [0])
+        pos0 = {g: q for q, g in enumerate(order)}
+        order = sorted(order, key=lambda g: (min(rd[g], hop_order), pos0[g]))
     forder = [[g for g in order if assign[g] == j] for j in range(F)]
     fpos = [{g: q for q, g in enumerate(o)} for o in forder]
     mops = sched.mops
@@ -579,6 +698,7 @@ def run_multi(sched, comb, prog, pages, targets_hold, init_regs, assign, store_o
     last_act = [None] * F
     last_page = None
     init_vals = set(init_regs.values())
+    rate_hist = [[] for _ in range(F)]
     for pg, tk, vis in comb.ticks(pages):
         if n_pending == 0 and all(reg[0][r] == v for v, r in targets_reg.items()):
             break
@@ -710,8 +830,26 @@ def run_multi(sched, comb, prog, pages, targets_hold, init_regs, assign, store_o
                         export[j].append(g)
                     continue
             # 4. prefetch a local or imported operand of an upcoming gate
+            # (just in time: only if the head is expected to reach the gate
+            # before this front's next visit of this cell)
             want = None
-            for q in range(head[j], min(len(f_or), head[j] + lookahead)):
+            if jit:
+                T = pg * comb.PL + tk
+                hist = rate_hist[j]
+                if not hist or T - hist[-1][0] >= comb.PL // 8:
+                    hist.append((T, head[j]))
+                    if len(hist) > 9:
+                        hist.pop(0)
+                t0, h0 = hist[0]
+                rate = max(rate_floor, (head[j] - h0) / max(1, T - t0)) if T > t0 else 0.1
+                if pg % 2 == 0:
+                    revisit = 2 * (comb.hi - 1 + j * comb.delta - c) + 1
+                else:
+                    revisit = 2 * (c - (comb.lo - comb.H + j * comb.delta)) + 1
+                horizon = head[j] + int(jit * rate * revisit) + 1
+            else:
+                horizon = 10**12
+            for q in range(head[j], min(len(f_or), head[j] + lookahead, horizon)):
                 g = f_or[q]
                 if g in done:
                     continue
@@ -763,6 +901,16 @@ def run_multi(sched, comb, prog, pages, targets_hold, init_regs, assign, store_o
                     else:
                         reason = 'no-register'
             idle[reason] += 1
+            if trace is not None:
+                where = None
+                if head[j] < len(f_or):
+                    _, a, b = mops[f_or[head[j]]]
+                    for z in (a, b):
+                        if code_at(j, z, c) is None:
+                            where = (z, lane_loc[z][0] if z in lane_loc else
+                                     sorted(cc for cc, _ in scr_of.get(z, ())) or None)
+                            break
+                trace.append((pg * comb.PL + tk, j, c, reason, head[j], where))
             fidle[j][reason] += 1
     miss = sum(1 for v, r in targets_reg.items() if reg[0][r] != v)
     for (seq, pg_, tk_, j_, *_rest) in prog.listing:
@@ -781,7 +929,8 @@ def compile_phases(p, layout, F, delta, lookahead=300, ooo=32, owner_mode='inter
                    combine='front0', reassoc=True, cut=True, ctrl_fields=CTRL_FIELDS,
                    replicate=False, order_kind='dfs', free_floor=10**9, phases=('early', 'a', 'final'),
                    budgets=(400, 800, 3000), sched=None, check=True, ranges=None, programs=None,
-                   win_counterfactual=0, profile=None, order_seed=None, order_flip=0.2, owner_seed=None):
+                   win_counterfactual=0, profile=None, order_seed=None, order_flip=0.2, owner_seed=None,
+                   jit=0.0, trace=None, hop_order=0, boost_shared=False):
     """Multi-front compile of the three programs of a G candidate with
     generous page budgets: the early Flag program (Hold at the flag cells),
     phase A (upper fetch key into front 0's registers k.. at the match pass)
@@ -858,7 +1007,8 @@ def compile_phases(p, layout, F, delta, lookahead=300, ooo=32, owner_mode='inter
             return assign[v] if v in assign else ro[cell]
         st = run_multi(sched, comb, prog, set(pages), targets, ini, assign, store_owner,
                        lookahead=lookahead, ooo=ooo, targets_reg=treg, order_kind=order_kind,
-                       free_floor=free_floor, profile=None if profile is None else profile.setdefault(ph, []))
+                       free_floor=free_floor, profile=None if profile is None else profile.setdefault(ph, []),
+                       jit=jit, trace=trace, hop_order=hop_order, boost_shared=boost_shared)
         st['passes'] = st['last_page'] - min(pages) + 1
         st['clones'] = n_clones
         if check:

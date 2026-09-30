@@ -247,6 +247,49 @@ def front_timing_dwell(n, p, c, cell, return_page=False):
     return rsrc, psel, arrive, match_pass
 
 
+def front_controls(n, p, c):
+    """The control part of front_timing_dwell for a confined front (single or
+    comb): the same arrival, pass and move signals, without the register
+    source. Used by the select-then-vote front step (ParamsG.sel_front)."""
+    k, m, Q, dl = p.k, p.m, p.Q, p.dlog
+    assert getattr(p, 'confined', False) and dl == 0
+    pb = p.PB
+    cellpos = c['age'][:pb]
+    t = []
+    block = c['age'][pb:]
+    base = p.E0b
+    in_window = w_in_range(n, block, base, base + p.NP)
+    page = w_add_const(n, block, (-base) % (1 << (m - pb)))[:p.logNP]
+    direction = page[0]
+    match_pass = n.AND(in_window, n.any(w_eq_const(n, page, mp) for mp in p.match_list))
+    first_pass = n.AND(in_window, w_eq_const(n, page, 0))
+    pos_k = list(cellpos) + [0] * (k - len(cellpos))
+    fid = []
+    if p.fronts > 1:
+        fwd = w_add_const(n, pos_k, p.lo - p.H)
+        back = w_sub_from_const(n, p.hi - 1, pos_k)
+        base0 = w_mux(n, direction, back, fwd)
+        diff = w_add_const(n, w_add(n, c['addr'], [n.NOT(x) for x in base0]), 1)
+        hits = [w_eq_const(n, diff, j * p.delta) for j in range(p.fronts)]
+        arrive = n.AND(in_window, n.any(hits))
+        fid = [n.any([h for j, h in enumerate(hits) if (j >> b) & 1]) for b in range(p.FB)]
+        at_pos0 = w_eq_const(n, cellpos, 0)
+        start = n.AND(first_pass, at_pos0)
+        turn = n.AND(n.NOT(first_pass), at_pos0)
+    else:
+        fwd = w_add_const(n, pos_k, p.lo)
+        back = w_sub_from_const(n, p.hi - 1, pos_k)
+        arrive = n.AND(in_window, w_eq(n, c['addr'], w_mux(n, direction, back, fwd)))
+        at_left_end = w_eq_const(n, c['addr'], p.lo)
+        at_right_end = w_eq_const(n, c['addr'], p.hi - 1)
+        start = n.AND(first_pass, at_left_end)
+        turn = n.AND(n.NOT(first_pass), n.MUX(direction, at_right_end, at_left_end))
+    move = n.NOT(turn)
+    return dict(arrive=arrive, match_pass=match_pass, page=page, in_window=in_window,
+                from_left=n.AND(move, n.NOT(direction)), from_right=n.AND(move, direction),
+                stay=turn, start=start, psel_nm=list(t) + list(page) + fid)
+
+
 def build(p):
     p.check()
     n = Net()

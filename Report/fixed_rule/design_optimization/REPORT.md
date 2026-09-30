@@ -69,8 +69,8 @@ relative to G8.
     than one upper cell wrong at any step; 494 of the 668 rings, reruns
     included, never changed the upper state at all) **and repaired** by the
     upper level within one upper step. Later batches add G10 (64), G11
-    (14 in full colonies) and G13 (384): all contained, repaired and
-    bit-identical (§§19, 23).
+    (14 in full colonies), G8 (8 in full 1M-site colonies), G13 (384) and
+    G14 (192): all contained, repaired and bit-identical (§§19, 23).
   - 653 of the first 662 ended bit-identical to the fault-free ring. The other 9 are G8
     commit-time bursts: the 6 rerun for longer were identical one step
     later (dead data flushed by the next commit), and the 3 in G8's
@@ -79,7 +79,7 @@ relative to G8.
     at most one colony.
 - **Colony-scale errors** (one or two colonies wiped) are also removed by
   the upper level within one upper step (G6/G8 full two-level rings, §15).
-- **Unit tests:** 37 (`test_front_candidate.py`), plus 1 opt-in slow GPU
+- **Unit tests:** 38 (`test_front_candidate.py`), plus 1 opt-in slow GPU
   test.
 
 **Not established.**
@@ -92,6 +92,11 @@ relative to G8.
 the program about 2.2× faster than one front. G14 (U = 110,880,
 U/Q = 217) is the result; it closes on the GPU and G13's level-1 batches are
 clean.
+
+**Compiler work after G14 (§24).** Many scheduler and partition variants
+were measured; none beats G14. A netlist change, select-then-vote,
+computes the same function with 14% fewer gates and shortens the
+one-front program, but not the comb's.
 
 **Next.** The compiler, not the machine, is now the limit. With unlimited
 registers the same program needs 77 passes on one front and 22 on four, but
@@ -907,6 +912,8 @@ bit-identical to the fault-free ring after the last upper step):
 | G10 | b16 | its own gathers | 64 | 64 | 64 | 64 |
 | G13 | b31–b33 | gathers (+ E0 ring), phase A with front hit, final program with front hit (before the match gate fix, §23) | 192 | 192 | 192 | 192 |
 | G13 | b34–b36 | the same three stages, after the fix | 192 | 192 | 192 | 192 |
+| G14 | b41–b43 | the same three stages | 192 | 192 | 192 | 192 |
+| G8 | b5 | full 1,048,576-site colonies, upper front hit | 8 | 8 | 8 | 8 |
 
 The reference ring was exact at every step of every batch. G8–G9
 full-colony batches and G10/G11 extras were still queued when this was
@@ -1348,3 +1355,108 @@ Three measurements on G12's final program (16,364 gates):
     and bit-identical.
   - After the fix (b34–b36): the same, 192 of 192.
   - The reference ring was exact at every step of all six batches.
+
+## 24. Compiler work after G14
+
+**Goal.** Shorten the program further without changing the machine.
+**Result.** No candidate beats G14.
+- One netlist change (select-then-vote) shortens the one-front program.
+- The comb's scheduler has plateaued.
+- All numbers below are on G12's netlist with generous page budgets. Every
+  compiled program was replayed against the netlist (0 mismatches).
+
+### What the measurements say
+
+**One front, final program (509 passes).**
+
+| value class | intervals | never read | register-ticks | mean hold (ticks) |
+|---|---:|---:|---:|---:|
+| computed values | 16,364 | 0 | 3.92M | 240 |
+| prefetched lanes | 3,833 | 1,729 | 2.53M | 1,204 |
+| reloaded spills | 1,634 | 709 | 1.29M | 1,392 |
+
+- **Register capacity.** Registers are nearly always full: 7.7M of 8.7M
+  register-ticks are used.
+- **Stalls.** There are 5,979 stalls. They are short (median 3 ticks,
+  mean 19) and frequent: the in-order head waits for the front to reach the
+  next lane cell.
+  - Of 94k idle ticks spent waiting for lanes, 54k were for lanes never
+    prefetched and 40k for lanes prefetched and evicted before use.
+- **Critical chain.** The last outputs are simply late in one serial
+  stream, so one front is throughput-bound.
+- **Registers are needed.** The greedy that reaches the 77-pass slot bound
+  keeps on average 1,241 computed values live (at most 2,347), about 20× the
+  register file.
+
+**Five fronts (185 passes).** Front 0's serial stream sets the finish time.
+- Front 0 executes 6,870 gates and 4,988 loads.
+- Fronts 1–4 idle 80–86% of the time, mostly (60–68%) waiting for front 0's
+  values.
+- Along the critical chain, 81 passes are same-front waits on front 0 and
+  6 are cross-front transfer.
+- About 1,600 of front 0's gates are the upper cell's Address/Age
+  maintenance and arrival logic. About 900 are per-register-bit gates pulled
+  onto front 0 because they combine a control signal with a register lane.
+
+### Netlist co-design: select, then vote (`sel_front`)
+
+**Mode 1, select then vote.** At most one front arrives at a cell. So
+instead of voting the five register copies for each of the seven possible
+source windows and then selecting, the rule selects the arriving front's
+five copies with a one-hot selector and votes once. Lane sources are
+treated the same way.
+- SelFrontEquivalenceTest checks that the state transition is identical to
+  `mux_front`. It uses random inputs and forced comb arrivals, including
+  match passes, and a negative control shows it detects a changed bit.
+- G14's netlist shrinks from 16,966 to 14,601 gates (−14%), and the
+  register lane reads per bit drop from about 77 to 35.
+
+**Mode 2, vote then select once.** The seven lane-only votes are kept, and
+one 7-way select replaces the per-slot selects and the pick: 15,044 gates.
+
+| netlist | one front: early / A / final (total) | five fronts: total |
+|---|---|---:|
+| G12 (mux_front) | 38 / 100 / 509 (649) | 269 |
+| mode 1 | 38 / 85 / 436 (561) | 457 |
+| mode 2 | 38 / 109 / 510 (659) | 267 |
+
+- **One front.** Mode 1 helps: −14% passes.
+- **Five fronts.** Mode 1 hurts. The selectors feed every register gate
+  directly, so the partition either pulls whole register slices onto
+  front 0 (9,922 of 14,601 gates) or, when balanced, makes every slice
+  wait for the selectors from front 0 (304–445 final passes).
+- **Mode 2** gives no gain on either.
+- Candidates keep `mux_front`. `sel_front` stays as a tested rule option.
+
+### Scheduler variants
+
+| variant | result |
+|---|---|
+| Just-in-time prefetch (load at the cell's last visit before the head needs it, from a measured issue rate) | 3–4× worse: a low rate means fewer prefetches, which lowers the rate further |
+| Position-driven scheduler (`flow.py`): run whatever can run at the current cell, park values at their consumer's cell, depth-first admission window | best 583 (one front); deadlocks with wide windows |
+| Issue order from a sequential model of the front | 529–643 (one front) |
+| Out-of-order window 32–512, free-register floor, lookahead 300–800 (one front, mode 1) | 295–587; the best setting gives 357 and 549 with other depth-first seeds |
+| The same grid on five fronts | 185–230 (default 191) |
+| Interleaved depth-first streams, K = 2–16 (one front) | 333–540, one deadlock |
+| Controls recomputed on every front, partitions following owned operands (five fronts) | 193–425 |
+| Each front first does work needing fewer cross-front hops (five fronts) | 243–349 |
+| The cone of values needed by several fronts issued first (five fronts) | 196–445 |
+| 24 more seeds for G14 with lookahead 800 and free-register floor 4 | best U 111,744 (G14: 110,880), median 124,272 |
+
+**Conclusion.**
+- Per-front in-order issue with prefetch and Belady replacement is
+  saturated. Its results swing about ±30% with the depth-first seed, which
+  is a sign of unstable dynamics rather than a tunable optimum.
+- The remaining gap to the slot bound (77 passes on one front, 22 on
+  four) needs a different kind of compiler.
+- **What that would look like:** a spatial one, in the style used for
+  coarse-grained reconfigurable arrays:
+  - give every gate a home cell;
+  - route values along the sweep, in registers only while they travel;
+  - schedule each cell's gates across passes, with scratch holding values
+    between passes.
+- The measurements above give its targets:
+  - keep register lifetimes short;
+  - keep front 0's control work off the critical path;
+  - keep per-register-bit work next to its lanes.
+- Not attempted yet.

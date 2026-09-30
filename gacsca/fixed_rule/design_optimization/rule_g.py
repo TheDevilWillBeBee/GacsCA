@@ -75,6 +75,12 @@ class ParamsG:
     delta: int = 5            # executes its own program (Pi[Address][page, front]) with its own
                               # register file; the comb overhangs the working cells by
                               # H = (fronts-1)*delta at both ends, where it only carries (no-op)
+    sel_front: int = 0        # 1: select, then vote: at most one front arrives at a cell, so the
+                              # five register copies (and lane copies) of the arriving front's source
+                              # are selected before a single five-way majority. 2: vote the seven
+                              # register windows from lanes alone, then one 7-way select of the
+                              # arriving front's source (lanes as mux_front). Both compute the same
+                              # function as mux_front.
     confined: bool = False    # the front sweeps only the working cells [margin, Q - margin): a pass
                               # takes W = Q - 2*margin ticks and Age is packed with radix W; the new
                               # upper flags reach Gray's cells 3 and Q-3 by a courier on the mail
@@ -164,6 +170,8 @@ class ParamsG:
             assert self.five_front
         if self.mux_front:
             assert self.compact_front
+        if self.sel_front:
+            assert self.mux_front and self.confined and self.dlog == 0
         if self.tmr:
             assert self.run_len % 2 == 0 and self.MP < self.NPe + self.run_len
             assert self.NPe + 3 * self.run_len <= self.NP
@@ -353,7 +361,8 @@ def build(p):
         return cache[key]
 
     if p.five_front:
-        front_new = _five_front(n, p, I, lv, age_now, addr_now)
+        front_new = _five_front(n, p, I, lv, age_now, addr_now,
+                                raw=dict(cell=cell, copy=copy, pend_hits=pend_hits))
     # ------------------------------------------------------------ front timing (stored fields)
     if p.five_front:
         pass
@@ -505,7 +514,7 @@ def build(p):
     return n
 
 
-def _five_front(n, p, I, lv, age_now, addr_now):
+def _five_front(n, p, I, lv, age_now, addr_now, raw=None):
     """Fivefold front: copy slot d of reg/pend/pkind/pval at holder y belongs to
     logical cell y+d. Every holder executes the front step of each of its five
     logical cells from majority-corrected register files, with holder-local
@@ -513,7 +522,7 @@ def _five_front(n, p, I, lv, age_now, addr_now):
     performs one Pi lookup, keyed by that logical cell's computed Address and
     psel. Returns the new copy-slot values of the front fields."""
     k, L, S, Q = p.k, p.L, p.S, p.Q
-    lreg = {z: [lv(z, 'reg', i) for i in range(L)] for z in range(-3, 4)}
+    lreg = None if p.sel_front else {z: [lv(z, 'reg', i) for i in range(L)] for z in range(-3, 4)}
     SB = p.SB
     op, kind = I[0:2], I[2:4]
     a_code, b_code, d_code = I[4:4 + SB], I[4 + SB:4 + 2 * SB], I[4 + 2 * SB:p.IW]
@@ -524,6 +533,9 @@ def _five_front(n, p, I, lv, age_now, addr_now):
     new = {f: [None] * (5 * logical_width(f, p)) for f in FRONT}
     if p.compact_front:
         new['reg'] = [0] * L      # copy of the front's new registers if it is within two cells
+    if p.sel_front:
+        return _sel_front(n, p, I, lv, raw, age_now, addr_now, new, op_lines, kind_lines, dec_d,
+                          scr_index, a_code, b_code, d_code)
     if p.mux_front:
         return _mux_front(n, p, I, lv, lreg, age_now, addr_now, new, op_lines, kind_lines, dec_d,
                           scr_index, a_code, b_code, d_code)
@@ -642,6 +654,97 @@ def _mux_front(n, p, I, lv, lreg, age_now, addr_now, new, op_lines, kind_lines, 
     for i, b in enumerate(key_psel):
         n.set_output(('psel', i), b)
     for i, b in enumerate(key_addr):
+        n.set_output(('laddr', i), b)
+    n.set_output(('arrive', 0), any_arrive)
+    return new
+
+
+def _sel_front(n, p, I, lv, raw, age_now, addr_now, new, op_lines, kind_lines, dec_d, scr_index,
+               a_code, b_code, d_code):
+    """Select-then-vote front step (sel_front). As in _mux_front at most one
+    slot d arrives. The register file it reads is the majority of the five
+    copies around its source logical cell o = d-1, d+1 or d (moving from the
+    left, from the right, or staying); a one-hot selector sel_o picks those
+    five raw copies, and one five-way majority follows. Lane sources are
+    likewise the majority of the arriving slot's five selected copies, with
+    the pending-write forwarding of that slot. Same function as _mux_front,
+    with one majority per register bit instead of seven."""
+    from .rule import front_controls
+    k, L, S, Q = p.k, p.L, p.S, p.Q
+    cell, copy, pend_hits = raw['cell'], raw['copy'], raw['pend_hits']
+    arr, xa, ctl = {}, {}, {}
+    for d in reversed(SLOTS):
+        xaddr = w_add_const_mod(n, addr_now, d % Q, Q)
+        ctl[d] = front_controls(n, p, {'age': age_now, 'addr': xaddr})
+        arr[d], xa[d] = ctl[d]['arrive'], xaddr
+    match_pass = ctl[0]['match_pass']            # a function of Age only
+    any_arrive = n.any(arr[d] for d in SLOTS)
+    sel = {o: 0 for o in range(-3, 4)}
+    for d in SLOTS:
+        go = n.AND(arr[d], n.NOT(ctl[d]['start']))
+        sel[d - 1] = n.OR(sel[d - 1], n.AND(go, ctl[d]['from_left']))
+        sel[d + 1] = n.OR(sel[d + 1], n.AND(go, ctl[d]['from_right']))
+        sel[d] = n.OR(sel[d], n.AND(go, ctl[d]['stay']))
+    rsrc = []
+    for i in range(L):
+        if p.sel_front == 2:
+            rsrc.append(n.any(n.AND(sel[o], lv(o, 'reg', i)) for o in range(-3, 4)))
+        else:
+            copies = [n.any(n.AND(sel[o], cell[o + e]['reg'][i]) for o in range(-3, 4)) for e in SLOTS]
+            rsrc.append(maj5(n, copies))
+
+    def pick(vals):
+        return [n.any(n.AND(arr[d], vals[d][j]) for d in SLOTS) for j in range(len(vals[SLOTS[0]]))]
+    xaddr = pick(xa)
+    pval = n.any(n.AND(arr[d], lv(d, 'pval')) for d in SLOTS)
+
+    def lane(f, i):
+        """Value of fivefold (f, i) at the arriving logical cell."""
+        if p.sel_front == 2:
+            return n.any(n.AND(arr[d], lv(d, f, i)) for d in SLOTS)
+        copies = [n.any(n.AND(arr[d], copy(d - e, f, e, i)) for d in SLOTS) for e in SLOTS]
+        v = maj5(n, copies)
+        hit = n.any(n.AND(arr[d], pend_hits(d, f, i)) for d in SLOTS)
+        if hit != 0:
+            v = n.MUX(hit, pval, v)
+        return v
+    lanes = ([lane('info', 0), lane('hold', 0)] + [lane('h1', i) for i in range(len(LANE_OFFSETS))]
+             + [lane('scr', i) for i in range(S)])
+    sources = rsrc + lanes + [0, 1]
+    assert len(sources) == p.n_sources
+    psel = w_mux(n, match_pass, rsrc[k:k + p.PW], pick({d: ctl[d]['psel_nm'] for d in SLOTS}))
+    if p.fronts > 1:
+        inside = w_in_range(n, xaddr, p.lo, p.hi)
+        kind_lines = [n.AND(inside, x) for x in kind_lines]
+    dec_a = _decoder(n, a_code, len(sources))
+    dec_b = _decoder(n, b_code, len(sources))
+    A = n.any(n.AND(dl, v) for dl, v in zip(dec_a, sources))
+    B = n.any(n.AND(dl, v) for dl, v in zip(dec_b, sources))
+    alu = n.any([n.AND(op_lines[AND], n.AND(A, B)), n.AND(op_lines[OR], n.OR(A, B)),
+                 n.AND(op_lines[XOR], n.XOR(A, B)), n.AND(op_lines[ANDN], n.ANDN(A, B))])
+    matched = n.AND(n.AND(any_arrive, match_pass), w_eq(n, xaddr, rsrc[:k]))
+    if p.fronts > 1:
+        matched = n.AND(matched, inside)
+    for i in range(L):
+        v = n.MUX(n.AND(kind_lines[K_REG], dec_d[i]), alu, rsrc[i])
+        v_match = n.MUX(matched, I[i - k], rsrc[i]) if k <= i < k + p.IW else rsrc[i]
+        new['reg'][i] = n.AND(any_arrive, n.MUX(match_pass, v_match, v))
+    not_match = n.NOT(match_pass)
+    idx = w_add_const(n, scr_index + [0] * (p.PK - len(scr_index)), p.NH)[:p.PK]
+    for d in SLOTS:
+        executing = n.AND(arr[d], not_match)
+        store_hold = n.AND(executing, kind_lines[K_HOLD])
+        store_scr = n.AND(executing, kind_lines[K_SCR])
+        in_scr = n.AND(store_scr, w_in_range(n, d_code, 0, S)) if S < (1 << p.DB) else store_scr
+        pend = n.OR(store_hold, in_scr)
+        new['pend'][d + 2] = pend
+        new['pval'][d + 2] = n.AND(pend, alu)
+        pkind = w_mux(n, in_scr, idx, [0] * p.PK)
+        for j in range(p.PK):
+            new['pkind'][(d + 2) * p.PK + j] = pkind[j]
+    for i, b in enumerate(psel):
+        n.set_output(('psel', i), b)
+    for i, b in enumerate(xaddr):
         n.set_output(('laddr', i), b)
     n.set_output(('arrive', 0), any_arrive)
     return new
