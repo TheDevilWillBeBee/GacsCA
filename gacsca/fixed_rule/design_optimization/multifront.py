@@ -82,15 +82,24 @@ class MultiProgram:
         return len(self.listing)
 
 
-def bit_owners(sched, F, mode='interleave'):
-    """Owner front of every upper bit (field, i), by the rank of its cell."""
+def bit_owners(sched, F, mode='interleave', seed=None):
+    """Owner front of every upper bit (field, i), by the rank of its cell
+    (with a seed: the fronts are relabelled by a random permutation per
+    block of F consecutive cells)."""
     cells = sorted(int(x) for x in sched.layout)
     rank = {c: r for r, c in enumerate(cells)}
     own = {}
     n = len(cells)
+    perm = None
+    if seed is not None:
+        rng = np.random.default_rng(seed)
+        perm = [rng.permutation(F) for _ in range(n // F + 1)]
     for (f, i), b in sched.bit.items():
         r = rank[int(sched.layout[b])]
-        own[(f, i)] = r % F if mode == 'interleave' else (r * F) // n
+        o = r % F if mode == 'interleave' else (r * F) // n
+        if perm is not None:
+            o = int(perm[r // F][o])
+        own[(f, i)] = o
     return own
 
 
@@ -390,7 +399,11 @@ def run_multi(sched, comb, prog, pages, targets_hold, init_regs, assign, store_o
     roots = list(targets_reg) + [v for v, _ in targets_hold]
     gates = sched.cone(roots)
     order = sched.dfs_order(roots, gates)
-    if order_kind == 'asap':
+    if isinstance(order_kind, dict):
+        # explicit priority (e.g. execution ticks of an earlier schedule)
+        rank = {g: q for q, g in enumerate(order)}
+        order = sorted(order, key=lambda g: (order_kind.get(g, 10**12), rank[g]))
+    elif order_kind == 'asap':
         T = asap_times(sched, comb, gates)
         rank = {g: q for q, g in enumerate(order)}
         order = sorted(order, key=lambda g: (T[g], rank[g]))
@@ -768,7 +781,7 @@ def compile_phases(p, layout, F, delta, lookahead=300, ooo=32, owner_mode='inter
                    combine='front0', reassoc=True, cut=True, ctrl_fields=CTRL_FIELDS,
                    replicate=False, order_kind='dfs', free_floor=10**9, phases=('early', 'a', 'final'),
                    budgets=(400, 800, 3000), sched=None, check=True, ranges=None, programs=None,
-                   win_counterfactual=0, profile=None):
+                   win_counterfactual=0, profile=None, order_seed=None, order_flip=0.2, owner_seed=None):
     """Multi-front compile of the three programs of a G candidate with
     generous page budgets: the early Flag program (Hold at the flag cells),
     phase A (upper fetch key into front 0's registers k.. at the match pass)
@@ -788,7 +801,10 @@ def compile_phases(p, layout, F, delta, lookahead=300, ooo=32, owner_mode='inter
             for key in [('info@', d)] + [('ln@', i, d) for i in range(10)] + [('scr@', s_, d) for s_ in range(p.S)]:
                 sched.src_code[key] = nxt
                 nxt += 1
-    owners = bit_owners(sched, F, owner_mode)
+    if order_seed is not None:
+        sched.order_rng = np.random.default_rng(order_seed)
+        sched.order_flip = order_flip
+    owners = bit_owners(sched, F, owner_mode, owner_seed)
     leaf = input_owner(sched, owners, tuple(ctrl_fields))
     k = p.k
     comb = Comb(p, F, delta)

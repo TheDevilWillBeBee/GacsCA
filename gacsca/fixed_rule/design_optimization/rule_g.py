@@ -618,6 +618,10 @@ def _mux_front(n, p, I, lv, lreg, age_now, addr_now, new, op_lines, kind_lines, 
     alu = n.any([n.AND(op_lines[AND], n.AND(A, B)), n.AND(op_lines[OR], n.OR(A, B)),
                  n.AND(op_lines[XOR], n.XOR(A, B)), n.AND(op_lines[ANDN], n.ANDN(A, B))])
     matched = n.AND(n.AND(any_arrive, match_pass), w_eq(n, xaddr, rsrc[:k]))
+    if p.fronts > 1:
+        # only working cells answer the match pass: front 0, which holds the
+        # lookup key one level down, never reaches the right overhang
+        matched = n.AND(matched, inside)
     for i in range(L):
         v = n.MUX(n.AND(kind_lines[K_REG], dec_d[i]), alu, rsrc[i])
         v_match = n.MUX(matched, I[i - k], rsrc[i]) if k <= i < k + p.IW else rsrc[i]

@@ -707,6 +707,36 @@ class CombTest(unittest.TestCase):
                 holders = sorted({x + e for x in want for e in range(-2, 3)})
                 self.assertEqual(got.tolist(), holders, (extra, col))
 
+    def test_overhang_ignores_the_fetched_word_even_in_the_match_pass(self):
+        """A front outside the working cells only carries: the cell's outputs
+        do not depend on I, even in the match pass with the front's key equal
+        to the cell's Address (front 0, which fetches one level down, never
+        reaches the right overhang)."""
+        c = candidates.load('G13')
+        p, C = c.p, c.c_backend()
+        up = codec.random_upper(c, 2, np.random.default_rng(6))
+        t = p.E0 + p.MP * p.PL                      # first tick of the (backward) match pass
+        X = C.unpack(C.run_packed(C.pack(codec.encode(c, up)), t, threads=4), 2 * p.Q)
+        x = p.hi - 1 + (p.fronts - 1) * p.delta     # front 4, deep in the right overhang
+        rows = [c.row[('reg', i)] for i in range(p.k)]
+        for cell in range(x - 3, x + 6):
+            for i, r in enumerate(rows):
+                X[r, cell] = (x >> i) & 1           # the front's key = this Address
+        base = netlist_outputs(c, X)
+        self.assertTrue(base[('arrive', 0)][x])
+        values = {}
+        for name in c.comp.inputs:
+            if name[0] == 'x':
+                _, j, f, i = name
+                values[name] = np.roll(X[c.row[(f, i)]], -j)
+            else:
+                values[name] = np.ones(X.shape[1], dtype=bool)
+        ones = c.comp.evaluate(values, bool)
+        for f, w in c.schema:
+            for i in range(w):
+                a, b = base[('y', f, i)], ones[('y', f, i)]
+                self.assertTrue(np.array_equal(a[x - 2:x + 3], b[x - 2:x + 3]), (f, i))
+
     def test_multifront_scheduler_replays_on_random_data(self):
         """The comb scheduler's early and phase-A programs (F=3 on G12's
         netlist) compute the netlist on random inputs."""
