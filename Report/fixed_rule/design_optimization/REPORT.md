@@ -69,7 +69,7 @@ relative to G8.
     than one upper cell wrong at any step; 494 of the 668 rings, reruns
     included, never changed the upper state at all) **and repaired** by the
     upper level within one upper step. Later batches add G10 (64), G11
-    (14 in full colonies) and G13 (256): all contained, repaired and
+    (14 in full colonies) and G13 (384): all contained, repaired and
     bit-identical (§§19, 23).
   - 653 of the first 662 ended bit-identical to the fault-free ring. The other 9 are G8
     commit-time bursts: the 6 rerun for longer were identical one step
@@ -906,7 +906,7 @@ bit-identical to the fault-free ring after the last upper step):
 | G11 | b14 | full 262,144-site colonies, upper front hit | 14 | 14 | 14 | 14 |
 | G10 | b16 | its own gathers | 64 | 64 | 64 | 64 |
 | G13 | b31–b33 | gathers (+ E0 ring), phase A with front hit, final program with front hit (before the match gate fix, §23) | 192 | 192 | 192 | 192 |
-| G13 | b34 | its own gathers (+ E0 ring), after the fix | 64 | 64 | 64 | 64 |
+| G13 | b34–b36 | the same three stages, after the fix | 192 | 192 | 192 | 192 |
 
 The reference ring was exact at every step of every batch. G8–G9
 full-colony batches and G10/G11 extras were still queued when this was
@@ -1340,11 +1340,11 @@ Three measurements on G12's final program (16,364 gates):
     - the overhang/match-gate invariant;
     - replay of the comb scheduler.
   - G13 and G14 are also in ColonyMarginTest and CompactFrontTest.
-- **Level-1 campaign on G13** (§19): 256 bursts at 16 phases × 3
-  placements, plus random bursts, on two-level slice rings with the upper
-  colony in its gathers, in phase A with its front hit, and in its final
-  program with its front hit.
-  - All 256 were contained and repaired, and ended bit-identical.
-  - The reference ring was exact at every step.
-  - 192 of these ran before the match-gate fix. Batches b35 and b36 (after
-    the fix) are still running.
+- **Level-1 campaign on G13** (§19): bursts at 16 phases × 3 placements,
+  plus random bursts, on two-level slice rings with the upper colony in its
+  gathers (with a dense level-0 ring), in phase A with its front hit, and in
+  its final program with its front hit.
+  - Before the match-gate fix (b31–b33): 192 of 192 contained, repaired
+    and bit-identical.
+  - After the fix (b34–b36): the same, 192 of 192.
+  - The reference ring was exact at every step of all six batches.

@@ -34,8 +34,9 @@ opt-in slow test).
 - `level1_campaign/run_queue2.sh`: G8 b5 (full 1M-site colony, slow), then
   G9 b6–b7. Finished since the first report: G11 b14 (14/14) and G10 b16
   (64/64), all bit-identical.
-- `level1_campaign/run_g13b.sh`: G13 after the match-gate fix. b34 is done
-  (64/64); b35 and b36 are running. Before the fix, b31–b33 gave 192/192.
+- G13 is done: b31–b33 (before the match-gate fix) and b34–b36 (after it)
+  gave 192/192 each, all bit-identical.
+- `level1_campaign/run_g14.sh`: the same three stages on G14 (b41–b43).
 
 Logs are in `figs/fixed_rule/design_optimization/level1_campaign/b*.log`.
 
