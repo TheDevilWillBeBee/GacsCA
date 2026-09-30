@@ -1,6 +1,6 @@
 # Design-optimization agent status
 
-Last update 2026-09-30 18:45 UTC.
+Last update 2026-09-30 (evening) UTC.
 
 **GPU in use** (user authorization) for the level-1 campaign, about 2 GiB of
 VRAM. GPU agent: write here if you need it back.
@@ -13,10 +13,12 @@ VRAM. GPU agent: write here if you need it back.
 | G9 | 576 | 711,936 | 2^28.6 | exact (non-power-of-two) Q |
 | G10 | 576 | 462,208 | 2^28.0 | front confined to the working area; flag courier to cells 3 and Q-3 |
 | G11 | 512 | 326,400 | 2^27.3 | compact fivefold front (one register slot per cell), L = 64 |
-| **G12** | **512** | **217,328** | **2^26.73** | G11 + single-step front (same function) + proportional layout |
+| G12 | 512 | 217,328 | 2^26.73 | G11 + single-step front (same function) + proportional layout |
+| G13 | 512 | 125,856 | 2^25.94 | comb of five fronts, five cells apart (REPORT §23) |
+| **G14** | **512** | **110,880** | **2^25.76** | G13 re-sized by a seeded schedule search |
 
-All five close exactly (GPU parity plus closure, CPU G checks on random and
-coherent upper states). Tests: 33, all OK (plus 1 opt-in slow test).
+All close exactly (GPU parity plus closure). Tests: 37, all OK (plus 1
+opt-in slow test).
 
 ## Level-1 campaign (finished batches, REPORT §19)
 
@@ -29,19 +31,22 @@ coherent upper states). Tests: 33, all OK (plus 1 opt-in slow test).
 
 ## Running (detached, GPU)
 
-Queue `level1_campaign/run_queue2.sh`, remaining:
-- G11 b14 (full 262,144-site colonies, upper front targeted);
-- G10 b16;
-- G8 b5 (full 1M-site colony);
-- G9 b6-b7.
+- `level1_campaign/run_queue2.sh`: G8 b5 (full 1M-site colony, slow), then
+  G9 b6–b7. Finished since the first report: G11 b14 (14/14) and G10 b16
+  (64/64), all bit-identical.
+- `level1_campaign/run_g13b.sh`: G13 after the match-gate fix. b34 is done
+  (64/64); b35 and b36 are running. Before the fix, b31–b33 gave 192/192.
 
 Logs are in `figs/fixed_rule/design_optimization/level1_campaign/b*.log`.
 
 ## Next
 
-Several fronts (REPORT §22): exploring designs that let the upper front's
-register-file update, the current critical path, be shared by several
-fronts.
+The compiler is the limit (REPORT §23). With unlimited registers the final
+program needs 77 passes on one front and 22 on four; the in-order scheduler
+needs about 500 and about 200.
+
+An independent audit prompt is at the repo root:
+`DESIGN_OPTIMIZATION_AUDIT_PROMPT.md`.
 
 ## CPU cores
 

@@ -619,7 +619,7 @@ class ColonyMarginTest(unittest.TestCase):
     the working range; margin cells carry instructions only at the two
     special cells, during the early Flag program."""
 
-    NAMES = ('G7', 'G8', 'G9', 'G10', 'G11', 'G12', 'G13')
+    NAMES = ('G7', 'G8', 'G9', 'G10', 'G11', 'G12', 'G13', 'G14')
 
     def test_layout_and_instruction_slots_avoid_margins(self):
         for name in self.NAMES:
@@ -678,7 +678,11 @@ class CombTest(unittest.TestCase):
     fronts outside the working cells only carry their registers."""
 
     def test_geometry_and_rom_columns(self):
-        c = candidates.load('G13')
+        for name in ('G13', 'G14'):
+            self._geometry(name)
+
+    def _geometry(self, name):
+        c = candidates.load(name)
         p = c.p
         self.assertEqual((p.fronts, p.delta, p.H, p.PL, p.R), (5, 5, 20, 288, 288))
         # level-1 bursts (200 cells) cannot reach two colonies' front state

@@ -43,9 +43,11 @@ arbitrary upper states.
 | G9 | 576 | 711,936 | 1236 | 2^28.6 | 360 | 14,394 | exact (non-power-of-two) Q |
 | G10 | 576 | 462,208 | 802 | 2^28.0 | 359 | 14,492 | front confined to the working cells; flag courier to Gray's cells 3 and Q−3 |
 | G11 | 512 | 326,400 | 638 | 2^27.3 | 262 | 19,675 | compact fivefold front (one register slot per cell), 64 registers |
-| **G12** | **512** | **217,328** | **424** | **2^26.73** | 261 | 16,619 | single-step front (same function) + proportional layout (§21) |
+| G12 | 512 | 217,328 | 424 | 2^26.73 | 261 | 16,619 | single-step front (same function) + proportional layout (§21) |
+| G13 | 512 | 125,856 | 246 | 2^25.94 | 262 | 16,981 | **comb of five fronts**, each with its own program and register file (§23) |
+| **G14** | **512** | **110,880** | **217** | **2^25.76** | 262 | 16,966 | G13 re-sized by a seeded schedule search (§23) |
 
-G9–G12 keep all of G8's Gray mechanisms. They reduce QU by 2^3.3 ≈ 10×
+G9–G14 keep all of G8's Gray mechanisms. They reduce QU by 2^4.2 ≈ 19×
 relative to G8.
 
 **What is tested:**
@@ -66,8 +68,10 @@ relative to G8.
   - **662 errors on G8, G11 and G12, every one contained** (never more
     than one upper cell wrong at any step; 494 of the 668 rings, reruns
     included, never changed the upper state at all) **and repaired** by the
-    upper level within one upper step.
-  - 653 ended bit-identical to the fault-free ring. The other 9 are G8
+    upper level within one upper step. Later batches add G10 (64), G11
+    (14 in full colonies) and G13 (256): all contained, repaired and
+    bit-identical (§§19, 23).
+  - 653 of the first 662 ended bit-identical to the fault-free ring. The other 9 are G8
     commit-time bursts: the 6 rerun for longer were identical one step
     later (dead data flushed by the next commit), and the 3 in G8's
     pre-commit batch were not rerun.
@@ -75,7 +79,7 @@ relative to G8.
     at most one colony.
 - **Colony-scale errors** (one or two colonies wiped) are also removed by
   the upper level within one upper step (G6/G8 full two-level rings, §15).
-- **Unit tests:** 33 (`test_front_candidate.py`), plus 1 opt-in slow GPU
+- **Unit tests:** 37 (`test_front_candidate.py`), plus 1 opt-in slow GPU
   test.
 
 **Not established.**
@@ -84,9 +88,16 @@ relative to G8.
 - A G-family level-2 macrostep (U² ticks).
 - Self-organization from arbitrary configurations.
 
-**Next.** A single front fills about 23% of its slots, and the upper front's
-register-file update is the critical path; §22 estimates what several
-fronts would give.
+**Several fronts (§23).** A comb of five fronts, five cells apart, runs
+the program about 2.2× faster than one front. G14 (U = 110,880,
+U/Q = 217) is the result; it closes on the GPU and G13's level-1 batches are
+clean.
+
+**Next.** The compiler, not the machine, is now the limit. With unlimited
+registers the same program needs 77 passes on one front and 22 on four, but
+the in-order scheduler needs about 500 and about 200 (§23). A scheduler that
+keeps registers for values needed near the front's current position would
+be the next large gain.
 
 ## 1. Binding costs of the current candidate
 
@@ -891,7 +902,11 @@ bit-identical to the fault-free ring after the last upper step):
 | G11 | b15 | partial-density boxes and linked pairs | 43 | 43 | 43 | 43 |
 | G12 | b21 | its own gathers (+ dense E0 ring) | 64 | 64 | 64 | 64 |
 | G12 | b22 | mid-evaluation, upper front hit | 64 | 64 | 64 | 64 |
-| **total** | | | **662** | **662** | **662** | **653** |
+| **total (first report)** | | | **662** | **662** | **662** | **653** |
+| G11 | b14 | full 262,144-site colonies, upper front hit | 14 | 14 | 14 | 14 |
+| G10 | b16 | its own gathers | 64 | 64 | 64 | 64 |
+| G13 | b31–b33 | gathers (+ E0 ring), phase A with front hit, final program with front hit (before the match gate fix, §23) | 192 | 192 | 192 | 192 |
+| G13 | b34 | its own gathers (+ E0 ring), after the fix | 64 | 64 | 64 | 64 |
 
 The reference ring was exact at every step of every batch. G8–G9
 full-colony batches and G10/G11 extras were still queued when this was
@@ -1105,6 +1120,16 @@ stride.
 
 ## 22. Several fronts: first estimate
 
+*Correction (see §23).* Two statements below were wrong:
+- The lanes of a register bit do not all sit on one cell: G12's skews
+  (4, 7, 5, 4, 8, 1, 8, 0, 2, 6) spread them over about nine cells.
+- "About 11 passes per register bit" does not explain the critical path.
+  With unlimited registers and slots, the whole final program has a
+  dataflow depth of about 10 passes; the limit is the scheduler (§23).
+
+The folded match table proposed at the end was not needed: the comb's
+overhang is made a no-op instead (§23).
+
 **The comb.** F fronts spaced Δ = 8 cells apart sweep and turn together, so
 they never meet, and at most one front is ever within two cells of a given
 cell (needed by the compact front).
@@ -1145,3 +1170,181 @@ before the ALU result is broadcast back. That is a compiler transformation
 (splitting large associative reductions across fronts) plus the rule
 changes for the comb (per-front arrival, front id in the instruction
 selector, and a folded match table so front 0 can fetch every Address).
+
+## 23. Several fronts: the comb (G13, G14)
+
+**Result.** Five fronts moving together cut the program from about 650
+passes to about 270, at the cost of a pass 20 ticks longer.
+
+| | fronts | Q | pass (ticks) | NPe / MP−NPe / NP−MP−1 (passes used by early / A / final) | U | U/Q | QU |
+|---|---:|---:|---:|---|---:|---:|---:|
+| G12 | 1 | 512 | 272 | 47 / 118 / 571 | 217,328 | 424 | 2^26.73 |
+| G13 | 5 | 512 | 288 | 33 / 78 / 267 (22 / 58 / 253) | 125,856 | 246 | 2^25.94 |
+| **G14** | 5 | 512 | 288 | 32 / 67 / 227 (25 / 61 / 207) | **110,880** | **217** | **2^25.76** |
+
+### Design (`rule.py`, `rule_g.py`; active only when `fronts > 1`)
+
+**Geometry.** F fronts, Δ cells apart, move in lockstep.
+- In a forward pass, front j is at lo − H + t + jΔ, where H = (F−1)Δ and
+  t = 0 … W+H−1. A backward pass is the same motion reversed in time.
+- Every front therefore visits every working cell once per pass, and a pass
+  lasts W + H ticks.
+- The comb overhangs the working cells by H at both ends. There it only
+  carries its registers: register writes, Hold and scratch stores, and the
+  match pass are all gated by lo ≤ Address < hi.
+
+**Arrival and program selection.**
+- A cell sees front j arrive when Address − (front 0's cell) = jΔ.
+- The front index goes into the instruction selector:
+  psel = page + (j << logNP).
+- Each front therefore runs its own program with its own register file.
+- Every front starts at position 0 of the first pass, and stays in place
+  (turns) at position 0 of every later pass.
+
+**Why the compact front still works.** With Δ ≥ 5, at most one front is
+ever within two cells of a cell. So G11's single register slot per cell and
+the fivefold pending writes carry over unchanged.
+- Each front's register file is still held on five consecutive cells and
+  majority-voted every tick.
+- CompactFrontTest shows that one or two corrupted register copies of a G13
+  front are outvoted.
+
+**Level-1 exposure.** Front state lies within two cells of a front, and the
+comb reaches H cells into each margin.
+- The right-hand colony's front state therefore starts 2·margin − 2H − 3
+  cells after the left-hand colony's.
+- With margin 122 and H = 20 this gap is 201 cells. A 200-cell burst can
+  reach the front state or SimBits of at most one colony, as in G7–G12.
+  `check()` asserts this.
+- The margin is 122 rather than 120 so that the Age radix W + H = 288 is a
+  multiple of 16, which Gray's flag rule needs.
+
+**Fetch.** Only front 0 holds the lookup key (phase A leaves it there). Its
+cells are [lo − H, hi − 1], which cover every working Address.
+
+**Fix found by review.** In the first G13 build, a non-lead upper front
+crossing the right overhang during the match pass could still match its
+leftover key against that cell's Address. Front 0 one level down never
+reaches that Address, so the colony could not reproduce the fetched word.
+- Now only working cells answer the match pass, so overhang cells never
+  depend on I.
+- A test builds exactly this situation, with front 4 in the overhang, its
+  key equal to its Address and I flipped. It fails without the gate.
+- The tests, the closure runs and batches b31–b33 had not triggered the
+  bug. All G13/G14 numbers below are from the fixed rule, except b31–b33.
+
+### Compiler (`multifront.py`)
+
+- **Partition.**
+  - Upper bits are dealt to fronts by the rank of their layout cell
+    (interleaved), and every lane of a bit belongs to the bit's owner.
+  - A gate reading lanes of one owner goes to that owner.
+  - A gate feeding a single Hold root goes to the root's owner.
+  - Gates derived only from the fetched instruction go to the front that
+    consumes them.
+  - The remaining combining gates go to an operand's front.
+- **Reduction.** Associative trees are regrouped by owner. Each front folds
+  its own share of, for example, the 82-way operand selection, and the
+  partial results are combined at the end.
+- **Issue.** Each front issues in order: the depth-first order restricted to
+  its own gates, with lane prefetch and Belady replacement.
+- **Communication.** A value another front needs is written to scratch at
+  the producer's current cell. The consumer reads it when it visits that
+  cell.
+  - In a forward pass, lower-index fronts visit a cell Δ ticks per index
+    after higher-index ones; the order reverses in a backward pass.
+- **Checks.**
+  - Every phase is replayed abstractly on random data against the netlist.
+  - The physical checks are GPU closure and the level-1 campaign.
+- **Sizing.**
+  - `sweep_comb.py` sizes the page ranges.
+  - `search_comb.py` searches seeds (the depth-first order and the
+    owner permutation) and refits the ranges.
+
+### Estimates on G12's netlist (all three programs, replay-checked)
+
+| fronts | pass (ticks) | early / A / final passes | total | total ticks |
+|---:|---:|---|---:|---:|
+| 1 | 272 | 38 / 100 / 509 | 649 | 176.5k |
+| 2 | 277 | 28 / 115 / 340 | 485 | 134.3k |
+| 3 | 282 | 28 / 77 / 256 | 363 | 102.4k |
+| 4 | 287 | 24 / 75 / 236 | 337 | 96.7k |
+| **5** | 292 | 26 / 50 / 191 | **269** | **78.5k** |
+| 6 | 297 | 24 / 48 / 193 | 267 | 79.3k |
+| 8 | 307 | 24 / 60 / 176 | 262 | 80.4k |
+
+Five fronts is the knee.
+- Beyond five, the program shortens very little.
+- More fronts also need a wider overhang: the exposure bound allows
+  H ≤ 20 at margin 122, which is F = 5 at the minimum Δ = 5.
+
+Single compiles vary by about ±15% with the seed and with the rule
+constants. The seeded search over 12 seeds on G13's own netlist gave U
+from 110,880 to 148,608 (median about 118,000); G14 is the best.
+
+### Ideas that did not help
+
+Numbers are passes, in the same model. The baseline is the table above
+(F = 4: 236 final, F = 5: 269 total).
+
+| idea | result |
+|---|---|
+| Control cut: values mixing several owners are broadcast, not owned (F = 4) | final 385–601 |
+| Address, Age and flag lanes unowned, control broadcast from front 0 (F = 4) | 309–335 |
+| Each front recomputes the control cone itself (9,644 cloned gates, F = 4) | 339–367 |
+| Owners in contiguous blocks instead of interleaved (F = 4) | 279 |
+| Combining gates on front 0 instead of spread (F = 4) | 240 (no change) |
+| ASAP issue order (sorted by earliest possible visit) | deadlock: registers fill |
+| Issue order = execution order of the previous schedule, iterated (F = 5) | 191 → 197–253, no gain |
+| Lookahead 150/600/1000, OOO window 16/64 (F = 5) | 285–341 total, worse |
+| Window reads ±1 (scheduler only, F = 5) | 279 total (no gain) |
+| Window reads ±2 (scheduler only, F = 5) | 228 total, but needs radius 6 |
+| 32 registers per front (F = 5) | 429 total |
+| Q = 576 (wider working area), or Q = 576 with 8 scratch bits (F = 5) | 329 / 367 passes of 356 ticks |
+| More registers in the rule, one front: L = 96 / 128 (Q = 576) | final 601 / 809 (the netlist grows too) |
+| Location-aware list scheduler `run_sweep`, admission 4–1024, reserve 2–8 (one front) | final 585–1685 |
+
+### Where the limit is now
+
+Three measurements on G12's final program (16,364 gates):
+
+| | one front | four fronts |
+|---|---:|---:|
+| dataflow depth (unlimited registers and slots) | 10 passes | 7 |
+| slot bound (one instruction per visit, unlimited registers) | 77 | 22 |
+| in-order scheduler, 64 registers per front | 509 | 225–236 |
+| same scheduler, 128 / 256 registers (scheduler only) | 371 / 333 | 141 / 137 (F = 5) |
+
+- The machine could run the final program 6–10× faster than the
+  scheduler does.
+- Most of the gap is the in-order issue: more registers help, then
+  saturate.
+- In the one-front schedule the registers are nearly full (60 of 64 on
+  average), mostly with values needed soon, while the head waits for a lane
+  or spill at a cell the front has not reached.
+- A scheduler that places work by the front's position under a register
+  budget is the next large gain, for one front and for the comb alike.
+  The attempts listed above (ASAP order, list scheduling, reordering) did
+  not achieve it.
+
+### Validation of G13 and G14
+
+- **GPU (`gpu_check.py`).** Bit-exact parity with the C kernel on arbitrary
+  states, and closure after one full work period on random upper states:
+  G13 2/2 rings, G14 2/2 rings.
+- **Tests (37).**
+  - CombTest:
+    - geometry and ROM columns per front;
+    - arrivals exactly at the five comb positions, in a forward and in a
+      backward pass;
+    - the overhang/match-gate invariant;
+    - replay of the comb scheduler.
+  - G13 and G14 are also in ColonyMarginTest and CompactFrontTest.
+- **Level-1 campaign on G13** (§19): 256 bursts at 16 phases × 3
+  placements, plus random bursts, on two-level slice rings with the upper
+  colony in its gathers, in phase A with its front hit, and in its final
+  program with its front hit.
+  - All 256 were contained and repaired, and ended bit-identical.
+  - The reference ring was exact at every step.
+  - 192 of these ran before the match-gate fix. Batches b35 and b36 (after
+    the fix) are still running.

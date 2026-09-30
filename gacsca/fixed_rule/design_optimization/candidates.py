@@ -136,6 +136,16 @@ RECIPES = {
                 spread=False, layout='proportional', skew_seed=0,
                 compile=dict(lookahead=300, ooo=32,
                              multifront=dict(reassoc=True, cut=False, combine='spread', ctrl_fields=[]))),
+    # G13 re-sized by the seeded schedule search (search_comb.py, best of 12
+    # seeds: seed 10); same rule mechanisms, shorter program
+    'G14': dict(family='G', params=dict(k=9, m=18, L=64, S=4, NP=327, NPe=32, MP=99,
+                                        E0q=32, gathers_q=(0, 12, 24), margin=122, clear_ws=True,
+                                        q=512, nb=385, confined=True, compact_front=True, mux_front=True,
+                                        computed_front=True, five_front=True, fronts=5, delta=5),
+                spread=False, layout='proportional', skew_seed=0,
+                compile=dict(lookahead=300, ooo=32,
+                             multifront=dict(reassoc=True, cut=False, combine='spread', ctrl_fields=[],
+                                             order_seed=10, owner_seed=10))),
 }
 
 
