@@ -127,6 +127,15 @@ RECIPES = {
                                         computed_front=True, five_front=True),
                 spread=False, layout='proportional', skew_seed=0,
                 compile=dict(lookahead=1500, ooo=32, order_kind=('interleave', 4))),
+    # G12 with a comb of five fronts five cells apart (multifront.py): each
+    # front runs its own share of the program with its own register file
+    'G13': dict(family='G', params=dict(k=9, m=18, L=64, S=4, NP=379, NPe=33, MP=111,
+                                        E0q=32, gathers_q=(0, 12, 24), margin=122, clear_ws=True,
+                                        q=512, nb=437, confined=True, compact_front=True, mux_front=True,
+                                        computed_front=True, five_front=True, fronts=5, delta=5),
+                spread=False, layout='proportional', skew_seed=0,
+                compile=dict(lookahead=300, ooo=32,
+                             multifront=dict(reassoc=True, cut=False, combine='spread', ctrl_fields=[]))),
 }
 
 
@@ -159,7 +168,10 @@ def load(name, rebuild=False):
         return cand
     p, layout, prog = build(name)
     cand = machine.Candidate(p, prog.rom, layout)
-    passes = int(max(x[0] for x in prog.listing)) + 1
+    cols = [x[0] for x in prog.listing]
+    if getattr(p, 'fronts', 1) > 1:
+        cols = [c & ((1 << p.logNP) - 1) for c in cols]     # psel = page + (front << logNP)
+    passes = int(max(cols)) + 1
     np.savez(path, rom=prog.rom, layout=np.asarray(layout),
              params=json.dumps(asdict(p)), netlist_sha256=cand.comp.digest,
              passes=passes, instructions=len(prog.listing))

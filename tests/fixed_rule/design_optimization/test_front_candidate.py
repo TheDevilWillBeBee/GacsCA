@@ -20,6 +20,19 @@ def cand():
     return candidates.load(CANDIDATE)
 
 
+def netlist_outputs(c, X):
+    """All netlist outputs on state X before the ROM lookup (I = 0)."""
+    values = {}
+    zeros = np.zeros(X.shape[1], dtype=bool)
+    for name in c.comp.inputs:
+        if name[0] == 'x':
+            _, j, f, i = name
+            values[name] = np.roll(X[c.row[(f, i)]], -j)
+        else:
+            values[name] = zeros
+    return c.comp.evaluate(values, bool)
+
+
 class RuleIdentityTest(unittest.TestCase):
     def test_no_depth_parameter_anywhere(self):
         """No executable entry point accepts a hierarchy depth or level."""
@@ -426,7 +439,7 @@ class CompactFrontTest(unittest.TestCase):
     front mid-evaluation must be fully corrected: three ticks later the ring
     equals the unfaulted one bit for bit."""
 
-    NAMES = ('G11', 'G12')
+    NAMES = ('G11', 'G12', 'G13')
 
     def _front_state(self, seed, name='G11'):
         c = candidates.load(name)
@@ -606,7 +619,7 @@ class ColonyMarginTest(unittest.TestCase):
     the working range; margin cells carry instructions only at the two
     special cells, during the early Flag program."""
 
-    NAMES = ('G7', 'G8', 'G9', 'G10', 'G11', 'G12')
+    NAMES = ('G7', 'G8', 'G9', 'G10', 'G11', 'G12', 'G13')
 
     def test_layout_and_instruction_slots_avoid_margins(self):
         for name in self.NAMES:
@@ -645,7 +658,7 @@ class ColonyMarginTest(unittest.TestCase):
         """G8 (Gray p. 34): scratch, including never-written slots, is 0 after
         the commit tick; G7 keeps it."""
         for name, cleared in (('G7', False), ('G8', True), ('G9', True), ('G10', True), ('G11', True),
-                              ('G12', True)):
+                              ('G12', True), ('G13', True)):
             c = candidates.load(name)
             p = c.p
             rng = np.random.default_rng(4)
@@ -657,6 +670,58 @@ class ColonyMarginTest(unittest.TestCase):
             Y = c.step_numpy(X)
             scr = Y[[c.row[('scr', i)] for i in range(dict(c.schema)['scr'])]]
             self.assertEqual(not scr.any(), cleared, name)
+
+
+class CombTest(unittest.TestCase):
+    """G13: a comb of five fronts five cells apart. Each front runs its own
+    program (Pi[Address][page + front << logNP]) with its own register file;
+    fronts outside the working cells only carry their registers."""
+
+    def test_geometry_and_rom_columns(self):
+        c = candidates.load('G13')
+        p = c.p
+        self.assertEqual((p.fronts, p.delta, p.H, p.PL, p.R), (5, 5, 20, 288, 288))
+        # level-1 bursts (200 cells) cannot reach two colonies' front state
+        self.assertGreaterEqual(2 * p.margin - 2 * p.H - 3, 200)
+        cols = np.nonzero(c.rom.any(axis=0))[0]
+        fronts = set((cols >> p.logNP).tolist())
+        self.assertEqual(fronts, set(range(p.fronts)))
+        self.assertLess(int((cols & ((1 << p.logNP) - 1)).max()), p.NP)
+
+    def test_fronts_arrive_delta_apart_and_carry_in_the_overhang(self):
+        """Inside the final program, holders see arrivals at exactly the five
+        comb positions of every colony (each front's five holders)."""
+        c = candidates.load('G13')
+        p, C = c.p, c.c_backend()
+        up = codec.random_upper(c, 2, np.random.default_rng(3))
+        X0 = codec.encode(c, up)
+        for extra in (7, p.PL - 3):                       # a forward and a backward pass
+            t = p.E0 + (p.MP + 3) * p.PL + extra
+            X = C.unpack(C.run_packed(C.pack(X0), t, threads=4), 2 * p.Q)
+            arr = netlist_outputs(c, X)[('arrive', 0)].astype(bool)
+            page = (t - p.E0) // p.PL
+            tt = extra if page % 2 == 0 else p.PL - 1 - extra
+            want = [p.lo - p.H + tt + j * p.delta for j in range(p.fronts)]
+            for col in range(2):
+                got = np.nonzero(arr[col * p.Q:(col + 1) * p.Q])[0]
+                holders = sorted({x + e for x in want for e in range(-2, 3)})
+                self.assertEqual(got.tolist(), holders, (extra, col))
+
+    def test_multifront_scheduler_replays_on_random_data(self):
+        """The comb scheduler's early and phase-A programs (F=3 on G12's
+        netlist) compute the netlist on random inputs."""
+        from gacsca.fixed_rule.design_optimization import multifront
+        r = candidates.RECIPES['G12']
+        params = dict(r['params'], NPe=250, MP=1051, NP=3000, nb=4000, m=21)
+        p = candidates.FAMILIES['G'](**params).check()
+        layout = compiler.proportional_layout(p, compiler.default_layout(p, False))
+        skew, _ = compiler.choose_skew(p, layout, seed=0)
+        p = replace(p, skew=skew).check()
+        out, _ = multifront.compile_phases(p, layout, 3, 5, phases=('early', 'a'), cut=False,
+                                           combine='spread', ctrl_fields=[])
+        self.assertEqual(out['early']['replay_bad'], 0)
+        self.assertEqual(out['a']['replay_bad'], 0)
+        self.assertEqual(len(out['a']['per_front']), 3)
 
 
 @unittest.skipUnless(_gpu_available() and __import__('os').environ.get('GACSCA_SLOW') == '1',

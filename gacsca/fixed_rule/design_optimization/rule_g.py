@@ -71,6 +71,10 @@ class ParamsG:
     compact_front: bool = False  # the front's register file is one L-bit slot per cell: the copy of
                               # the (unique) front within two cells; its value is the majority
                               # of the five slots around the front (five_front stores 5L bits)
+    fronts: int = 1           # a comb of `fronts` fronts `delta` cells apart moving in lockstep; each
+    delta: int = 5            # executes its own program (Pi[Address][page, front]) with its own
+                              # register file; the comb overhangs the working cells by
+                              # H = (fronts-1)*delta at both ends, where it only carries (no-op)
     confined: bool = False    # the front sweeps only the working cells [margin, Q - margin): a pass
                               # takes W = Q - 2*margin ticks and Age is packed with radix W; the new
                               # upper flags reach Gray's cells 3 and Q-3 by a courier on the mail
@@ -78,7 +82,7 @@ class ParamsG:
     @property
     def D(self): return 1 << self.dlog
     @property
-    def PW(self): return self.logNP + self.dlog
+    def PW(self): return self.logNP + self.dlog + self.FB
     @property
     def Q(self): return self.q if self.q else 1 << self.k
     @property
@@ -88,9 +92,17 @@ class ParamsG:
     @property
     def hi(self): return self.Q - self.margin
     @property
+    def H(self):
+        """Overhang of the comb beyond the working cells."""
+        return (self.fronts - 1) * self.delta
+    @property
+    def FB(self):
+        """Bits of the front index in psel."""
+        return (self.fronts - 1).bit_length()
+    @property
     def PL(self):
         """Pass length in ticks (the front's sweep)."""
-        return self.hi - self.lo if self.confined else self.Q
+        return self.hi - self.lo + self.H if self.confined else self.Q
     @property
     def R(self):
         """Radix of the packed Age (position within a block)."""
@@ -169,6 +181,15 @@ class ParamsG:
         if self.q:
             assert self.q % 64 == 0 and self.q <= (1 << self.k) and self.dlog == 0
             assert self.m == self.PB + max(1, (self.nb - 1).bit_length())
+        if self.fronts > 1:
+            # compact slots and fivefold pending writes see at most one front
+            # within two cells; the comb stays inside the colony, and a level-1
+            # burst (200 cells wide) cannot reach front state or SimBits of two
+            # colonies: the front state of the right-hand colony starts
+            # 2*margin - 2*H - 3 cells after that of the left-hand one
+            assert self.confined and self.mux_front and self.delta >= 5
+            assert self.H <= self.lo - 2 and self.hi + 1 + self.H < self.Q
+            assert 2 * self.margin - 2 * self.H - 3 >= 200
         if self.confined:
             # Gray's flag rule reads Age mod 16 from the low position bits; the
             # couriers need the flag sources inside the window and a free last
@@ -583,6 +604,11 @@ def _mux_front(n, p, I, lv, lreg, age_now, addr_now, new, op_lines, kind_lines, 
     def pick(vals):
         return [n.any(n.AND(arr[d], vals[d][j]) for d in SLOTS) for j in range(len(vals[SLOTS[0]]))]
     rsrc, lanes, xaddr = pick(rs), pick(ln), pick(xa)
+    if p.fronts > 1:
+        # a front of the comb outside the working cells only carries its
+        # registers: no register write, Hold or scratch store there
+        inside = w_in_range(n, xaddr, p.lo, p.hi)
+        kind_lines = [n.AND(inside, x) for x in kind_lines]
     sources = rsrc + lanes + [0, 1]
     assert len(sources) == p.n_sources
     dec_a = _decoder(n, a_code, len(sources))

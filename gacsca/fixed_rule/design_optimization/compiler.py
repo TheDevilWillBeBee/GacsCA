@@ -1473,7 +1473,10 @@ Scheduler.run_sweep = run_sweep
 
 def compile_candidate(p, layout=None, window=64, reserve=2, verbose=False,
                       mode='inorder', lookahead=160, ooo=8, order_seed=None, order_flip=0.2,
-                      free_floor=10**9, order_kind='dfs', reassoc=False):
+                      free_floor=10**9, order_kind='dfs', reassoc=False, multifront=None):
+    if getattr(p, 'fronts', 1) > 1:
+        from .multifront import compile_program
+        return compile_program(p, layout, lookahead=lookahead, ooo=ooo, **(multifront or {}))
     net, comp = p.fam().cached(p)
     if layout is None:
         layout = default_layout(p)

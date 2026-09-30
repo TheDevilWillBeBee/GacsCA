@@ -29,7 +29,7 @@ netlist, look up I = Pi[addr][psel] per cell, then finish the netlist.
 from dataclasses import dataclass, asdict
 from functools import lru_cache
 from .netlist import (Net, w_eq, w_eq_const, w_mux, w_add_const, w_ult_const,
-                      w_in_range, w_sub_from_const)
+                      w_in_range, w_sub_from_const, w_add)
 from . import maintenance
 
 OFFSETS = tuple(range(-5, 6))
@@ -191,7 +191,21 @@ def front_timing_dwell(n, p, c, cell, return_page=False):
     match_list = getattr(p, 'match_list', (p.MP,))
     match_pass = n.AND(in_window, n.any(w_eq_const(n, page, mp) for mp in match_list))
     first_pass = n.AND(in_window, w_eq_const(n, page, 0))
-    if confined:
+    fronts = getattr(p, 'fronts', 1)
+    fid = []
+    if confined and fronts > 1:
+        # a comb of F fronts delta apart: in a forward pass front j is at
+        # lo - H + pos + j*delta, in a backward pass at hi - 1 - pos + j*delta
+        # (the forward motion reversed); d = Address - (front 0's cell)
+        pos_k = list(cellpos) + [0] * (k - len(cellpos))
+        fwd = w_add_const(n, pos_k, p.lo - p.H)
+        back = w_sub_from_const(n, p.hi - 1, pos_k)
+        base0 = w_mux(n, direction, back, fwd)
+        diff = w_add_const(n, w_add(n, c['addr'], [n.NOT(x) for x in base0]), 1)
+        hits = [w_eq_const(n, diff, j * p.delta) for j in range(fronts)]
+        arrive = n.AND(in_window, n.any(hits))
+        fid = [n.any([h for j, h in enumerate(hits) if (j >> b) & 1]) for b in range(p.FB)]
+    elif confined:
         # the front sweeps [lo, hi): forward at lo+pos, backward at hi-1-pos
         pos_k = list(cellpos) + [0] * (k - len(cellpos))
         fwd = w_add_const(n, pos_k, p.lo)
@@ -206,10 +220,17 @@ def front_timing_dwell(n, p, c, cell, return_page=False):
         arrive = n.AND(in_window, n.NOT(n.any(n.XOR(n.XOR(ci, xi), direction)
                                                   for ci, xi in zip(cellpos, c['addr']))))
     first_slot = w_eq_const(n, t, 0)
-    at_left_end = w_eq_const(n, c['addr'], p.lo if confined else 0)
-    at_right_end = w_eq_const(n, c['addr'], (p.hi if confined else Q) - 1)
-    start = n.all([first_pass, at_left_end, first_slot])
-    turn = n.AND(first_slot, n.AND(n.NOT(first_pass), n.MUX(direction, at_right_end, at_left_end)))
+    if fronts > 1:
+        # every front starts (empty registers) at pos 0 of the first pass and
+        # stays in place at pos 0 of every later pass (the turn)
+        at_pos0 = w_eq_const(n, cellpos, 0)
+        start = n.all([first_pass, at_pos0, first_slot])
+        turn = n.AND(first_slot, n.AND(n.NOT(first_pass), at_pos0))
+    else:
+        at_left_end = w_eq_const(n, c['addr'], p.lo if confined else 0)
+        at_right_end = w_eq_const(n, c['addr'], (p.hi if confined else Q) - 1)
+        start = n.all([first_pass, at_left_end, first_slot])
+        turn = n.AND(first_slot, n.AND(n.NOT(first_pass), n.MUX(direction, at_right_end, at_left_end)))
     stay = n.OR(turn, n.NOT(first_slot))
     move = n.AND(first_slot, n.NOT(turn))
     from_right = n.AND(move, direction)
@@ -220,7 +241,7 @@ def front_timing_dwell(n, p, c, cell, return_page=False):
                       n.AND(from_right, cell[1]['reg'][i])),
                  n.AND(stay, c['reg'][i]))
         rsrc.append(n.AND(n.NOT(start), v))
-    psel = w_mux(n, match_pass, rsrc[k:k + p.PW], list(t) + list(page))
+    psel = w_mux(n, match_pass, rsrc[k:k + p.PW], list(t) + list(page) + fid)
     if return_page:
         return rsrc, psel, arrive, match_pass, page, in_window
     return rsrc, psel, arrive, match_pass
