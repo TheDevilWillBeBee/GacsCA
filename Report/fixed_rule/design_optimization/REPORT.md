@@ -73,8 +73,8 @@ G15 18.4×.
   healthy and at several stages of its own work period (§§19, 23, 25).
   - *200×200 dense bursts.* Under Gray's definition each is a union of
     several level-1 errors, not one.
-    - 662 on G8, G11 and G12, plus G10 (64), G11 (14 in full colonies), G8
-      (8 in full 1M-site colonies), G13 (384) and G14 (192).
+    - 662 on G8, G11 and G12, plus G9 (128), G10 (64), G11 (14 in full
+      colonies), G8 (8 in full 1M-site colonies), G13 (384) and G14 (192).
     - Every one was contained (at most one upper cell wrong) and repaired in
       the decoded upper state within one upper step.
     - 653 of the first 662 ended bit-identical, and every later one did.
@@ -93,6 +93,15 @@ G15 18.4×.
       whole upper colony (262,144 sites).
   - With the colony margin (G7+), a burst on a colony boundary can damage
     at most one colony.
+  - **Undamaged colonies always make the correct level-1 transition** (Gray
+    p. 35). Across all campaign receipts (G8–G15, 2,324 error rings, 9,053
+    upper steps), no colony outside those touched by the error ever had a
+    wrong upper state.
+    - Each colony's new state always equals the rule applied to the previous
+      decoded ring, including the damaged colony's wrong state. That wrong
+      state is outvoted like a level-0 error.
+    - Wrong states occurred only in the damaged colonies: one, or two
+      adjacent ones once, in G9. They were repaired in the next upper step.
 - **Colony-scale errors** (one or two colonies wiped): the decoded upper
   state is exact again within one upper step (G6/G8 full two-level rings,
   §15). The physical state can take longer.
@@ -970,6 +979,8 @@ bit-identical to the fault-free ring after the last upper step):
 | G13 | b34–b36 | the same three stages, after the fix | 192 | 192 | 192 | 192 |
 | G14 | b41–b43 | the same three stages | 192 | 192 | 192 | 192 |
 | G8 | b5 | full 1,048,576-site colonies, upper front hit | 8 | 8 | 8 | 8 |
+| G9 | b6 | its own gathers (+ E0 ring) | 64 | 64 | 64 | 64 |
+| G9 | b7 | mid-evaluation, upper front hit | 64 | 64 | 64 | 64 |
 
 The reference ring was exact at every step of every batch. G8–G9
 full-colony batches and G10/G11 extras were still queued when this was
@@ -1650,6 +1661,15 @@ with damaged colony 32.
 - **Unavoidable differences.** The neighbours' voted information about the
   damaged colony is what the literal all-field reading of Proposition 4
   cannot allow.
+  - It is unavoidable only *during* the period after the error, and only in
+    the sense of where it sits: outside the two-colony box.
+  - It lives in Workspace: history lanes, and transiently scratch and the
+    front's registers, which exist only around the front. G15 wipes all of
+    it at the period boundary, so it never outlasts two work periods: every
+    field of every colony is identical from the second boundary on, in
+    668 of 668 error sets.
+  - So the literal reading fails in space within the time box, never in
+    time.
 
 **Measured on G14** (no wipes):
 - History lanes and Hold keep a burst's garbage for one period too long:
