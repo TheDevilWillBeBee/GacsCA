@@ -146,6 +146,18 @@ RECIPES = {
                 compile=dict(lookahead=300, ooo=32,
                              multifront=dict(reassoc=True, cut=False, combine='spread', ctrl_fields=[],
                                              order_seed=10, owner_seed=10))),
+    # G14 with Gray's stage wipes (histories and mail cleared at the period
+    # boundary, Hold at the start of evaluation): no residue of a level-1
+    # error survives the next period boundary (Gray's Proposition 4)
+    'G15': dict(family='G', params=dict(k=9, m=18, L=64, S=4, NP=333, NPe=26, MP=99,
+                                        E0q=32, gathers_q=(0, 12, 24), margin=122, clear_ws=True,
+                                        q=512, nb=391, confined=True, compact_front=True, mux_front=True,
+                                        computed_front=True, five_front=True, fronts=5, delta=5,
+                                        stage_wipe=True),
+                spread=False, layout='proportional', skew_seed=0,
+                compile=dict(lookahead=300, ooo=32,
+                             multifront=dict(reassoc=True, cut=False, combine='spread', ctrl_fields=[],
+                                             order_seed=5, owner_seed=5))),
 }
 
 
@@ -161,7 +173,42 @@ def build(name):
     return p, layout, prog
 
 
-def load(name, rebuild=False):
+MANIFEST = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'manifest.json')
+
+
+def manifest():
+    """Trusted digests per recipe, written from fresh builds by
+    experiments/.../build_candidates.py (tracked in git)."""
+    if not os.path.exists(MANIFEST):
+        return {}
+    with open(MANIFEST) as fh:
+        return json.load(fh)['candidates']
+
+
+def digests(cand):
+    return dict(candidate_sha256=cand.digest(), netlist_sha256=cand.comp.digest,
+                rom_sha256=hashlib.sha256(cand.rom.tobytes()).hexdigest(),
+                layout_sha256=hashlib.sha256(np.asarray(cand.layout, dtype=np.int64).tobytes()).hexdigest())
+
+
+def verify(name, cand):
+    """Raise unless cand matches the trusted manifest entry for name (if any)."""
+    want = manifest().get(name)
+    if want is None:
+        return False
+    got = digests(cand)
+    bad = [k for k in got if want.get(k) != got[k]]
+    if bad:
+        raise RuntimeError(f'{name}: {", ".join(bad)} differ from the trusted manifest '
+                           f'({os.path.relpath(MANIFEST, ROOT)}); rebuild or re-audit the cache')
+    return True
+
+
+def load(name, rebuild=False, check_manifest=True):
+    """Load a candidate from the cache (compiled on first use). The cache is
+    checked against the netlist built from its parameters and, when the
+    recipe has an entry, against the trusted manifest of ROM, layout and
+    netlist digests."""
     os.makedirs(CACHE, exist_ok=True)
     path = os.path.join(CACHE, f'{name}.npz')
     r = RECIPES[name]
@@ -175,9 +222,13 @@ def load(name, rebuild=False):
         cand = machine.Candidate(p, z['rom'], z['layout'])
         if str(z['netlist_sha256']) != cand.comp.digest:
             raise RuntimeError(f'{name}: cached ROM was compiled for a different netlist')
+        if check_manifest:
+            verify(name, cand)
         return cand
     p, layout, prog = build(name)
     cand = machine.Candidate(p, prog.rom, layout)
+    if check_manifest:
+        verify(name, cand)
     cols = [x[0] for x in prog.listing]
     if getattr(p, 'fronts', 1) > 1:
         cols = [c & ((1 << p.logNP) - 1) for c in cols]     # psel = page + (front << logNP)
@@ -188,11 +239,25 @@ def load(name, rebuild=False):
     return cand
 
 
+def passes_used(cand):
+    """Physical passes holding instructions: the last nonempty page + 1. With
+    several fronts the ROM column is page + (front << logNP), so the front
+    index is masked off."""
+    p = cand.p
+    cols = np.nonzero(cand.rom.any(axis=0))[0]
+    if not len(cols):
+        return 0
+    if getattr(p, 'fronts', 1) > 1:
+        cols = cols & ((1 << p.logNP) - 1)
+    return int(cols.max() // getattr(p, 'D', 1)) + 1 if getattr(p, 'dlog', 0) else int(cols.max()) + 1
+
+
 def summary(cand):
     p = cand.p
     d = cand.identity()
-    d.update(recipe_passes_used=int(np.max(np.nonzero(cand.rom.any(axis=0))[0]) + 1)
-             if cand.rom.any() else 0,
+    cols = np.nonzero(cand.rom.any(axis=0))[0]
+    d.update(recipe_passes_used=passes_used(cand),
+             rom_columns_used=int(cols.max()) + 1 if len(cols) else 0,
              rom_bits=int(p.Q * p.NPT * p.IW),
              instruction_bits=p.IW)
     return d

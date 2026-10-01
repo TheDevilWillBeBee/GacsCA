@@ -32,7 +32,8 @@ import numpy as np
 from .machine import BUILD
 
 NVCC = '/usr/local/cuda/bin/nvcc'
-MAXB = 8
+MAXB = 32
+VALUE_MODES = ('random', 'zero', 'one', 'invert', 'freeze', 'copy')
 
 
 class Box(ctypes.Structure):
@@ -42,12 +43,25 @@ class Box(ctypes.Structure):
 
 class NoiseCfg(ctypes.Structure):
     _fields_ = [('seed', ctypes.c_ulonglong), ('e0_grid', ctypes.c_int),
-                ('e0_pair16', ctypes.c_uint), ('nbox', ctypes.c_int), ('box', Box * MAXB)]
+                ('e0_pair16', ctypes.c_uint), ('nbox', ctypes.c_int), ('mode', ctypes.c_int),
+                ('shift', ctypes.c_int), ('box', Box * MAXB)]
 
 
-def noise(seed=0, e0_grid=0, e0_pair=0.5, boxes=()):
-    """boxes: iterable of (x0, w, t0, h, p)."""
+def noise(seed=0, e0_grid=0, e0_pair=0.5, boxes=(), mode='random', shift_sites=0):
+    """boxes: iterable of (x0, w, t0, h, p).
+
+    mode: the value an error site takes (after the rule's own update):
+      random   seeded random bits (depending only on seed, site and tick);
+      zero, one  every bit 0 / 1 (stuck-at);
+      invert   every bit of the correct new state flipped;
+      freeze   the site keeps its previous state (it misses the update);
+      copy     the current state of the site shift_sites further along the
+               ring (shift_sites = Q: the cell with the same Address in the
+               next colony, a plausible but wrong state)."""
     c = NoiseCfg()
+    c.mode = VALUE_MODES.index(mode)
+    assert shift_sites % 32 == 0
+    c.shift = int(shift_sites // 32)
     c.seed = seed & ((1 << 64) - 1)
     c.e0_grid = int(e0_grid)
     assert c.e0_grid == 0 or c.e0_grid >= 26
@@ -201,9 +215,10 @@ def _source(cand, order='dfs'):
     emit('}')
     kernel = '\n'.join(L) + '\n'
     tail = r'''
-#define MAXB 8
+#define MAXB 32
 struct Box { int x0, w; long t0, h; unsigned int p16; };
-struct NoiseCfg { unsigned long long seed; int e0_grid; unsigned int e0_pair16; int nbox; Box box[MAXB]; };
+struct NoiseCfg { unsigned long long seed; int e0_grid; unsigned int e0_pair16; int nbox; int mode; int shift;
+                  Box box[MAXB]; };
 
 __device__ static inline u64 mix64(u64 z) {
   z += 0x9E3779B97F4A7C15ULL;
@@ -265,9 +280,18 @@ __device__ __forceinline__ void tick_word(const wd* X, wd* Y, int NW64, int w, c
     const wd m = (wd)(error_mask(c, ring, NW64, w64, t) >> (32 * half));
     if (m) {
       for (int r = 0; r < W; r++) {
-        const wd rnd = (wd)(mix64(c.seed ^ mix64(((u64)t << 24) ^ ((u64)w64 << 10) ^ (u64)r))
-                            >> (32 * half));
-        Y[(size_t)r * NW + w] = (Y[(size_t)r * NW + w] & ~m) | (rnd & m);
+        const wd y = Y[(size_t)r * NW + w];
+        wd v;
+        switch (c.mode) {
+          case 0: v = (wd)(mix64(c.seed ^ mix64(((u64)t << 24) ^ ((u64)w64 << 10) ^ (u64)r))
+                           >> (32 * half)); break;
+          case 1: v = 0; break;
+          case 2: v = ~(wd)0; break;
+          case 3: v = ~y; break;
+          case 4: v = X[(size_t)r * NW + w]; break;
+          default: v = X[(size_t)r * NW + (w + c.shift) % NW]; break;
+        }
+        Y[(size_t)r * NW + w] = (y & ~m) | (v & m);
       }
     }
   }

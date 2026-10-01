@@ -75,6 +75,8 @@ class ParamsG:
     delta: int = 5            # executes its own program (Pi[Address][page, front]) with its own
                               # register file; the comb overhangs the working cells by
                               # H = (fronts-1)*delta at both ends, where it only carries (no-op)
+    stage_wipe: bool = False  # Gray's stage wipes: history lanes and mail cleared at the period
+                              # boundary, Hold cleared at the start of the evaluation window
     sel_front: int = 0        # 1: select, then vote: at most one front arrives at a cell, so the
                               # five register copies (and lane copies) of the arriving front's source
                               # are selected before a single five-way majority. 2: vote the seven
@@ -479,6 +481,16 @@ def build(p):
         vals['scr'] = [lv(x, 'scr', i) for i in range(S)]
         if getattr(p, 'clear_ws', False):
             vals['scr'] = [n.AND(v, n.NOT(commit)) for v in vals['scr']]
+        if p.stage_wipe:
+            # Gray (pp. 33-35): Mailbox and Workspace are wiped at the start of
+            # each stage, so that a level-1 error leaves nothing behind after
+            # the next period boundary. Histories and mail are cleared at the
+            # period boundary, Hold at the start of the evaluation window
+            # (before any program store).
+            for f in ('h1', 'h2', 'mr', 'ml'):
+                vals[f] = [n.AND(v, n.NOT(commit)) for v in vals[f]]
+            clear_hold = age_is(p.E0 - 1)
+            vals['hold'] = [n.AND(v, n.NOT(clear_hold)) for v in vals['hold']]
         for f in FIVE:
             w = logical_width(f, p)
             for i in range(w):

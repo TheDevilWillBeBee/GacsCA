@@ -573,6 +573,78 @@ class SelFrontEquivalenceTest(unittest.TestCase):
         self.assertGreater(arrivals, 2 * N)
 
 
+class CacheIntegrityTest(unittest.TestCase):
+    """The trusted manifest (fresh builds of every recipe) pins each cached
+    candidate: a cache whose ROM differs by one bit is rejected, although
+    its netlist digest is unchanged (audit finding 4)."""
+
+    def test_every_cached_candidate_matches_the_manifest(self):
+        man = candidates.manifest()
+        self.assertEqual(set(man), set(candidates.RECIPES))
+        for name in ('R1', 'G8', 'G14'):
+            self.assertTrue(candidates.verify(name, candidates.load(name)))
+
+    def test_tampered_rom_is_rejected(self):
+        import os
+        import tempfile
+        src = candidates.CACHE
+        with tempfile.TemporaryDirectory() as tmp:
+            with np.load(os.path.join(src, 'R1.npz'), allow_pickle=False) as z:
+                a = {k: z[k] for k in z.files}
+            nz = np.argwhere(a['rom'] != 0)[0]
+            a['rom'] = a['rom'].copy()
+            a['rom'][tuple(nz)] ^= np.uint32(1)
+            np.savez(os.path.join(tmp, 'R1.npz'), **a)
+            candidates.CACHE = tmp
+            try:
+                with self.assertRaises(RuntimeError):
+                    candidates.load('R1')
+                c = candidates.load('R1', check_manifest=False)      # what the audit loaded
+                self.assertEqual(c.comp.digest, candidates.manifest()['R1']['netlist_sha256'])
+            finally:
+                candidates.CACHE = src
+
+
+class GrayErrorClassTest(unittest.TestCase):
+    """gray_errors implements Gray's section 5.1 classes for finite sets."""
+
+    def test_dense_boxes(self):
+        from gacsca.fixed_rule.design_optimization import gray_errors as ge
+        r = ge.classify(ge.dense_box(0, 0, 100, 100), Q=512, U=110880)
+        self.assertTrue(r['level1'])
+        self.assertEqual(r['level0'], 0)
+        r = ge.classify(ge.dense_box(0, 0, 200, 200), Q=512, U=110880)
+        self.assertFalse(r['level1'])
+        a, b = r['witness']
+        self.assertFalse(ge.linked(a, b, 104, 104))          # two separated candidates inside
+        self.assertTrue(ge.linked(a[:1], a[1:], 24, 24))
+
+    def test_small_sets(self):
+        from gacsca.fixed_rule.design_optimization import gray_errors as ge
+        self.assertEqual(ge.classify([(5, 5)])['level0'], 1)                 # isolated site
+        self.assertEqual(ge.classify([(5, 5), (6, 5)])['level0'], 2)         # adjacent pair
+        r = ge.classify([(0, 0), (1, 0), (10, 10)], Q=512, U=1 << 16)        # linked candidates
+        self.assertTrue(r['level1'])
+        r = ge.classify([(0, 0), (10, 10), (300, 0), (310, 10)], Q=512, U=1 << 16)
+        self.assertFalse(r['level1'])                                       # two separated pairs
+        r = ge.classify([(0, 0), (10, 10), (0, 30)], Q=512, U=1 << 16)
+        self.assertTrue(r['candidate_level1'])
+        # isolation (iv): a second cluster closer than (24Q, 24U) disqualifies
+        r = ge.classify([(0, 0), (10, 10)], E=[(0, 0), (10, 10), (5000, 0), (5010, 10)],
+                        Q=512, U=1 << 16)
+        self.assertFalse(r['level1'])
+
+    def test_generated_clusters_are_checked(self):
+        from gacsca.fixed_rule.design_optimization import gray_errors as ge
+        rng = np.random.default_rng(4)
+        for _ in range(10):
+            pts, boxes = ge.random_level1_cluster(rng, 100, 200, pairs=5)
+            self.assertEqual(sum(w * h for _, w, _, h in boxes), len(pts))
+            r = ge.classify(pts, Q=512, U=110880)
+            self.assertEqual(r['level0'], 0)
+            self.assertTrue(r['candidate_level1'])
+
+
 def _gpu_available():
     import os
     import shutil
@@ -648,6 +720,43 @@ class GpuBackendTest(unittest.TestCase):
         B = sim.error_masks(gpu.noise(seed=1, boxes=[(100, 200, 10, 30, 1.0)]), 0, 0, 50)
         self.assertTrue(B[10:40, 100:300].all())
         self.assertEqual(int(B.sum()), 200 * 30)
+
+    def test_value_modes_replace_exactly_the_masked_sites(self):
+        """Each error value mode (zero, one, invert, freeze, copy) changes the
+        state at the masked sites of one tick, as specified, and nowhere
+        else; compared with an error-free GPU ring and the C kernel."""
+        from gacsca.fixed_rule.design_optimization import gpu
+        c = cand()
+        C = c.c_backend()
+        rng = np.random.default_rng(13)
+        sim0 = gpu.GpuSim(c, 1, 4, mode='block')
+        X = rng.random((c.W, sim0.N)) < 0.5
+        P = C.pack(X)
+        t = 37
+        ref_prev = C.run_packed_scalar(P.copy(), t)          # (the C runs overwrite their input)
+        Xp = C.unpack(ref_prev, sim0.N)
+        Xn = C.unpack(C.run_packed_scalar(ref_prev.copy(), 1), sim0.N)
+        box = (100, 50, t, 1, 1.0)
+        for mode in gpu.VALUE_MODES[1:]:
+            sim = gpu.GpuSim(c, 1, 4, mode='block')
+            sim.set_state(P.copy())
+            sim.set_noise([gpu.noise(5, boxes=[box], mode=mode, shift_sites=c.p.Q)])
+            sim.run(t + 1)
+            Y = C.unpack(sim.state()[0], sim.N)
+            m = sim.error_masks(gpu.noise(5, boxes=[box], mode=mode), 0, t, 1)[0]
+            self.assertEqual(int(m.sum()), 50)
+            want = Xn.copy()
+            if mode == 'zero':
+                want[:, m] = False
+            elif mode == 'one':
+                want[:, m] = True
+            elif mode == 'invert':
+                want[:, m] = ~Xn[:, m]
+            elif mode == 'freeze':
+                want[:, m] = Xp[:, m]
+            else:
+                want[:, m] = np.roll(Xp, -c.p.Q, axis=1)[:, m]
+            self.assertTrue(np.array_equal(Y, want), mode)
 
     def test_errors_are_deterministic_and_reference_ring_is_untouched(self):
         from gacsca.fixed_rule.design_optimization import gpu
