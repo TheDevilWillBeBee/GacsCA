@@ -1602,11 +1602,25 @@ Proposition 4's two-period box by that much (Finding 3).
   - **SimBits:** Info differences only within two adjacent colonies of the
     box.
 - **Strict variant.** The all-field spatial variant ("strict") is recorded
-  too, but cannot hold for any gather-based design. During the period after
-  the error, neighbouring colonies gather the damaged colony's temporarily
-  wrong SimBits into their mail and history lanes. Gray counts only the
-  SimBits as "lasting effects" (p. 35), because Mailbox and Workspace are
-  wiped each stage.
+  too. It cannot hold for a design in which neighbouring colonies read the
+  damaged colony's state while that state is wrong.
+  - Gray describes exactly this (p. 35): undamaged colonies receive
+    "possibly incorrect information about the states of the damaged
+    colonies", and "the only lasting effects of the level-1 error are in the
+    SimBit fields".
+  - We therefore read Proposition 4 as two parts: the SimBits are confined
+    to the box, and every field is restored after it. The time and SimBits
+    verdicts test exactly that.
+  - Per-field diagnostic on G15: one dense 100×100 level-1 error late in
+    period 0, compared with the error-free ring during period 1.
+    - The damaged colony's Info differs, as allowed.
+    - The history lanes of the colonies within 5 of it hold its wrong
+      state.
+    - The mail tracks carry those bits around the ring, up to 22 colonies
+      away.
+    - For an error early in a period, the neighbours' front registers and
+      scratch also differ while they compute with the damaged data.
+    - Everything is identical at 2U.
 
 **Measured on G14** (no wipes):
 - History lanes and Hold keep a burst's garbage for one period too long:
