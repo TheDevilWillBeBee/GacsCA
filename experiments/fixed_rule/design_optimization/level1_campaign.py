@@ -39,9 +39,16 @@ Verdicts per error ring:
                      adjacent upper cells next to the target are wrong;
   decoded_repaired   no upper cell is wrong from the first boundary after
                      the error has ended;
-  prop4              Gray's Proposition 4 at the sampled times: some box
-                     [jQ, (j+2)Q) x [kU, (k+2)U) containing the error holds
-                     every physical difference (all fields);
+  prop4              Gray's Proposition 4 at the sampled times, in two parts
+                     that are both required: time (no difference in any
+                     field of any colony after (k+2)U, for the box
+                     [kU, (k+2)U) containing the error) and simbits (Info
+                     differences only inside a box [jQ, (j+2)Q) x
+                     [kU, (k+2)U) containing the error). Mail and histories
+                     of neighbouring colonies legitimately carry the damaged
+                     colony's state for a period (Gray counts only the
+                     SimBits as lasting effects), so the all-field spatial
+                     test is recorded separately as prop4_strict;
   identical          the physical state equals ring 0 at the last sample.
 The dense level-0 ring (--e0) gets the one-tick check: at every sample time
 t, the sites differing from ring 0 are among the sites corrupted at tick
@@ -114,22 +121,25 @@ def front_cell(cand, up):
     return int(cells[len(cells) // 2])
 
 
-def diff_sites(S, r):
-    """Boolean per-site difference between ring r and ring 0 (all fields)."""
-    x = np.bitwise_or.reduce(S[r] ^ S[0], axis=0)
+def diff_sites(S, r, rows=None):
+    """Boolean per-site difference between ring r and ring 0 (all fields, or
+    the given rows)."""
+    a, b = (S[r], S[0]) if rows is None else (S[r][rows], S[0][rows])
+    x = np.bitwise_or.reduce(a ^ b, axis=0)
     return np.unpackbits(x.view(np.uint8), bitorder='little').astype(bool)
 
 
-def prop4_check(events, x_lo, x_hi, t_lo, t_hi, Q, U, n_col):
+def prop4_check(events, x_lo, x_hi, t_lo, t_hi, Q, U, n_col, time_only=False):
     """Gray Prop. 4 for one error at sites [x_lo, x_hi], ticks [t_lo, t_hi]:
     is there a box [jQ, (j+2)Q) x [kU, (k+2)U) containing the error and every
-    sampled difference? events: (t, sorted differing colonies)."""
+    sampled difference? events: (t, sorted differing colonies). With
+    time_only, only the time extent is checked (any colonies)."""
     ks = [k for k in range(max(0, t_lo // U - 1), t_lo // U + 1) if k * U <= t_lo and t_hi < (k + 2) * U]
     js = [j for j in range(x_lo // Q - 1, x_lo // Q + 1) if j * Q <= x_lo and x_hi < (j + 2) * Q]
     for k in ks:
         for j in js:
             allowed = {j % n_col, (j + 1) % n_col}
-            if all(t < (k + 2) * U and set(cols) <= allowed for t, cols in events):
+            if all(t < (k + 2) * U and (time_only or set(cols) <= allowed) for t, cols in events):
                 return dict(ok=True, j=j, k=k)
     return dict(ok=False, boxes_tried=[(j, k) for k in ks for j in js])
 
@@ -281,6 +291,10 @@ def main():
                slice_check=slice_check, reference_exact=[],
                rings=[dict(**{k: v for k, v in s.items()}, steps=[], events=[]) for s in sc])
     e0_ring = [r for r, s in enumerate(sc, 1) if s['kind'] == 'E0']
+    r0 = cand.row[('info', 0)]
+    info_rows = np.arange(r0, r0 + dict(cand.schema)['info'])
+    for ring in rec['rings']:
+        ring['info_events'] = []
     one_tick = dict(samples=0, violations=0, by_colony={}, examples=[])
     prev = [ring_up] * R
     for k in range(1, args.upper_steps + 1):
@@ -296,6 +310,10 @@ def main():
                 if dif.any():
                     cols = sorted(set((np.nonzero(dif)[0] // Q).tolist()))
                     rec['rings'][r - 1]['events'].append((tnow, cols, int(dif.sum())))
+                    di = diff_sites(S, r, info_rows)
+                    if di.any():
+                        icols = sorted(set((np.nonzero(di)[0] // Q).tolist()))
+                        rec['rings'][r - 1]['info_events'].append((tnow, icols, int(di.sum())))
                 if r in e0_ring:
                     one_tick['samples'] += 1
                     m = sim.error_masks(cfgs[r], r, tnow - 1, 1)[0]
@@ -343,8 +361,8 @@ def main():
         one_tick['by_colony'] = {str(k): v for k, v in sorted(one_tick['by_colony'].items())}
     rec['e0_one_tick'] = one_tick if e0_ring else None
     # verdicts
-    summary = dict(total=0, decoded_contained=0, decoded_repaired=0, prop4=0, identical=0,
-                   gray_level1=0, failures=[])
+    summary = dict(total=0, decoded_contained=0, decoded_repaired=0, prop4=0, prop4_time=0,
+                   prop4_simbits=0, prop4_strict=0, identical=0, gray_level1=0, failures=[])
     for ring in rec['rings']:
         if ring['kind'] != 'E1':
             continue
@@ -358,8 +376,12 @@ def main():
         dmg = all(len(w) <= 2 and all(abs(x - c) <= 1 for x in w) and (len(w) < 2 or abs(w[0] - w[1]) == 1)
                   for w in (w0, w_first))
         repaired = all(not s['wrong_upper_cells'] for s in st[first + 1:]) and len(st) > first + 1
-        p4 = prop4_check([(t, cols) for t, cols, _ in ring['events']], ex['x_lo'], ex['x_hi'],
-                         ex['t_lo'], ex['t_hi'], Q, U, n_col)
+        args4 = (ex['x_lo'], ex['x_hi'], ex['t_lo'], ex['t_hi'], Q, U, n_col)
+        ev = [(t, cols) for t, cols, _ in ring['events']]
+        p4 = dict(time=prop4_check(ev, *args4, time_only=True)['ok'],
+                  simbits=prop4_check([(t, cols) for t, cols, _ in ring['info_events']], *args4)['ok'],
+                  strict=prop4_check(ev, *args4)['ok'])
+        p4['ok'] = p4['time'] and p4['simbits']
         last_t = sim.t
         ident = not ring['events'] or ring['events'][-1][0] < last_t
         ring['last_difference_tick'] = ring['events'][-1][0] if ring['events'] else None
@@ -368,6 +390,9 @@ def main():
         summary['decoded_contained'] += dmg
         summary['decoded_repaired'] += repaired
         summary['prop4'] += p4['ok']
+        summary['prop4_time'] += p4['time']
+        summary['prop4_simbits'] += p4['simbits']
+        summary['prop4_strict'] += p4['strict']
         summary['identical'] += ident
         if not (dmg and repaired and p4['ok'] and ident):
             summary['failures'].append(dict(phase=ring['phase'], place=ring['place'], x0=ring['x0'],

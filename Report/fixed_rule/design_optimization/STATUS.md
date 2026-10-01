@@ -15,10 +15,11 @@ VRAM. GPU agent: write here if you need it back.
 | G11 | 512 | 326,400 | 2^27.3 | compact fivefold front (one register slot per cell), L = 64 |
 | G12 | 512 | 217,328 | 2^26.73 | G11 + single-step front (same function) + proportional layout |
 | G13 | 512 | 125,856 | 2^25.94 | comb of five fronts, five cells apart (REPORT §23) |
-| **G14** | **512** | **110,880** | **2^25.76** | G13 re-sized by a seeded schedule search |
+| G14 | 512 | 110,880 | 2^25.76 | G13 re-sized by a seeded schedule search |
+| **G15** | **512** | **112,608** | **2^25.78** | G14 + Gray's stage wipes (meets Prop. 4 at the sampled times) |
 
-All close exactly (GPU parity plus closure). Tests: 37, all OK (plus 1
-opt-in slow test).
+All close exactly (GPU parity plus closure). Tests: 44, one of them
+opt-in (slow).
 
 ## Level-1 campaign (finished batches, REPORT §19)
 
@@ -29,15 +30,31 @@ opt-in slow test).
   G8 commit-time bursts (6 of them rerun and identical one step later);
 - the reference ring was exact everywhere.
 
+## Audit response (REPORT §25)
+
+The independent audit's six findings are resolved:
+1. **Error classes.** Bursts are relabelled. `gray_errors.py` classifies
+   errors by Gray's §5.1 rules, and the campaign now uses genuine level-1
+   errors and adversarial values.
+2. **Seeds.** Noise seeds now follow the scenario's identity. The G8
+   commit-time bursts were rerun with their original faults.
+3. **Prop. 4.** It is measured on the full state. G15 adds Gray's stage
+   wipes and meets it at the sampled times.
+4. **Cache integrity.** Every cached candidate is checked against a trusted
+   manifest of fresh builds of all 17 recipes.
+5. **Numbers.** The wrong figures are corrected.
+6. **Level-0.** One-tick recovery is measured directly: 0 failures in 48,000
+   errors in healthy colonies.
+
 ## Running (detached, GPU)
 
-- `level1_campaign/run_queue2.sh`: G8 b5 (full 1M-site colony, slow), then
-  G9 b6–b7. Finished since the first report: G11 b14 (14/14) and G10 b16
-  (64/64), all bit-identical.
-- G13 is done: b31–b33 (before the match-gate fix) and b34–b36 (after it)
-  gave 192/192 each, all bit-identical.
-- G14 is done: b41–b43 gave 192/192, all bit-identical. G8 b5 (full 1M-site
-  colonies) gave 8/8. G9 b6–b7 are still queued in `run_queue2.sh`.
+- `level1_campaign/run_g15.sh`: G15 b64–b68 (front hit in phase A and in the
+  final program; zero, invert, freeze and copy values; 200×200 inverted),
+  then b61 (200×200 random) again with the SimBit check.
+- `level1_campaign/run_g14_prop4.sh`: G14 b71 again with the SimBit check.
+- `level1_campaign/run_g8_reruns.sh`: G8 b3 commit bursts with their original
+  faults.
+- `run_queue2.sh`: G9 b6–b7.
 
 Logs are in `figs/fixed_rule/design_optimization/level1_campaign/b*.log`.
 

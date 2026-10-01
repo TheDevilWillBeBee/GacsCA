@@ -44,11 +44,13 @@ arbitrary upper states.
 | G10 | 576 | 462,208 | 802 | 2^28.0 | 359 | 14,492 | front confined to the working cells; flag courier to Gray's cells 3 and Q−3 |
 | G11 | 512 | 326,400 | 638 | 2^27.3 | 262 | 19,675 | compact fivefold front (one register slot per cell), 64 registers |
 | G12 | 512 | 217,328 | 424 | 2^26.73 | 261 | 16,619 | single-step front (same function) + proportional layout (§21) |
-| G13 | 512 | 125,856 | 246 | 2^25.94 | 262 | 16,981 | **comb of five fronts**, each with its own program and register file (§23) |
-| **G14** | **512** | **110,880** | **217** | **2^25.76** | 262 | 16,966 | G13 re-sized by a seeded schedule search (§23) |
+| G13 | 512 | 125,856 | 246 | 2^25.94 | 260 | 16,981 | **comb of five fronts**, each with its own program and register file (§23) |
+| **G14** | **512** | **110,880** | **217** | **2^25.76** | 260 | 16,966 | G13 re-sized by a seeded schedule search (§23) |
+| **G15** | **512** | **112,608** | **220** | **2^25.78** | 260 | 17,100 | G14 + Gray's stage wipes, so that a 200×200 burst leaves nothing after the next period boundary (§25) |
 
-G9–G14 keep all of G8's Gray mechanisms. They reduce QU by 2^4.2 ≈ 19×
-relative to G8.
+G9–G15 keep all of G8's Gray mechanisms; G15 adds the stage wipes. QU
+relative to G8: G9 2.6× smaller, G12 9.6×, G13 16.7×, G14 18.9×,
+G15 18.4×.
 
 **What is tested:**
 - **Self-simulation.**
@@ -58,29 +60,42 @@ relative to G8.
   - An R1 three-level vertical slice: 24 consecutive level-1 steps exact.
 - **Backends.** NumPy reference, C (scalar and AVX2) and CUDA (`gpu.py`,
   block and grid modes) agree bit for bit on arbitrary states.
-- **Level-0 errors** (whole-state randomization, the densest pattern
-  Gray's definition allows): every error in G5 and later is gone after one
-  tick, and the decoded upper state stays exact (§§13–14).
-- **Level-1 errors** (200×200 bursts at 16 phases × 3 placements, random
-  bursts, partial-density bursts, linked pairs of level-0 errors), on
-  two-level rings whose upper colony is healthy and at several stages of
-  its own work period (§19):
-  - **662 errors on G8, G11 and G12, every one contained** (never more
-    than one upper cell wrong at any step; 494 of the 668 rings, reruns
-    included, never changed the upper state at all) **and repaired** by the
-    upper level within one upper step. Later batches add G10 (64), G11
-    (14 in full colonies), G8 (8 in full 1M-site colonies), G13 (384) and
-    G14 (192): all contained, repaired and bit-identical (§§19, 23).
-  - 653 of the first 662 ended bit-identical to the fault-free ring. The other 9 are G8
-    commit-time bursts: the 6 rerun for longer were identical one step
-    later (dead data flushed by the next commit), and the 3 in G8's
-    pre-commit batch were not rerun.
+- **Level-0 errors** (one site or two adjacent sites, whole state replaced;
+  measured directly in §25):
+  - In a healthy colony, every injected error is gone one tick later:
+    0 of 48,000 errors on G8, G12, G14 and G15, with random, inverted,
+    all-zero and all-one values.
+  - Where an emergency flag (Flag1) is raised, Gray's own wipe rule gives a
+    hit cell a two-tick footprint.
+  - Under dense level-0 noise, the decoded upper state stays exact
+    (§§13–14).
+- **Bursts and level-1 errors** on two-level rings whose upper colony is
+  healthy and at several stages of its own work period (§§19, 23, 25).
+  - *200×200 dense bursts.* Under Gray's definition each is a union of
+    several level-1 errors, not one.
+    - 662 on G8, G11 and G12, plus G10 (64), G11 (14 in full colonies), G8
+      (8 in full 1M-site colonies), G13 (384) and G14 (192).
+    - Every one was contained (at most one upper cell wrong) and repaired in
+      the decoded upper state within one upper step.
+    - 653 of the first 662 ended bit-identical, and every later one did.
+    - The 9 exceptions are G8 commit-time bursts. Reruns of six of them (b1,
+      b2) with their original faults are bit-identical from step 4; the b3
+      rerun is still running (§25).
+  - *Genuine level-1 errors* (certified by `gray_errors.py`): 128 dense
+    100×100 boxes and sparse clusters on G15, and the same on G14 (§25).
+    - All were contained and repaired, and all ended bit-identical.
+    - **G15 meets Proposition 4** at the sampled times: every field of every
+      colony is equal again by the second period boundary, and Info
+      differences never leave two adjacent colonies. G14, without Gray's
+      stage wipes, keeps history-lane residue one period longer.
+    - Adversarial values are reported in §25.
   - With the colony margin (G7+), a burst on a colony boundary can damage
     at most one colony.
-- **Colony-scale errors** (one or two colonies wiped) are also removed by
-  the upper level within one upper step (G6/G8 full two-level rings, §15).
-- **Unit tests:** 38 (`test_front_candidate.py`), plus 1 opt-in slow GPU
-  test.
+- **Colony-scale errors** (one or two colonies wiped): the decoded upper
+  state is exact again within one upper step (G6/G8 full two-level rings,
+  §15). The physical state can take longer.
+- **Unit tests:** 44 in `test_front_candidate.py`, one of which (a slow
+  G8 GPU test) runs only on request.
 
 **Not established.**
 - A noise threshold (Gray's bound ε < (QU)^-2 is out of reach).
@@ -201,9 +216,15 @@ In G3/G4 this repeats three times, into Hold copies A/B/C.
   ±3 read copies at ±5.
 
 **Fixed point.** The netlist depends only on constants (Q, U, pass layout,
-skews), not on Pi's contents; Pi is the compiled program. Loading a cached
-candidate fails if the netlist digest changed. `build_candidates.py` rebuilds
-every candidate from its recipe bit-identically (`receipts/candidates.json`).
+skews), not on Pi's contents; Pi is the compiled program.
+- Loading a cached candidate fails if the netlist built from its parameters
+  has a different digest.
+- Since the audit (§25), loading also fails if the cached ROM, layout or
+  netlist differs from the trusted manifest
+  (`gacsca/fixed_rule/design_optimization/manifest.json`). The manifest was
+  written from fresh builds of all 17 recipes.
+- `build_candidates.py` rebuilds every candidate from its recipe; all 17
+  rebuild bit-identically (`receipts/candidates.json`, 2026-10-01).
 
 **Backends (`machine.py`).**
 - A NumPy reference with a full Pi lookup at every site.
@@ -236,15 +257,16 @@ Measured on an AMD EPYC 7543 (Zen 3, AVX2) with pinned cores.
   cores.
 - **G one-period wall time** for 12 colonies on 8 cores: about 4.5 s
   (G1/G2), 9 s (G3), 26–32 s (G4) and 37–47 s (G5).
-- **R0, G1, G2, G4:** full numbers are in `receipts/candidates.json`.
+- **All candidates:** full numbers are in `receipts/candidates.json`.
 
 ## 4. Tests
 
 `OPENBLAS_NUM_THREADS=1 python -m unittest -q
-tests.fixed_rule.design_optimization.test_front_candidate` runs 33 tests, all
-OK in about 40 s. Four of them need a CUDA GPU and are skipped without one.
-A slow G8 GPU closure test runs with `GACSCA_SLOW=1` (about 3 minutes). The
-suite would fail if:
+tests.fixed_rule.design_optimization.test_front_candidate` runs 44 tests, all
+OK in about 70 s (updated 2026-10-01). Five of them need a CUDA GPU and are
+skipped without one. One of the 44, a slow G8 GPU closure test, runs only
+with `GACSCA_SLOW=1` (about 3 minutes). Later additions are listed at the end
+of this section. The suite would fail if:
 
 - **Depth or identity varied.** An entry point takes a depth or level
   argument, the width or rule changes across levels, or the cached ROM
@@ -270,7 +292,7 @@ suite would fail if:
 - **The GPU disagreed** with the C kernel (block and grid mode, snapshots),
   failed one-period closure, broke the level-0 separation of its E0 grid or
   the exact shape of error boxes, or was non-deterministic.
-- **A margin leaked** (G7–G12). Represented SimBits or any instruction slot
+- **A margin leaked** (G7–G15). Represented SimBits or any instruction slot
   lies inside a margin of at least 100 cells, apart from G7/G8's two special
   cells in the early program; scratch appears in a margin; or, for an
   unconfined front, the margin changes the rule.
@@ -572,16 +594,25 @@ differences from ring 0. Receipts are
 
 | pattern | R1 (64×64 boxes) | G5 | G6 |
 |---|---|---|---|
-| E0 dense, 4 periods | all 8 upper cells wrong | **exact; physical state = reference at each boundary** | **exact; = reference** |
+| E0 dense, 4 periods | all 8 upper cells wrong | **decoded state exact**; physical differences at the 4 boundaries: 0, 0, 3, 6 sites | same as G5 |
 | E0 for 2 periods, then off | wrong (no redundancy) | exact | exact |
 | E1 mid-colony, after gather 1 | 1 cell wrong, closure exact afterwards | 1 cell wrong in the period of the burst | same as G5 |
 | E1 across a colony boundary | 1 cell | 1–2 adjacent cells | 1–2 adjacent cells |
 | E1 during gather 1 or just before gather 2 | 1 cell | all 8 cells wrong in that period, closure exact afterwards | same |
 | colony wipe(s) | 1–2 cells | 1–2 cells | 1–2 cells |
 
-- **Level-0 errors vanish completely in G5/G6.** Every error is repaired in
-  one tick, and the decoded upper state and the whole physical state equal
-  the fault-free ones.
+- **Level-0 errors.** The decoded upper state stays exact under dense level-0
+  noise.
+  - The boundary samples here do not measure one-tick repair. The few
+    differing sites at a boundary can be errors injected at that very tick.
+  - *Correction (audit, §25):* the earlier wording "every error is repaired
+    in one tick, and the whole physical state equals the fault-free one" went
+    beyond this experiment.
+  - The direct measurement is in §25:
+    - In a healthy colony, every injected level-0 error is gone one tick
+      later.
+    - In a colony whose upper cell raises Flag1, Gray's own wipe rule gives
+      the hit cell a two-tick footprint.
 - **The gather-1 case is not a gather-vote failure.** The diagnostic
   (16 colonies) shows the burst wiping all five Info copies in a 200-site
   stretch. Upper cell 3's *own* state is therefore wrong from Age ≈3Q on.
@@ -738,7 +769,9 @@ receipt is `two_level_errors/R1_n2_1_level2_partial_seed5.json`):
   (coherent upper states, 2 periods, special procedure and Wf window OK).
 - **G8 one-level result** (`error_levels/G8_main_seed3.json`, 3 periods):
   - The dense-E0 rings are physically identical to the reference at every
-    boundary once the noise stops, and between fresh errors while it runs.
+    boundary once the noise stops. While it runs, the boundary samples show
+    0, 10, 0 differing sites, which may be errors injected at that very tick
+    (see §25 for the direct one-tick measurement).
   - None of the nine colony-edge bursts damaged any upper cell. By the end
     of period 3, eight of those nine rings are **bit-identical to the
     fault-free ring**.
@@ -767,6 +800,14 @@ receipt is `two_level_errors/R1_n2_1_level2_partial_seed5.json`):
 - Candidate-B's Flag2 erasure is used as transcribed.
 - Gray's proofs need Q ≥ 2^13 and U = 128Q. Ours use Q = 512–1024 and
   U = 1024Q, so every robustness statement here is empirical.
+- **Q ≥ 2K (Gray p. 33) fails for G9–G15**, for example G13: Q = 512,
+  K = 260, 2K = 520 (found by the audit, §25).
+  - The purpose of the condition is to keep the needed SimBits away from the
+    colony ends. G9–G15 serve that purpose with an explicit margin of at
+    least 100 cells (122 in G13–G15) on each side, inside which every
+    represented SimBit and all workspace lie.
+  - Gray's proof assumes the inequality itself, which these candidates do
+    not satisfy.
 - **Beyond Gray, from Gács:** error-correcting codes instead of repetition,
   self-organization from arbitrary configurations, and variable-period
   amplification are not attempted. Like Gray's version, G assumes a good
@@ -864,7 +905,19 @@ Workspace clearing) at exact Q = 576, U = 711,936.
    nearly every stall is the next gate waiting for the front to return to a
    cell holding a lane input or a spilled value.
 
-## 19. Level-1 campaign (G8, G11, G12)
+## 19. Burst campaign (G8, G11, G12; first called "level-1 campaign")
+
+*Correction (audit, §25).*
+- **The bursts are not single level-1 errors.** The bursts below are dense
+  200×200 boxes. Under Gray's §5.1 definition, a dense box of side at most
+  104 is one level-1 error, but a dense 200×200 box contains two
+  (104,104)-separated linked pairs. It is therefore a union of several
+  level-1 errors, not one, and the results below are for such bursts. §25
+  adds genuine level-1 errors (dense 100×100 boxes and sparse clusters
+  checked by `gray_errors.py`) and adversarial error values.
+- **"Repaired" is decoded only.** It refers to the decoded upper state.
+  Full-state recovery is reported separately ("identical", and §25's
+  Proposition-4 measurements).
 
 `level1_campaign.py` runs two-level rings on the GPU.
 - **Upper colony:** one healthy colony encoding a random top cell,
@@ -874,9 +927,9 @@ Workspace clearing) at exact Q = 576, U = 711,936.
   - A slice's ends meet at an Address jump. The script checks that its
     influence stays at least 23 upper cells away from the target over all
     tested steps, so the target behaves as in a full colony.
-- **Errors:** every ring except the reference gets one level-1 error, a
-  200×200 box in which every site's whole state is randomized at every
-  tick, during upper step 1.
+- **Errors:** every ring except the reference gets one burst, a 200×200
+  box in which every site's whole state is randomized at every tick, during
+  upper step 1.
   - Named phases: gathers 1–3 (middle and end), the rests between them,
     the start of the evaluation window, the early Flag program, the special
     procedure, the trickle-down window, phase A, the match pass, the final
@@ -887,7 +940,8 @@ Workspace clearing) at exact Q = 576, U = 711,936.
 - **Criteria** (Gray §5.1, Prop. 4):
   - *contained*: after the burst's step, at most 2 adjacent upper cells
     next to the target are wrong;
-  - *repaired*: no upper cell is wrong from the next upper step on;
+  - *repaired* (decoded): no upper cell is wrong from the next upper step
+    on;
   - *identical*: the physical state finally equals the fault-free ring bit
     for bit.
 
@@ -937,6 +991,12 @@ written (logs in `level1_campaign/b*.log`).
     in mail and history lanes loaded from it.
   - For b1 a 5-step rerun shows them bit-identical from step 4 on
     (`G8_b1_commit_5steps.json`).
+    - *Correction (audit, §25):* that rerun drew new random values for the
+      same boxes. Its noise seeds depended on the scenario's position in the
+      filtered list.
+    - The driver now derives each seed from the scenario's identity. A rerun
+      with the original faults reproduces the original steps exactly and is
+      bit-identical from step 4 (`G8_b1_commit_rerun_sameseeds.json`).
 
 Still running: b3 (upper colony just before its commit), b4 (partial-density
 boxes and linked pairs of level-0 errors), and b5 (full 1,048,576-site
@@ -1037,7 +1097,8 @@ colonies with the upper front targeted). Then the same set for G9.
 and 64/64 repaired from upper step 2. 61/64 were physically identical at
 step 3; the three commit-time bursts behave as in b1/b2. The b2 commit cases
 were rerun for 5 steps: 3/3 identical by step 4
-(`G8_b2_commit_5steps.json`).
+(`G8_b2_commit_5steps.json`). That rerun also drew new random values; the
+reruns of b2 and b3 with the original faults are in §25.
 
 **G11** (receipt `level1_campaign/G11_b11s17_age0_mid.json`: seed 17, upper
 colony in its gathers, 4 upper steps):
@@ -1460,3 +1521,187 @@ one 7-way select replaces the per-slot selects and the pick: 15,044 gates.
   - keep front 0's control work off the critical path;
   - keep per-register-bit work next to its lanes.
 - Not attempted yet.
+
+## 25. Independent audit and response (2026-10-01)
+
+An independent agent audited R1–G13/G14 against the code, the receipts and
+Gray's reader's guide. Its report is
+`Report/fixed_rule/design_optimization_audit/AUDIT.md`, written by that
+agent and left uncommitted for the user.
+- **Construction.** It confirmed the construction claims: one fixed
+  radius-5 rule, no depth input, the same width at every level, the
+  physical fetch, and the comb geometry.
+- **Closure.** It reran closure itself: R1, G2, G4, G13 and G14 are exact
+  over successive periods, and G13/G14 rebuild bit-identically.
+- **Findings.** It found six problems. Each is resolved below; the receipts
+  are in `figs/fixed_rule/design_optimization/` (ignored).
+
+### Finding 1: the "level-1 errors" were bursts, not Gray's level-1 class
+
+**The audit was right.**
+- Gray §5.1 defines a level-1 error as a cluster of linked candidate
+  level-0 errors in which no two such linked pairs are (104,104)-separated.
+- A dense box of side at most 104 satisfies this. A dense 200×200 box
+  contains two linked pairs 150 sites apart, so it is a union of several
+  level-1 errors.
+- **Relabelled.** §19's results are now labelled 200×200 bursts.
+
+**New tools.**
+- `gray_errors.py` classifies finite error sets by Gray's definitions. Its
+  tests cover:
+  - a dense 100×100 box: one level-1 error;
+  - a dense 200×200 box: not one, with an explicit witness pair;
+  - isolation condition (iv);
+  - generated clusters.
+- `level1_campaign.py` now:
+  - generates genuine level-1 errors (`--side 100`, or `--shape sparse`:
+    clusters of linked pairs, each kept only if the classifier certifies
+    it);
+  - records the classification of every scenario;
+  - gives error sites adversarial values (`--mode`, implemented in
+    `gpu.noise`, with a unit test):
+    - `random`: seeded random bits;
+    - `zero` / `one`: stuck-at;
+    - `invert`: the correct new state, inverted;
+    - `freeze`: the old state kept;
+    - `copy`: the state of the same Address one colony further, which is
+      plausible but wrong.
+
+### Finding 2: the six G8 "reruns" drew new faults
+
+**The audit was right.** The noise seed was derived from the scenario's
+position in the filtered list. The driver now derives it from the
+scenario's identity (phase, place, or random index):
+- unfiltered runs keep their old seeds;
+- filtered runs reproduce the unfiltered run's faults.
+
+Reruns with the original faults (5 upper steps) reproduce every original
+step exactly and are bit-identical from upper step 4.
+
+| batch | original faults, physical sites differing at steps 1–3 | rerun, steps 1–5 | decoded |
+|---|---|---|---|
+| G8 b1 (mid / left / right) | 695,139,84 · 693,5,60 · 689,67,84 | same, then 0, 0 | contained, repaired |
+| G8 b2 | 695,367,84 · 693,5,60 · 689,67,84 | same, then 0, 0 | contained, repaired |
+| G8 b3 | see receipt `G8_b3_commit_rerun_sameseeds.json` | | |
+
+The last difference is at tick 3,163,136, shortly after the third period
+boundary. These bursts straddle the first boundary, so G8 exceeds
+Proposition 4's two-period box by that much (Finding 3).
+
+### Finding 3: "repaired" was decoded-only; Proposition 4 is about all fields
+
+**The audit was right.**
+- Proposition 4: for each level-1 error there is a box
+  [jQ, (j+2)Q) × [kU, (k+2)U) outside which every simulation-structure field
+  equals the error-free run.
+- The campaign now samples the full physical state of every ring every Q
+  ticks and records two verdicts:
+  - **time:** no difference in any field of any colony after (k+2)U;
+  - **SimBits:** Info differences only within two adjacent colonies of the
+    box.
+- **Strict variant.** The all-field spatial variant ("strict") is recorded
+  too, but cannot hold for any gather-based design. During the period after
+  the error, neighbouring colonies gather the damaged colony's temporarily
+  wrong SimBits into their mail and history lanes. Gray counts only the
+  SimBits as "lasting effects" (p. 35), because Mailbox and Workspace are
+  wiped each stage.
+
+**Measured on G14** (no wipes):
+- History lanes and Hold keep a burst's garbage for one period too long:
+  - neighbours' histories hold copies until the next gather;
+  - garbage written into unused Hold after a boundary is committed into Info
+    one period later.
+- So the time part fails for most bursts at the end of a period (e.g.
+  dense 100×100 boxes: 11/64 pass).
+
+**G15 = G14 + Gray's stage wipes.**
+- Histories and mail are cleared at the period boundary, Hold at the start
+  of the evaluation window (`stage_wipe`).
+- Cost: 134 gates; U = 112,608, sized by a 20-seed search.
+- G15 passes GPU parity, one-period closure, and the margin and compact-front
+  tests.
+
+**Results** (64-cell slices of a healthy upper colony, 4 upper steps, full
+state sampled every Q ticks; all receipts have an exact reference ring):
+
+| candidate | errors (Gray class) | values | decoded contained / repaired | Prop. 4 time | Prop. 4 SimBits | strict | identical at end |
+|---|---|---|---:|---:|---:|---:|---:|
+| G14 | 64 dense 100×100 (all level-1) | random | 64 / 64 | 11 | 62 | 0 | 64 |
+| G14 | 64 sparse clusters (all level-1) | random | 64 / 64 | 64 | 64 | 61 | 64 |
+| **G15** | 64 dense 100×100 (all level-1) | random | 64 / 64 | **64** | **64** | 0 | 64 |
+| **G15** | 64 sparse clusters (all level-1) | random | 64 / 64 | **64** | **64** | 61 | 64 |
+
+Batches still running when this was written are listed under STATUS.md:
+- G15 with its front hit, in phase A and in the final program;
+- adversarial values: zero, invert, freeze, copy;
+- 200×200 bursts, random and inverted;
+- G14's 200×200 rerun.
+
+### Finding 4: cached candidates were not checked against the recipe
+
+**The audit was right**: a cache with one flipped ROM bit loaded under the
+same name.
+- `manifest.json` (tracked) holds the ROM, layout and netlist digests of
+  fresh builds of all 17 recipes.
+- `candidates.load()` rejects any cache that differs, and a test reproduces
+  the audit's one-bit tampering.
+- `build_candidates.py` builds candidates in parallel; all 17 rebuild
+  bit-identically (`receipts/candidates.json`).
+
+### Finding 5: wrong numbers
+
+All corrected:
+- G13/G14 are 260 bits per cell, not 262.
+- QU reductions are now stated per candidate.
+- The test count is now 44, one of them opt-in.
+- `candidates.summary()` masks the front index out of the pass count
+  (G13: 365 passes, G14: 307, G15: 329).
+- The audit also noted that Gray's Q ≥ 2K fails for G9–G15; this is now
+  listed in §16 beside the margin.
+
+### Finding 6: level-0 errors and one tick
+
+**Corrected.** The old statement "every level-0 error is repaired in one
+tick, physical state equal at every boundary" went beyond the experiment.
+
+`level0_one_tick.py` now measures it directly. It injects single level-0
+errors (one site or two adjacent sites, the whole state replaced) at 300
+times across the work period, runs one tick, and compares every field of
+every site with the error-free run.
+
+**In a healthy colony** (a slice of a healthy upper colony, errors in its
+middle colonies), every error is gone one tick later:
+
+| candidate | values | errors | still visible one tick later |
+|---|---|---:|---:|
+| G8 | random | 6,000 | 0 |
+| G12 | random | 6,000 | 0 |
+| G14 | random / invert / zero / one | 4 × 6,000 | 0 |
+| G15 | random / invert | 2 × 6,000 | 0 |
+
+**When the upper cell raises Flag1** (an unhealthy upper state, such as
+the two random upper cells of the earlier tests, or the colonies next to a
+slice's Address jump):
+- The trickle-down window raises the computed Flag1 of the physical cells.
+- Gray's second special rule (p. 33) then zeroes all simulation-structure
+  bits of a cell whose stored Address differs from its computed one.
+- So a level-0 error that hits the stored Address leaves a two-tick
+  footprint at that one site. Its five-fold copies restore it one tick
+  later, and there is no spread.
+- Measured rate: about 0.4% of errors.
+- The GPU campaign's dense level-0 ring shows the same: 0 one-tick
+  violations in the healthy middle colonies, and a few in the colonies
+  within reach of the slice's Address jump.
+- This follows Gray's rules as written, so the literal level-0 part of
+  Proposition 4 does not hold in Flag1 regions, for Gray's construction as
+  for ours.
+
+### Remaining limits
+
+The audit's other caveats stand:
+- All of this is finite seeded evidence: no threshold, no all-pattern
+  guarantee, no G-family level-2 macrostep.
+- `multifront.replay` checks the compiler's listing, not the physical
+  machine; physical closure is the independent check.
+- Gray's proof assumptions (Q ≥ 2^13, U = 128Q, Q ≥ 2K) do not hold for
+  these candidates.
