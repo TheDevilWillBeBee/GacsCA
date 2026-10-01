@@ -1633,6 +1633,40 @@ Proposition 4's two-period box by that much (Finding 3).
       scratch also differ while they compute with the damaged data.
     - Everything is identical at 2U.
 
+**Proposition 4 field by field** (`prop4_fields.py`). Gray (p. 15) names
+six fields:
+- Address and Age are the local structure;
+- SimBit, Workspace and Mailbox are the "simulation structure", the fields
+  Proposition 4 constrains;
+- Flags lies between them, and Workspace.Flag1/2 belong to Workspace.
+
+The run uses G15 with 48 genuine level-1 errors: dense 100×100 boxes at
+every phase × 3 places, random values, full state sampled every Q ticks.
+
+| Gray's field | ours | differs outside the two-colony box during the two-period window | differs after the window |
+|---|---|---|---|
+| SimBit | info | 0 / 48 | 0 / 48 |
+| Workspace | hold; pending write (pend, pkind, pval); Workspace.Flag1/2 (wf1, wf2) | 0 / 48 | 0 / 48 |
+| Workspace | gathered histories h1, h2 | 38 / 48, 42 / 48 (up to 6 colonies away) | 0 / 48 |
+| Workspace | scratch; the front's registers | 10 / 48; 16 / 48 (up to 5 colonies away) | 0 / 48 |
+| Mailbox | mr, ml | 47 / 48, 48 / 48 (up to 32 colonies away, the whole ring) | 0 / 48 |
+| Flags; local structure | f1, f2; addr, age | 0 / 48 | 0 / 48 |
+
+**What the table shows.**
+- **SimBits.** Proposition 4 holds fully: they never leave the box, in space
+  or in time.
+- **Mailbox and part of Workspace.** Only the time bound holds. Within the
+  window they differ in colonies outside the box, and everything is
+  restored when it ends.
+- **Workspace part (inherent).** Undamaged neighbours within interaction
+  range hold, and compute with, information about the damaged colony; Gray
+  says so on p. 35. So the literal statement does not hold for his
+  construction either. His argument establishes only the SimBit part and
+  the restoration.
+- **Mailbox part (G15's design).** It spreads around the whole ring because
+  G15 wipes the mail at the period boundary, not at each stage start as
+  Gray does. Data loaded at a gather keeps circulating until the commit.
+
 **Gray's gather vote (p. 35)** is implemented as three gathers at Ages 0,
 12Q and 24Q, the third arrival voted against the two stored histories.
 `gather_vote_check.py` shows it does exactly what Gray claims, and no more.
