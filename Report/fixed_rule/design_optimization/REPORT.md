@@ -1622,6 +1622,35 @@ Proposition 4's two-period box by that much (Finding 3).
       scratch also differ while they compute with the damaged data.
     - Everything is identical at 2U.
 
+**Gray's gather vote (p. 35)** is implemented as three gathers at Ages 0,
+12Q and 24Q, the third arrival voted against the two stored histories.
+`gather_vote_check.py` shows it does exactly what Gray claims, and no more.
+For every differing history bit it records the colony holding it and the
+colony whose data it carries. The errors are dense 100×100 boxes on G15,
+with damaged colony 32.
+
+| error | voted lanes (h1) after the three gathers | raw gather-2 copy (h2) |
+|---|---|---|
+| in transit only: colony 32's margin during gather 2 | **no difference** | data about colonies 31 and 32, held by colonies 27–36, until the period-end wipe |
+| at the source: colony 32's working cells late in the period; during the next period | data about colony 32, held by colonies 27–31 and 33–37 | the same |
+| both: colony 32's working cells during gather 2 | data about colony 32 held by colonies 27–31; data about colony 31 held only by colony 32 | data about 31 and 32 |
+
+- **When the vote suffices.** It repairs everything that one disrupted
+  gather corrupts in transit. Undamaged colonies always hold correct
+  information about other undamaged colonies.
+- **When it cannot.** It cannot repair information whose source is wrong:
+  all three gathers deliver the damaged colony's same wrong values. Gray's
+  next sentence says these remain and are "treated at level-1 in the same
+  way that a level-0 error is handled". The upper level's fivefold majority
+  outvotes them: no undamaged upper cell was ever wrong in the campaigns.
+- **Avoidable differences.** The raw gather copy and the circulating mail
+  keep in-transit garbage until the period-end wipe. Gray wipes Mailbox and
+  Workspace at every stage start, so wiping h2 after the vote and the mail
+  after the last capture would remove them.
+- **Unavoidable differences.** The neighbours' voted information about the
+  damaged colony is what the literal all-field reading of Proposition 4
+  cannot allow.
+
 **Measured on G14** (no wipes):
 - History lanes and Hold keep a burst's garbage for one period too long:
   - neighbours' histories hold copies until the next gather;
