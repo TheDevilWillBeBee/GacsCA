@@ -30,7 +30,7 @@ One fixed, finite-state, one-dimensional local rule whose configurations simulat
 | [docs/CODE.md](docs/CODE.md) | Module map, and which driver produced which result |
 | [docs/RUNNING.md](docs/RUNNING.md) | Tests, building candidates, simulating, the main experiments |
 | [docs/prompts/](docs/prompts/) | The task statement and the audit prompt |
-| [papers/](papers/) | Gray's reader's guide, Gács 2001, and Masumori's simulation (text extracts in `papers_txt/`, git-ignored) |
+| [papers/](papers/), [papers_txt/](papers_txt/) | Gray's reader's guide, Gács 2001, and Masumori's simulation, as PDFs and as extracted text (the report cites the text by line) |
 | [archive/](archive/) | Earlier work: the Q=8192, U=2^20 candidate and its repair and GPU validation, earlier fixed-rule attempts, the level-specific tower, and dead ends of the G line |
 
 ## Quick start
