@@ -1,0 +1,7 @@
+at age 0 {'addr': True, 'age': True, 'age0': 0, 'flags': 0, 'info_copies_agree': True} decoded exact True
+at age 60000 {'addr': True, 'age': True, 'age0': 106592, 'flags': 0, 'info_copies_agree': True} decoded exact True nonzero bits/cell 41.2
+central slice nonzero bits/cell 64.7
+rich slice wrap step 1 middle False diff cells 6
+rich slice wrap step 2 middle False diff cells 12
+rich slice wrap step 3 middle False diff cells 18
+rich slice wrap step 4 middle False diff cells 24

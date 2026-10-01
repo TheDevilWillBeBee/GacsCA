@@ -1,0 +1,10 @@
+rerun G8_b1_age0_mid mid same_box True noise_seeds 102 57 step3_differences 84 96
+rerun G8_b1_age0_mid left same_box True noise_seeds 103 58 step3_differences 60 0
+rerun G8_b1_age0_mid right same_box True noise_seeds 104 59 step3_differences 84 108
+rerun G8_b2_eval_front mid same_box True noise_seeds 102 57 step3_differences 84 96
+rerun G8_b2_eval_front left same_box True noise_seeds 103 58 step3_differences 60 0
+rerun G8_b2_eval_front right same_box True noise_seeds 104 59 step3_differences 84 108
+dense_e0 G5 [0, 0, 3, 6]
+dense_e0 G6 [0, 0, 3, 6]
+dense_e0 G7 [0, 10, 0]
+dense_e0 G8 [0, 10, 0]

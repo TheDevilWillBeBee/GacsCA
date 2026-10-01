@@ -1,0 +1,8 @@
+shortcut isolated pair is E0: True
+shortcut S alone: True
+shortcut S with isolated E0 pair: {'points': 1296, 'level0': 0, 'extent': (36, 36), 'candidate_level1': True, 'level1': False, 'witness': None, 'method': 'window'}
+S containing E0 {(1000, 0)} {'points': 10, 'level0': 1, 'extent': (3, 3), 'candidate_level1': True, 'level1': True, 'witness': None, 'method': 'window'}
+b81 seed 57 near-outside [(131259, 1524), (131259, 1618), (131269, 1558), (131369, 1655)] inside [(131303, 1562), (131304, 1616), (131353, 1606), (131374, 1562)]
+b81 receipt verdict True full-E local witness verdict False
+b82 seed 57 near-outside [(131259, 1524), (131259, 1618), (131269, 1558), (131369, 1655)] inside [(131303, 1562), (131304, 1616), (131353, 1606), (131374, 1562)]
+b82 receipt verdict True full-E local witness verdict False

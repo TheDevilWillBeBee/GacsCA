@@ -1,0 +1,7 @@
+fresh identity {'family': 'G', 'Q': 512, 'U': 112608, 'width': 260, 'radius': 5, 'gates': 17100, 'netlist_sha256': '6decf00999a62b8b6cbfc03019551a1a2d07013dbec575d3c1478a2fbef57dbe', 'candidate_sha256': '70be6eb286a09b82b498c8409d709a92833f5833199a5a6e2b838fd82c6be333', 'rom_sha256': '2e2eea4cee16dea26570c2fae07ba70c891a74a6bfda1a17e8601f4966404a70', 'rom_nonzero_words': 32835}
+fresh summary {'family': 'G', 'Q': 512, 'U': 112608, 'width': 260, 'radius': 5, 'gates': 17100, 'netlist_sha256': '6decf00999a62b8b6cbfc03019551a1a2d07013dbec575d3c1478a2fbef57dbe', 'candidate_sha256': '70be6eb286a09b82b498c8409d709a92833f5833199a5a6e2b838fd82c6be333', 'rom_sha256': '2e2eea4cee16dea26570c2fae07ba70c891a74a6bfda1a17e8601f4966404a70', 'rom_nonzero_words': 32835, 'recipe_passes_used': 329, 'rom_columns_used': 2376, 'rom_bits': 50331648, 'instruction_bits': 24}
+fresh=cache digests True
+fresh=manifest digests True
+Q,U,QU,width,gates,passes 512 112608 57655296 260 17100 329
+radius 5
+stage_wipe,sel_front True 0

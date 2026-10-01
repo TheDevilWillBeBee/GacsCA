@@ -1,0 +1,58 @@
+test_c_scalar_vector_and_numpy_agree_on_arbitrary_states (tests.fixed_rule.design_optimization.test_front_candidate.BackendTest) ... ok
+test_rom_lookup_defined_for_every_psel_value (tests.fixed_rule.design_optimization.test_front_candidate.BackendTest) ... ok
+test_transition_reads_nothing_beyond_radius_five (tests.fixed_rule.design_optimization.test_front_candidate.BackendTest) ... ok
+test_every_cached_candidate_matches_the_manifest (tests.fixed_rule.design_optimization.test_front_candidate.CacheIntegrityTest) ... ok
+test_tampered_rom_is_rejected (tests.fixed_rule.design_optimization.test_front_candidate.CacheIntegrityTest) ... ok
+test_mutated_rom_breaks_self_simulation (tests.fixed_rule.design_optimization.test_front_candidate.ClosureTest)
+The colony really executes the ROM program: corrupting one used ... ok
+test_physical_state_changes_every_tick_of_a_period (tests.fixed_rule.design_optimization.test_front_candidate.ClosureTest) ... ok
+test_successive_decoded_macrosteps_on_random_upper_states (tests.fixed_rule.design_optimization.test_front_candidate.ClosureTest) ... ok
+test_encode_decode_bijective_and_every_raw_field_encoded (tests.fixed_rule.design_optimization.test_front_candidate.CodecTest) ... ok
+test_g8_clears_scratch_at_the_period_boundary (tests.fixed_rule.design_optimization.test_front_candidate.ColonyMarginTest)
+G8 (Gray p. 34): scratch, including never-written slots, is 0 after ... ok
+test_layout_and_instruction_slots_avoid_margins (tests.fixed_rule.design_optimization.test_front_candidate.ColonyMarginTest) ... ok
+test_margin_is_compiler_only (tests.fixed_rule.design_optimization.test_front_candidate.ColonyMarginTest)
+Unless the front is confined, the margin does not change the rule: ... ok
+test_fronts_arrive_delta_apart_and_carry_in_the_overhang (tests.fixed_rule.design_optimization.test_front_candidate.CombTest)
+Inside the final program, holders see arrivals at exactly the five ... ok
+test_geometry_and_rom_columns (tests.fixed_rule.design_optimization.test_front_candidate.CombTest) ... ok
+test_multifront_scheduler_replays_on_random_data (tests.fixed_rule.design_optimization.test_front_candidate.CombTest)
+The comb scheduler's early and phase-A programs (F=3 on G12's ... ok
+test_overhang_ignores_the_fetched_word_even_in_the_match_pass (tests.fixed_rule.design_optimization.test_front_candidate.CombTest)
+A front outside the working cells only carries: the cell's outputs ... ok
+test_one_and_two_register_copy_faults_are_outvoted (tests.fixed_rule.design_optimization.test_front_candidate.CompactFrontTest) ... ok
+test_register_field_is_single_slot (tests.fixed_rule.design_optimization.test_front_candidate.CompactFrontTest) ... ok
+test_lookup_key_is_computed_address_in_both_backends (tests.fixed_rule.design_optimization.test_front_candidate.ComputedFrontTest) ... ok
+test_exact_q_matches_integer_reference (tests.fixed_rule.design_optimization.test_front_candidate.ExactQMaintenanceTest) ... ok
+test_front_fields_are_fivefold_and_backends_agree (tests.fixed_rule.design_optimization.test_front_candidate.FivefoldFrontTest) ... ok
+test_single_register_copy_fault_is_outvoted_next_tick (tests.fixed_rule.design_optimization.test_front_candidate.FivefoldFrontTest)
+Flip one stored copy of a register bit of the front's logical cell ... ok
+test_one_period_closure_random_and_coherent (tests.fixed_rule.design_optimization.test_front_candidate.G8SlowTest) ... skipped 'slow G8 GPU test: set GACSCA_SLOW=1 (needs a CUDA GPU, about 3 minutes)'
+test_c_matches_numpy_on_arbitrary_g_states (tests.fixed_rule.design_optimization.test_front_candidate.GFamilyTest) ... ok
+test_codec_writes_every_fivefold_info_copy (tests.fixed_rule.design_optimization.test_front_candidate.GFamilyTest) ... ok
+test_one_period_closure_with_special_procedure (tests.fixed_rule.design_optimization.test_front_candidate.GFamilyTest) ... ok
+test_reserved_simbit_cells_not_in_layout (tests.fixed_rule.design_optimization.test_front_candidate.GFamilyTest) ... ok
+test_block_and_grid_modes_match_c_kernel_with_snapshots (tests.fixed_rule.design_optimization.test_front_candidate.GpuBackendTest) ... ok
+test_errors_are_deterministic_and_reference_ring_is_untouched (tests.fixed_rule.design_optimization.test_front_candidate.GpuBackendTest) ... ok
+test_level0_error_grid_is_separated_and_boxes_are_exact (tests.fixed_rule.design_optimization.test_front_candidate.GpuBackendTest) ... ok
+test_one_period_closure_on_gpu (tests.fixed_rule.design_optimization.test_front_candidate.GpuBackendTest) ... ok
+test_value_modes_replace_exactly_the_masked_sites (tests.fixed_rule.design_optimization.test_front_candidate.GpuBackendTest)
+Each error value mode (zero, one, invert, freeze, copy) changes the ... ok
+test_dense_boxes (tests.fixed_rule.design_optimization.test_front_candidate.GrayErrorClassTest) ... ok
+test_generated_clusters_are_checked (tests.fixed_rule.design_optimization.test_front_candidate.GrayErrorClassTest) ... ok
+test_small_sets (tests.fixed_rule.design_optimization.test_front_candidate.GrayErrorClassTest) ... ok
+test_matches_existing_candidate_b_code (tests.fixed_rule.design_optimization.test_front_candidate.MaintenanceTest) ... ok
+test_same_function_as_five_steps (tests.fixed_rule.design_optimization.test_front_candidate.MuxFrontEquivalenceTest) ... ok
+test_cached_rom_matches_recipe_and_netlist (tests.fixed_rule.design_optimization.test_front_candidate.RuleIdentityTest) ... ok
+test_netlist_inputs_within_radius_five (tests.fixed_rule.design_optimization.test_front_candidate.RuleIdentityTest) ... ok
+test_no_depth_parameter_anywhere (tests.fixed_rule.design_optimization.test_front_candidate.RuleIdentityTest)
+No executable entry point accepts a hierarchy depth or level. ... ok
+test_same_width_and_rule_at_both_levels (tests.fixed_rule.design_optimization.test_front_candidate.RuleIdentityTest) ... ok
+test_same_transition_as_mux_front (tests.fixed_rule.design_optimization.test_front_candidate.SelFrontEquivalenceTest) ... ok
+test_commit_is_majority_of_three_runs (tests.fixed_rule.design_optimization.test_front_candidate.TripleEvaluationTest) ... ok
+test_one_period_closure (tests.fixed_rule.design_optimization.test_front_candidate.TripleEvaluationTest) ... ok
+
+----------------------------------------------------------------------
+Ran 44 tests in 88.130s
+
+OK (skipped=1)

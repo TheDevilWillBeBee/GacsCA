@@ -1,0 +1,6 @@
+step 1 ring 0 exact True changed_bits 748 wrong_cells 0
+step 1 ring 1 exact True changed_bits 57 wrong_cells 0
+step 2 ring 0 exact True changed_bits 15 wrong_cells 0
+step 2 ring 1 exact True changed_bits 53 wrong_cells 0
+step 3 ring 0 exact True changed_bits 14 wrong_cells 0
+step 3 ring 1 exact True changed_bits 15 wrong_cells 0

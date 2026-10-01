@@ -1,0 +1,8 @@
+test_value_modes_replace_exactly_the_masked_sites (tests.fixed_rule.design_optimization.test_front_candidate.GpuBackendTest)
+Each error value mode (zero, one, invert, freeze, copy) changes the ... ok
+test_block_and_grid_modes_match_c_kernel_with_snapshots (tests.fixed_rule.design_optimization.test_front_candidate.GpuBackendTest) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.380s
+
+OK

@@ -1,0 +1,9 @@
+U2 12680561664
+1 1 104.17 days 15.3
+1 2 156.25 days 22.9
+1 4 303.93 days 44.6
+1 8 522.11 days 76.6
+4 1 302.38 days 44.4
+16 1 930.82 days 136.6
+L1 {'rings': 1, 'level2_cells_per_ring': 32, 'level1_cells_per_ring': 16384, 'us_per_tick': 60.32, 'level2_step_seconds_on_level1_automaton': 6.8}
+L1 {'rings': 3, 'level2_cells_per_ring': 32, 'level1_cells_per_ring': 16384, 'us_per_tick': 59.78, 'level2_step_seconds_on_level1_automaton': 6.7}

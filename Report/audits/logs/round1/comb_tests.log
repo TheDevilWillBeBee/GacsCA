@@ -1,0 +1,10 @@
+test_geometry_and_rom_columns (tests.fixed_rule.design_optimization.test_front_candidate.CombTest) ... ok
+test_fronts_arrive_delta_apart_and_carry_in_the_overhang (tests.fixed_rule.design_optimization.test_front_candidate.CombTest)
+Inside the final program, holders see arrivals at exactly the five ... ok
+test_overhang_ignores_the_fetched_word_even_in_the_match_pass (tests.fixed_rule.design_optimization.test_front_candidate.CombTest)
+A front outside the working cells only carries: the cell's outputs ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 10.921s
+
+OK

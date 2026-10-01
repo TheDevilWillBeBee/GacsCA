@@ -1,0 +1,44 @@
+cache_mutation {'accepted': True, 'same_netlist': True, 'same_rom': False, 'same_candidate_digest': False}
+candidate R1 Q 128 U 16384 QU 2097152 width 107 gates 4144 physical_passes_used 110 reported_recipe_passes_used 110 fronts 1
+candidate G1 Q 256 U 131072 QU 33554432 width 238 gates 7455 physical_passes_used 263 reported_recipe_passes_used 263 fronts 1
+candidate G2 Q 256 U 131072 QU 33554432 width 238 gates 8035 physical_passes_used 271 reported_recipe_passes_used 271 fronts 1
+candidate G3 Q 256 U 262144 QU 67108864 width 249 gates 8603 physical_passes_used 905 reported_recipe_passes_used 905 fronts 1
+candidate G4 Q 256 U 524288 QU 134217728 width 250 gates 8669 physical_passes_used 1231 reported_recipe_passes_used 1231 fronts 1
+candidate G5 Q 512 U 524288 QU 268435456 width 357 gates 13383 physical_passes_used 927 reported_recipe_passes_used 927 fronts 1
+candidate G6 Q 512 U 524288 QU 268435456 width 357 gates 13372 physical_passes_used 955 reported_recipe_passes_used 955 fronts 1
+candidate G7 Q 1024 U 1048576 QU 1073741824 width 359 gates 13611 physical_passes_used 978 reported_recipe_passes_used 978 fronts 1
+candidate G8 Q 1024 U 1048576 QU 1073741824 width 359 gates 13631 physical_passes_used 977 reported_recipe_passes_used 977 fronts 1
+candidate G9 Q 576 U 711936 QU 410075136 width 360 gates 14394 physical_passes_used 1167 reported_recipe_passes_used 1167 fronts 1
+candidate G10 Q 576 U 462208 QU 266231808 width 359 gates 14492 physical_passes_used 1121 reported_recipe_passes_used 1121 fronts 1
+candidate G11 Q 512 U 326400 QU 167116800 width 262 gates 19675 physical_passes_used 1053 reported_recipe_passes_used 1053 fronts 1
+candidate G12 Q 512 U 217328 QU 111271936 width 261 gates 16619 physical_passes_used 695 reported_recipe_passes_used 695 fronts 1
+candidate G13 Q 512 U 125856 QU 64438272 width 260 gates 16981 physical_passes_used 365 reported_recipe_passes_used 2413 fronts 5
+candidate G14 Q 512 U 110880 QU 56770560 width 260 gates 16966 physical_passes_used 307 reported_recipe_passes_used 2354 fronts 5
+campaign G8_b1_age0_mid sha 8ec94d674985 64 64 64 61
+campaign G8_b2_eval_front sha 8ec94d674985 64 64 64 61
+campaign G8_b3_precommit_mid sha 8ec94d674985 64 64 64 61
+campaign G8_b4_density_pairs sha 8ec94d674985 43 43 43 43
+campaign G11_b11s17_age0_mid sha 73ebd8e68b35 64 64 64 64
+campaign G11_b11_age0_mid sha 73ebd8e68b35 64 64 64 64
+campaign G11_b12_eval_front sha 73ebd8e68b35 64 64 64 64
+campaign G11_b13_precommit_mid sha 73ebd8e68b35 64 64 64 64
+campaign G11_b15_density_pairs sha 73ebd8e68b35 43 43 43 43
+campaign G12_b21_age0_mid sha 99e9bd64acf6 64 64 64 64
+campaign G12_b22_eval_front sha 99e9bd64acf6 64 64 64 64
+campaign G10_b16_age0_mid sha 763fb51ab9b5 64 64 64 64
+campaign G11_b14_full_eval_front sha 73ebd8e68b35 14 14 14 14
+campaign G13_b31_age0_mid sha 96c4a88525b1 64 64 64 64
+campaign G13_b32_eval_front sha 96c4a88525b1 64 64 64 64
+campaign G13_b33_final_front sha 96c4a88525b1 64 64 64 64
+campaign G13_b34_age0_mid sha 5c75dff81fd6 64 64 64 64
+campaign G13_b35_eval_front sha 5c75dff81fd6 64 64 64 64
+campaign G13_b36_final_front sha 5c75dff81fd6 64 64 64 64
+gray_dense_box {'side': 200, 'candidate_level1_pairs': [[(16540, 1536), (16541, 1536)], [(16690, 1536), (16691, 1536)]], 'linked_inside': True, 'separated_104': True, 'within_box': True}
+comb G13 support_endpoint_gap 201 burst_span 199 margin_formula 201
+comb G14 support_endpoint_gap 201 burst_span 199 margin_formula 201
+R1_closure 1 equal True changed_bits 110
+R1_closure 2 equal True changed_bits 7
+R1_closure 3 equal True changed_bits 4
+G13_closure 1 equal True changed_bits 285
+G13_closure 2 equal True changed_bits 5
+G14_closure 1 equal True changed_bits 285

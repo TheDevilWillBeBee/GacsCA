@@ -1,0 +1,11 @@
+test_same_transition_as_mux_front (tests.fixed_rule.design_optimization.test_front_candidate.SelFrontEquivalenceTest) ... ok
+test_every_cached_candidate_matches_the_manifest (tests.fixed_rule.design_optimization.test_front_candidate.CacheIntegrityTest) ... ok
+test_tampered_rom_is_rejected (tests.fixed_rule.design_optimization.test_front_candidate.CacheIntegrityTest) ... ok
+test_dense_boxes (tests.fixed_rule.design_optimization.test_front_candidate.GrayErrorClassTest) ... ok
+test_generated_clusters_are_checked (tests.fixed_rule.design_optimization.test_front_candidate.GrayErrorClassTest) ... ok
+test_small_sets (tests.fixed_rule.design_optimization.test_front_candidate.GrayErrorClassTest) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 6.210s
+
+OK

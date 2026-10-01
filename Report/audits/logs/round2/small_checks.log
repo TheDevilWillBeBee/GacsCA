@@ -1,0 +1,25 @@
+recipe change accepted: False True
+Prop4 supplied bad event: {'ok': False, 'boxes_tried': [(31, 0), (32, 0)]}
+Prop4 same event omitted by sampling: {'ok': True, 'j': 31, 'k': 0}
+b91 represented-vs-per-copy: 10 9
+wipe age 16415 {'info': 615, 'hold': 0, 'h1': 25600, 'h2': 25600, 'mr': 2560, 'ml': 2560}
+wipe age 112607 {'info': 2560, 'hold': 0, 'h1': 0, 'h2': 0, 'mr': 0, 'ml': 0}
+wiped bits 3 0 0 immediate majority flips 3
+wiped bits 7 3 3 immediate majority flips 7
+wiped bits 27 23 23 immediate majority flips 27
+wiped bits 64 60 60 immediate majority flips 64
+wiped bits 128 124 124 immediate majority flips 128
+slice wrap step 1 middle False diff cells 6
+slice wrap step 2 middle False diff cells 12
+slice wrap step 3 middle False diff cells 18
+slice wrap step 4 middle False diff cells 24
+slice wrap step 5 middle False diff cells 30
+slice wrap step 6 middle True diff cells 32
+sel_front gates [(0, 16966), (1, 14601), (2, 15044)]
+U squared 12680561664
+GPU days 1 15.3
+GPU days 2 22.9
+GPU days 4 44.6
+GPU days 8 76.6
+G15_b92_full_wipe2 touched [255, 256, 257] wrong per step [[252, 253, 254, 255, 256, 257, 258, 259, 260], [249, 250, 251, 252, 253, 254, 255, 256, 257, 258, 259], [246, 247, 248, 249, 250, 251, 252, 253, 254, 255, 256, 257, 258, 259, 260], [243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255, 256, 257, 258, 259, 260, 261]]
+G15_b93_full_wipe3 touched [255, 256, 257] wrong per step [[252, 253, 254, 255, 256, 257, 258, 259, 260], [249, 250, 251, 252, 253, 254, 255, 256, 257, 258, 259], [246, 247, 248, 249, 250, 251, 252, 253, 254, 255, 256, 257, 258, 259, 260], [243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255, 256, 257, 258, 259, 260, 261]]

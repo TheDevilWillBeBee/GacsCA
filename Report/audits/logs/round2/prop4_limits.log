@@ -1,0 +1,4 @@
+transient_outside_box_observed {'ok': False, 'boxes_tried': [(31, 0), (32, 0)]}
+same_transient_between_Q_samples_omitted {'ok': True, 'j': 31, 'k': 0}
+persistent_diff_at_site_and_fresh_E0_hit raw True after_previous_tick_mask False
+b91 represented-vs-slot 10 9 of 10

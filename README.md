@@ -1,35 +1,42 @@
-# GacsCA: fixed-rule Gács/Gray research
+# GacsCA: a fixed-rule, self-simulating cellular automaton
 
-The active construction is the **Q=8192, U=2^20 candidate** in
-[`gacsca/fixed_rule/`](gacsca/fixed_rule/). It uses one fixed radius-seven,
-6,465-bit physical local rule and a hard-wired description of its own complete
-transition. Its encoded evaluator is invoked twice per work period. The
-candidate has passed local, encoded-evaluator, and event-composed macrostep
-checks, but **a continuous full physical U-period and successive decoded upper
-macrosteps have not passed**. It is not yet a verified hierarchical
-self-simulator or a noise-robust construction.
+One fixed, finite-state, one-dimensional local rule whose configurations simulate themselves level by level, in the style of Gács's reliable cellular automaton as explained in Gray's reader's guide. A colony of Q cells simulates one cell of the level above, and U ticks of the colony make one tick of that cell. The same rule runs at every level, with no depth parameter anywhere, and errors of each level are removed by the level above.
 
-Start with the [current research index](Report/fixed_rule/README.md), the
-[U20 construction report](Report/fixed_rule/DUAL_PASS_U20.md), and the
-[dense GPU executor report](Report/fixed_rule/DENSE_GPU_EXECUTOR20.md).
-The [status handoff](Report/fixed_rule/STATUS.md) records current limits and
-next steps.
+## The current candidate: G15
 
-Active source, checks, and drivers are in `gacsca/fixed_rule/`,
-`tests/fixed_rule/`, and `experiments/fixed_rule/`. For example:
+| Q | U | U/Q | QU | bits per cell | gates | radius |
+|---:|---:|---:|---:|---:|---:|---:|
+| 512 | 112,608 | 220 | 2^25.78 | 260 | 17,100 | 5 |
+
+- **The rule.** It is a Boolean netlist plus a hard-wired instruction table (Gray's projection, p. 32).
+- **What a colony does.** It gathers its neighbours' states three times and votes. It then evaluates the rule's *own* netlist on the upper neighbourhood with a comb of five register-file fronts; the upper cell's instruction word is fetched physically, by a match pass. Finally it commits the upper cell's new state.
+- **Redundancy.** Every stored bit is held fivefold and re-voted every tick.
+
+**Established, on finite seeded tests** (see [Report/STATUS.md](Report/STATUS.md)):
+- **Self-simulation.** NumPy, C and CUDA backends agree bit for bit. Closure holds over successive periods. Three-level rings are exact across a level-2 commit, and level-2 macrosteps are exact.
+- **Level-0 and level-1 errors.** Level-0 errors vanish in one tick. Gray-certified level-1 errors leave at most one upper cell wrong for one upper step. Checked at every tick, they keep every stored copy of the upper state's bits inside two colonies and two periods, and every field is exact after that.
+- **Colony-scale errors.** Errors of 3–64 colonies are removed by level 2.
+
+**Not established:** a noise threshold, proofs for all configurations, level-3 errors, and a full physical level-2 step (about 15 GPU-days).
+
+## Where to look
+
+| | |
+|---|---|
+| [Report/REPORT.md](Report/REPORT.md) | The full account, R0 → G15: design, every measurement and its receipt, failed approaches, and the responses to both audits (§§25, 27) |
+| [Report/STATUS.md](Report/STATUS.md) | Current status, open problems, next steps |
+| [Report/audits/](Report/audits/) | Two independent audits of this work, with their scripts and logs |
+| [docs/OVERVIEW.md](docs/OVERVIEW.md) | The construction in one page |
+| [docs/CODE.md](docs/CODE.md) | Module map, and which driver produced which result |
+| [docs/RUNNING.md](docs/RUNNING.md) | Tests, building candidates, simulating, the main experiments |
+| [docs/prompts/](docs/prompts/) | The task statement and the audit prompt |
+| [papers/](papers/) | Gray's reader's guide, Gács 2001, and Masumori's simulation (text extracts in `papers_txt/`, git-ignored) |
+| [archive/](archive/) | Earlier work: the Q=8192, U=2^20 candidate and its repair and GPU validation, earlier fixed-rule attempts, the level-specific tower, and dead ends of the G line |
+
+## Quick start
 
 ```sh
-OPENBLAS_NUM_THREADS=1 python -m unittest -q \
-  tests.fixed_rule.test_stream28_dual_pass20 \
-  tests.fixed_rule.test_stream28_dual_dense_gpu20_tiled
+OPENBLAS_NUM_THREADS=1 python -m unittest -q tests.test_front_candidate     # 47 tests, about 1 minute
 ```
 
-Earlier serial-evaluator and other superseded fixed-rule attempts are in
-[`archive/fixed_rule/past_attempts/`](archive/fixed_rule/past_attempts/).
-The separate level-specific finite tower and its reports are in
-[`archive/legacy_tower/`](archive/legacy_tower/). These are preserved as
-historical references, not part of the current test suite. Supplied PDFs are
-in [`papers/`](papers/); extracted paper text remains in `papers_txt/`.
-Generated receipts and build products are kept locally in `figs/fixed_rule/`
-for the current candidate and `figs/legacy_tower/` for the archived tower.
-The entire `figs/` tree is ignored by Git.
+The code is in `gacsca/`, the tests in `tests/`, and the drivers in `experiments/`. Generated receipts go to `figs/`, which is git-ignored.

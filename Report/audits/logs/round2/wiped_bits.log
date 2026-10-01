@@ -1,0 +1,6 @@
+3 all5 0 routine 0 majority-flipped-after-zero 3 at-least3 3
+5 all5 1 routine 1 majority-flipped-after-zero 5 at-least3 5
+7 all5 3 routine 3 majority-flipped-after-zero 7 at-least3 7
+27 all5 23 routine 23 majority-flipped-after-zero 27 at-least3 27
+64 all5 60 routine 60 majority-flipped-after-zero 64 at-least3 64
+128 all5 124 routine 124 majority-flipped-after-zero 128 at-least3 128

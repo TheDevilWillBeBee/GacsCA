@@ -1,0 +1,13 @@
+ 19:37:34 up 76 days, 21:59,  0 users,  load average: 7.83, 9.41, 9.64
+    PID PSR COMMAND         COMMAND
+  48982  49 pytho <defunct> [python] <defunct>
+  55868  54 pytho <defunct> [python] <defunct>
+  51971  93 pytho <defunct> [python] <defunct>
+  66614 121 codex           codex resume
+  66692  31 codex           /scratch/Ehsan/.codex-rcp/packages/app-server-daemon/releases/0.159.3-x86_64-unknown-linux-m
+     85  62 claude          claude -r
+  50865  85 pytho <defunct> [python] <defunct>
+  49301  78 pytho <defunct> [python] <defunct>
+     66  41 jupyter-lab     /usr/bin/python3 /usr/local/bin/jupyter-lab --ip=0.0.0.0 --no-browser --notebook-dir=/scratc
+      1  64 su              su pajouheshgar -c jupyter lab --ip=0.0.0.0 --no-browser --notebook-dir=/scratch
+     73  88 bash            /bin/bash -l

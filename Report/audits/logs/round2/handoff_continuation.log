@@ -1,0 +1,7 @@
+step 1 seconds 7.5 closure_bad_mid [] L1_diff 7
+step 2 seconds 7.5 closure_bad_mid [] L1_diff 13
+step 3 seconds 7.5 closure_bad_mid [] L1_diff 19
+step 4 seconds 7.5 closure_bad_mid [] L1_diff 25
+handoff residue bits 125 sites 125 addresses [387, 388, 389, 390, 391] special_address_bits 0
+continuation 5 seconds 7.5 actual_vs_one_step_F [] canonical_vs_one_step_F [] actual_vs_canonical_decoded [] physical_sites_diff 0
+continuation 6 seconds 7.5 actual_vs_one_step_F n/a canonical_vs_one_step_F n/a actual_vs_canonical_decoded [] physical_sites_diff 0

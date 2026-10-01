@@ -1,0 +1,40 @@
+G14 b71 1 {'total': 64, 'decoded_contained': 64, 'decoded_repaired': 64, 'prop4': 11, 'prop4_time': 11, 'prop4_simbits': 62, 'prop4_strict': 1, 'identical': 64, 'gray_level1': 0}
+G14 b72 1 {'total': 64, 'decoded_contained': 64, 'decoded_repaired': 64, 'prop4': 11, 'prop4_time': 11, 'prop4_simbits': 62, 'prop4_strict': 0, 'identical': 64, 'gray_level1': 64}
+G14 b73 1 {'total': 64, 'decoded_contained': 64, 'decoded_repaired': 64, 'prop4': 64, 'prop4_time': 64, 'prop4_simbits': 64, 'prop4_strict': 61, 'identical': 64, 'gray_level1': 64}
+G15 b61 1 {'total': 64, 'decoded_contained': 64, 'decoded_repaired': 64, 'prop4': 64, 'prop4_time': 64, 'prop4_simbits': 64, 'prop4_strict': 0, 'identical': 64, 'gray_level1': 0}
+G15 b62 1 {'total': 64, 'decoded_contained': 64, 'decoded_repaired': 64, 'prop4': 64, 'prop4_time': 64, 'prop4_simbits': 64, 'prop4_strict': 0, 'identical': 64, 'gray_level1': 64}
+G15 b63 1 {'total': 64, 'decoded_contained': 64, 'decoded_repaired': 64, 'prop4': 64, 'prop4_time': 64, 'prop4_simbits': 64, 'prop4_strict': 61, 'identical': 64, 'gray_level1': 64}
+G15 b64 1 {'total': 64, 'decoded_contained': 64, 'decoded_repaired': 64, 'prop4': 64, 'prop4_time': 64, 'prop4_simbits': 64, 'prop4_strict': 0, 'identical': 64, 'gray_level1': 64}
+G15 b65 1 {'total': 64, 'decoded_contained': 64, 'decoded_repaired': 64, 'prop4': 64, 'prop4_time': 64, 'prop4_simbits': 64, 'prop4_strict': 0, 'identical': 64, 'gray_level1': 64}
+G15 b66 4 {'total': 224, 'decoded_contained': 224, 'decoded_repaired': 224, 'prop4': 224, 'prop4_time': 224, 'prop4_simbits': 224, 'prop4_strict': 3, 'identical': 224, 'gray_level1': 224}
+G15 b67 1 {'total': 56, 'decoded_contained': 56, 'decoded_repaired': 56, 'prop4': 56, 'prop4_time': 56, 'prop4_simbits': 56, 'prop4_strict': 1, 'identical': 56, 'gray_level1': 56}
+G15 b68 1 {'total': 56, 'decoded_contained': 56, 'decoded_repaired': 56, 'prop4': 56, 'prop4_time': 56, 'prop4_simbits': 56, 'prop4_strict': 1, 'identical': 56, 'gray_level1': 0}
+G15 b69 1 {'total': 12, 'decoded_contained': 12, 'decoded_repaired': 12, 'prop4': 12, 'prop4_time': 12, 'prop4_simbits': 12, 'prop4_strict': 0, 'identical': 12, 'gray_level1': 12}
+G15 b81 1 {'total': 22, 'decoded_contained': 22, 'decoded_repaired': 22, 'prop4': 22, 'prop4_time': 22, 'prop4_simbits': 22, 'prop4_strict': 0, 'identical': 22, 'gray_level1': 22}
+G15 b82 1 {'total': 22, 'decoded_contained': 22, 'decoded_repaired': 22, 'prop4': 22, 'prop4_time': 22, 'prop4_simbits': 22, 'prop4_strict': 0, 'identical': 22, 'gray_level1': 22}
+G15 b91 1 {'total': 10, 'decoded_contained': 10, 'decoded_repaired': 10, 'prop4': 10, 'prop4_time': 10, 'prop4_simbits': 10, 'prop4_info_slots': 9, 'prop4_info_slots_logical': 8, 'prop4_strict': 0, 'identical': 10, 'gray_level1': 0}
+G15 b92 1 {'total': 10, 'decoded_contained': 5, 'decoded_repaired': 5, 'prop4': 5, 'prop4_time': 5, 'prop4_simbits': 5, 'prop4_info_slots': 3, 'prop4_info_slots_logical': 3, 'prop4_strict': 0, 'identical': 5, 'gray_level1': 0}
+G15 b93 1 {'total': 10, 'decoded_contained': 0, 'decoded_repaired': 0, 'prop4': 0, 'prop4_time': 0, 'prop4_simbits': 0, 'prop4_strict': 0, 'identical': 0, 'gray_level1': 0}
+G15 b95 1 {'total': 10, 'decoded_contained': 5, 'decoded_repaired': 5, 'prop4': 5, 'prop4_time': 5, 'prop4_simbits': 5, 'prop4_info_slots': 5, 'prop4_info_slots_logical': 5, 'prop4_strict': 0, 'identical': 5, 'gray_level1': 0}
+G15 b96 1 {'total': 10, 'decoded_contained': 5, 'decoded_repaired': 5, 'prop4': 5, 'prop4_time': 5, 'prop4_simbits': 5, 'prop4_info_slots': 3, 'prop4_info_slots_logical': 5, 'prop4_strict': 0, 'identical': 5, 'gray_level1': 0}
+three-level counts {'copy2_files': 5, 'total': 61, 'copy2': 17, 'clean_first': 52, 'one_wrong_first': 9, 'repair2_files': 25, 'repair2': 44, 'excluded_small_or_control': 4}
+three-level violations [('G15_rich_midpass_front3_noise.json', 0, 'L1 not clean first', 20)]
+handoff residue positive [('G15_rich_commit.json', 100, 0, 100), ('G15_rich_commit.json', 165, 0, 165), ('G15_rich_field_age.json', 125, None, None), ('G15_rich_field_age.json', 225, None, None), ('G15_rich_field_h1.json', 125, 0, 125), ('G15_rich_field_h1.json', 225, 0, 225), ('G15_rich_field_info.json', 125, 0, 125), ('G15_rich_gathers_wipe64.json', 410, 0, 410), ('G15_rich_matchpass_comb.json', 225, 0, 225), ('G15_rich_midpass_comb.json', 225, None, None), ('G15_rich_midpass_front3.json', 115, 0, 115), ('G15_rich_midpass_front3.json', 125, 0, 125), ('G15_rich_midpass_front3_noise.json', 125, 0, 125), ('G15_rich_midpass_mid.json', 95, None, None), ('G15_rich_midpass_mid.json', 125, None, None), ('G15_rich_midpass_wipe64.json', 410, 0, 410), ('G15_rich_start_tick6044.json', 60, None, None)]
+handoff field check recorded 27 outside_Info 0 represented_slots_recorded 12 represented_slot_bits 0
+phases {'level2_gathers': 1061, 'level2_early_program': 17291, 'level2_match_pass': 45024, 'level2_final_program': 56453, 'level2_commit': 112605} results {'level2_gathers': (6, 6, 6), 'level2_early_program': (6, 6, 6), 'level2_match_pass': (6, 6, 6), 'level2_final_program': (6, 6, 6), 'level2_commit': (6, 6, 6)}
+closure2 G15_closure2_n2_4.json 3 3
+closure2 G15_closure2_n2_8.json 6 6
+closure2 G15_closure2_n2_8_healthy.json 6 6
+level0 G12_random_healthy_seed2.json 6000 0
+level0 G14_invert_healthy_seed2.json 6000 0
+level0 G14_one_healthy_seed2.json 6000 0
+level0 G14_random_healthy_seed2.json 6000 0
+level0 G14_zero_healthy_seed2.json 6000 0
+level0 G15_invert_healthy_seed3.json 6000 0
+level0 G15_random_healthy_seed3.json 6000 0
+level0 G8_random_healthy_seed2.json 6000 0
+campaign raw all receipts {'rings': 2441, 'steps': 9474}
+campaign dedup by scenario {'rings': 2415, 'steps': 9376, 'never_wrong': 1791, 'one_wrong_time': 599, 'multiple_wrong_times': 25}
+G8 same-fault rerun b1 {'mid': [695, 139, 84], 'left': [693, 5, 60], 'right': [689, 67, 84]} {'mid': (102, [695, 139, 84, 0, 0]), 'left': (103, [693, 5, 60, 0, 0]), 'right': (104, [689, 67, 84, 0, 0])} same_first_three True
+G8 same-fault rerun b2 {'mid': [695, 367, 84], 'left': [693, 5, 60], 'right': [689, 67, 84]} {'mid': (102, [695, 367, 84, 0, 0]), 'left': (103, [693, 5, 60, 0, 0]), 'right': (104, [689, 67, 84, 0, 0])} same_first_three True
+G8 same-fault rerun b3 {'mid': [695, 139, 84], 'left': [693, 5, 60], 'right': [689, 67, 84]} {'mid': (102, [695, 139, 84, 0]), 'left': (103, [693, 5, 60, 0]), 'right': (104, [689, 67, 84, 0])} same_first_three True
