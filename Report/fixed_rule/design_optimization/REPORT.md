@@ -102,6 +102,13 @@ G15 18.4×.
       state is outvoted like a level-0 error.
     - Wrong states occurred only in the damaged colonies: one, or two
       adjacent ones once, in G9. They were repaired in the next upper step.
+  - **At level 1, every error looks like a level-0 error**, which is what
+    Gray's amplification argument uses (p. 36).
+    - Of the 2,324 error rings, 1,755 never changed the decoded upper state.
+    - Each of the other 569 changed it at exactly one level-1 time (one
+      multiple of U), in one cell or two adjacent ones, never at two times.
+    - The transient differences in neighbours' Mailbox and Workspace (§25)
+      lie below the level-1 state and never reached it.
 - **Colony-scale errors** (one or two colonies wiped): the decoded upper
   state is exact again within one upper step (G6/G8 full two-level rings,
   §15). The physical state can take longer.
