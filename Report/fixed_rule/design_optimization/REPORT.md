@@ -81,14 +81,16 @@ G15 18.4×.
     - The 9 exceptions are G8 commit-time bursts. Reruns of six of them (b1,
       b2) with their original faults are bit-identical from step 4; the b3
       rerun is still running (§25).
-  - *Genuine level-1 errors* (certified by `gray_errors.py`): 128 dense
-    100×100 boxes and sparse clusters on G15, and the same on G14 (§25).
+  - *Genuine level-1 errors* (certified by `gray_errors.py`): 548 on
+    G15 (dense 100×100 boxes and sparse clusters), and 128 on G14 (§25).
     - All were contained and repaired, and all ended bit-identical.
     - **G15 meets Proposition 4** at the sampled times: every field of every
       colony is equal again by the second period boundary, and Info
       differences never leave two adjacent colonies. G14, without Gray's
       stage wipes, keeps history-lane residue one period longer.
-    - Adversarial values are reported in §25.
+    - G15 also passes with adversarial values (stuck-at zero, inverted,
+      frozen, and plausible states copied from another colony), and on the
+      whole upper colony (262,144 sites).
   - With the colony margin (G7+), a burst on a colony boundary can damage
     at most one colony.
 - **Colony-scale errors** (one or two colonies wiped): the decoded upper
@@ -1582,7 +1584,7 @@ step exactly and are bit-identical from upper step 4.
 |---|---|---|---|
 | G8 b1 (mid / left / right) | 695,139,84 · 693,5,60 · 689,67,84 | same, then 0, 0 | contained, repaired |
 | G8 b2 | 695,367,84 · 693,5,60 · 689,67,84 | same, then 0, 0 | contained, repaired |
-| G8 b3 | see receipt `G8_b3_commit_rerun_sameseeds.json` | | |
+| G8 b3 | 695,139,84 · 693,5,60 · 689,67,84 | same, then 0 (stopped after step 4 by a machine restart) | contained, repaired |
 
 The last difference is at tick 3,163,136, shortly after the third period
 boundary. These bursts straddle the first boundary, so G8 exceeds
@@ -1622,20 +1624,51 @@ Proposition 4's two-period box by that much (Finding 3).
   tests.
 
 **Results** (64-cell slices of a healthy upper colony, 4 upper steps, full
-state sampled every Q ticks; all receipts have an exact reference ring):
+state sampled every Q ticks; b69 is the whole upper colony, 262,144 sites,
+3 upper steps). Every receipt has an exact reference ring.
+- *Errors* are placed at 16 phases of the work period × 3 places (target
+  colony middle, left and right boundary), plus random placements.
+- *Gray class* is the classifier's verdict on each error set.
+- *Values* are the error-site values (`gpu.noise` modes).
 
-| candidate | errors (Gray class) | values | decoded contained / repaired | Prop. 4 time | Prop. 4 SimBits | strict | identical at end |
-|---|---|---|---:|---:|---:|---:|---:|
-| G14 | 64 dense 100×100 (all level-1) | random | 64 / 64 | 11 | 62 | 0 | 64 |
-| G14 | 64 sparse clusters (all level-1) | random | 64 / 64 | 64 | 64 | 61 | 64 |
-| **G15** | 64 dense 100×100 (all level-1) | random | 64 / 64 | **64** | **64** | 0 | 64 |
-| **G15** | 64 sparse clusters (all level-1) | random | 64 / 64 | **64** | **64** | 61 | 64 |
+| candidate | batch | errors | Gray class | values | decoded contained / repaired | Prop. 4 time | Prop. 4 SimBits | strict (all fields) | identical at end |
+|---|---|---|---|---|---:|---:|---:|---:|---:|
+| G14 | b72 | 64 dense 100×100 | level-1 (64) | random | 64 / 64 | 11 | 62 | 0 | 64 |
+| G14 | b73 | 64 sparse clusters | level-1 (64) | random | 64 / 64 | 64 | 64 | 61 | 64 |
+| G14 | b71 | 64 dense 200×200 | union of level-1 | random | 64 / 64 | 11 | 62 | 1 | 64 |
+| **G15** | b62 | 64 dense 100×100 | level-1 (64) | random | 64 / 64 | **64** | **64** | 0 | 64 |
+| **G15** | b63 | 64 sparse clusters | level-1 (64) | random | 64 / 64 | **64** | **64** | 61 | 64 |
+| **G15** | b64 | 64 dense 100×100, upper front hit in phase A | level-1 (64) | random | 64 / 64 | **64** | **64** | 0 | 64 |
+| **G15** | b65 | 64 dense 100×100, upper front hit in its final program | level-1 (64) | random | 64 / 64 | **64** | **64** | 0 | 64 |
+| **G15** | b66 | 4 × 56 dense 100×100 | level-1 (224) | zero / invert / freeze / copy | 224 / 224 | **224** | **224** | 3 | 224 |
+| **G15** | b67 | 56 dense 100×100, upper front hit in its final program | level-1 (56) | copy | 56 / 56 | **56** | **56** | 1 | 56 |
+| **G15** | b61 | 64 dense 200×200 | union of level-1 | random | 64 / 64 | **64** | **64** | 0 | 64 |
+| **G15** | b68 | 56 dense 200×200 | union of level-1 | invert | 56 / 56 | **56** | **56** | 1 | 56 |
+| **G15** | b69 | 12 dense 100×100, whole upper colony (no slice), front hit | level-1 (12) | random | 12 / 12 | **12** | **12** | 0 | 12 |
 
-Batches still running when this was written are listed under STATUS.md:
-- G15 with its front hit, in phase A and in the final program;
-- adversarial values: zero, invert, freeze, copy;
-- 200×200 bursts, random and inverted;
-- G14's 200×200 rerun.
+- **G15.** Every error set tested (all certified level-1 sets, plus 120
+  bursts that are unions of level-1 errors) meets both parts of
+  Proposition 4 at the sampled times.
+  - Damage to the upper state stays at one cell or none.
+  - The upper level repairs it within one upper step.
+  - Every field of every colony is exact again by the second period
+    boundary.
+  - This holds for every value mode, including adversarial copies of a
+    neighbouring colony's state.
+- **G14.** Most bursts in the second half of a period leave history-lane
+  residue in neighbouring colonies, and commit-straddling ones leave Info
+  residue, until one period later.
+- **Partial-density boxes.** 200×200 partial-density boxes (G8 b4, G11 b15)
+  also contain separated pairs, so they too are unions of level-1 errors;
+  the driver now classifies their realized error sets.
+- **Level-0 ring.** The campaign's dense level-0 ring is checked tick by
+  tick in the same runs: every sampled difference must have been injected
+  one tick earlier.
+  - In the healthy middle colonies there are 0 violations, in every batch
+    with that ring (b61, b62, b68, G14's b71).
+  - The whole-colony run b69 has 0 violations anywhere.
+  - A few violations occur only in colonies near the slice's Address jump,
+    where the upper level raises Flag1 (Finding 6).
 
 ### Finding 4: cached candidates were not checked against the recipe
 

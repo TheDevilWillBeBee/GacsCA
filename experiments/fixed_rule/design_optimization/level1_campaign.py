@@ -172,7 +172,6 @@ def main():
     p, C = cand.p, cand.c_backend()
     Q, U, side = p.Q, p.U, args.side
     sample = args.sample or Q
-    assert U % sample == 0 or sample == Q
     t0 = time.time()
     top, full = upper_state(cand, args.seed, args.upper_age)
     if args.target == 'front':
@@ -272,9 +271,10 @@ def main():
                 pts = [(x + dx, t + dt) for (x, w, t, h, _) in s['boxes'] for dx in range(w) for dt in range(h)]
                 g = gray_errors.classify(pts, Q=Q, U=U)
             else:
-                g = dict(level1=None, note='Bernoulli box: the realized set is not classified')
-            s['gray'] = {k: (v if k != 'witness' else (v and [[list(map(int, q)) for q in M] for M in v]))
-                         for k, v in g.items()}
+                g = None                      # Bernoulli box: classified from the realized mask below
+            if g is not None:
+                s['gray'] = {k: (v if k != 'witness' else (v and [[list(map(int, q)) for q in M] for M in v]))
+                             for k, v in g.items()}
             xs = [b[0] for b in s['boxes']] + [b[0] + b[1] - 1 for b in s['boxes']]
             ts = [b[2] for b in s['boxes']] + [b[2] + b[3] - 1 for b in s['boxes']]
             s['extent'] = dict(x_lo=min(xs), x_hi=max(xs), t_lo=min(ts), t_hi=max(ts))
@@ -282,6 +282,18 @@ def main():
     sim = gpu.GpuSim(cand, R, ring_up.shape[1], mode='grid')
     sim.set_state(X0)
     sim.set_noise(cfgs)
+    for i, s in enumerate(sc, 1):
+        if s['kind'] == 'E1' and 'gray' not in s:
+            # the realized error set of a Bernoulli box, from the kernel's own masks
+            t_lo = min(b[2] for b in s['boxes'])
+            t_hi = max(b[2] + b[3] for b in s['boxes'])
+            m = sim.error_masks(cfgs[i], i, t_lo, t_hi - t_lo)
+            ts, xs = np.nonzero(m)
+            pts = list(zip(xs.tolist(), (ts + t_lo).tolist()))
+            g = gray_errors.classify(pts, Q=Q, U=U)
+            s['gray'] = {k: (v if k != 'witness' else (v and [[list(map(int, q)) for q in M] for M in v]))
+                         for k, v in g.items()}
+            s['gray']['realized_points'] = len(pts)
     tag = args.tag or f'{args.candidate}_age{args.upper_age}_{args.target}_slice{args.slice}_seed{args.seed}'
     rec = dict(candidate=args.candidate,
                identity={k: v for k, v in candidates.summary(cand).items() if k != 'schema'},

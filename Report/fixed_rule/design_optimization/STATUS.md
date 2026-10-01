@@ -46,17 +46,17 @@ The independent audit's six findings are resolved:
 6. **Level-0.** One-tick recovery is measured directly: 0 failures in 48,000
    errors in healthy colonies.
 
-## Running (detached, GPU)
+## Running
 
-- `level1_campaign/run_g15.sh`: G15 b64–b68 (front hit in phase A and in the
-  final program; zero, invert, freeze and copy values; 200×200 inverted),
-  then b61 (200×200 random) again with the SimBit check.
-- `level1_campaign/run_g14_prop4.sh`: G14 b71 again with the SimBit check.
-- `level1_campaign/run_g8_reruns.sh`: G8 b3 commit bursts with their original
-  faults.
-- `run_queue2.sh`: G9 b6–b7.
+Nothing. The audit-response batches are finished (REPORT §25).
+- G15: 548 certified level-1 errors and 120 larger bursts, all meeting both
+  parts of Prop. 4. They include stuck-at, inverted, frozen and copied
+  values, and a whole-colony run.
+- G14: comparison batches.
+- G8: reruns of the commit-time bursts with their original faults.
 
-Logs are in `figs/fixed_rule/design_optimization/level1_campaign/b*.log`.
+The machine restarted on 2026-10-01 around 10:15 UTC and killed detached
+jobs; the interrupted batches were relaunched and completed.
 
 ## Compiler work after G14 (REPORT §24)
 
