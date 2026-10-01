@@ -10,7 +10,7 @@
 
 ## Summary
 
-*Updated 2026-09-30.*
+*Updated 2026-10-01.*
 
 **The construction.** Each candidate is one fixed local rule (radius 5),
 defined once as a Boolean netlist plus a hard-wired instruction table (Gray
@@ -109,16 +109,39 @@ G15 18.4×.
       multiple of U), in one cell or two adjacent ones, never at two times.
     - The transient differences in neighbours' Mailbox and Workspace (§25)
       lie below the level-1 state and never reached it.
-- **Colony-scale errors** (one or two colonies wiped): the decoded upper
-  state is exact again within one upper step (G6/G8 full two-level rings,
-  §15). The physical state can take longer.
+- **Colony-scale and larger errors** (§§15, 26).
+  - *One or two colonies wiped* (G15, whole upper colony, 25 rings,
+    with and without dense E0 noise): at most two adjacent upper cells are
+    wrong at one upper time, the next upper step repairs them, and the
+    physical state is bit-identical by the second boundary.
+  - *Three to 64 colonies wiped, or up to 128 level-1 cells overwritten
+    with another level-2 colony's cells.* Level 1 alone cannot remove
+    these; level 2 does.
+    - Of 61 such errors, 52 were gone at the first level-2 boundary.
+    - In the other 9, only the damaged level-2 cell was wrong at that
+      boundary, and everything was exact from the next one.
+    - At level 2, that is a level-0 error.
+- **Three levels** (§26).
+  - Physical three-level rings checked against levels 1 and 2 across a
+    level-2 commit: 30 of 30 exact.
+  - Level-2 macrosteps on the level-1 automaton: 15 of 15 exact.
+- **Noise together with larger errors** (§26).
+  - Dense level-0 noise together with certified level-1 errors on the
+    whole upper colony: 44 of 44 contained, repaired and bit-identical, with
+    random and copied values. In the ring with the noise alone, every
+    difference at every sample was a hit from the previous tick.
+  - Noise at both lower levels together with a level-2 error: same outcome
+    as without the noise.
 - **Unit tests:** 44 in `test_front_candidate.py`, one of which (a slow
   G8 GPU test) runs only on request.
 
 **Not established.**
 - A noise threshold (Gray's bound ε < (QU)^-2 is out of reach).
-- Level-k errors beyond colony scale.
-- A G-family level-2 macrostep (U² ticks).
+- Level-3 errors (three or more adjacent level-2 colonies damaged), and
+  several level-2 errors close together.
+- A full physical level-2 step: it would take weeks on the GPU (§26.1).
+  Level-2 steps are checked on the level-1 automaton and physically across
+  a level-2 commit.
 - Self-organization from arbitrary configurations.
 
 **Several fronts (§23).** A comb of five fronts, five cells apart, runs
@@ -1837,8 +1860,228 @@ slice's Address jump):
 
 The audit's other caveats stand:
 - All of this is finite seeded evidence: no threshold, no all-pattern
-  guarantee, no G-family level-2 macrostep.
+  guarantee. (At the time of the audit there was no G-family level-2
+  macrostep; §26 adds level-2 steps on the level-1 automaton and a physical
+  crossing of a level-2 commit.)
 - `multifront.replay` checks the compiler's listing, not the physical
   machine; physical closure is the independent check.
 - Gray's proof assumptions (Q ≥ 2^13, U = 128Q, Q ≥ 2K) do not hold for
   these candidates.
+
+## 26. Bigger errors, noise at two levels, and three levels (2026-10-01)
+
+The user asked for more robustness tests before moving on:
+- level-0 noise together with level-1 errors;
+- errors bigger than a colony;
+- level-2 steps, and errors that only level 2 can clear;
+- what simulating level 2 costs on the GPU.
+
+Everything below is G15.
+
+**New tools.**
+- `three_level_g.py` runs the three-level experiments:
+  - `phases`: physical ring against levels 1 and 2;
+  - `closure2`: level-2 macrosteps;
+  - `repair2`: physical errors followed one level up;
+  - `copy2`: errors injected one level up.
+- `gpu_level2_bench.py` measures GPU throughput at level-2 scale.
+- `level1_campaign.py` gains `--wipe k` (every site of k adjacent colonies randomized for 200 ticks), `--e0-all` (Gray's E0 grid in every error ring) and a represented-SimBit check (§26.4).
+
+Receipts are in `figs/fixed_rule/design_optimization/{gpu,three_level,level1_campaign}/` (ignored).
+
+### 26.1 What a level-2 step costs
+
+A level-2 cell is a colony of colonies: Q² = 262,144 physical sites. A level-1 step is U = 112,608 ticks, and a level-2 step is U² ≈ 1.27·10^10 ticks.
+
+Measured on the A100 in grid mode, with the GPU otherwise idle (`gpu/G15_level2_bench.json`; the same numbers as an earlier run on the shared GPU):
+
+| physical ring | sites | µs per tick | site updates per second | one level-1 step | one level-2 step |
+|---|---:|---:|---:|---:|---:|
+| 1 level-2 cell (its own neighbour) | 262,144 | 104 | 2.5·10^9 | 11.7 s | 15.3 days |
+| 2 level-2 cells | 524,288 | 150 | 3.5·10^9 | 16.8 s | 21.9 days |
+| 4 level-2 cells | 1,048,576 | 304 | 3.4·10^9 | 34 s | 44.6 days |
+| 8 level-2 cells | 2,097,152 | 522 | 4.0·10^9 | 59 s | 76.6 days |
+| 16 independent rings of 1 level-2 cell | 16 × 262,144 | 926 | 4.5·10^9 | 104 s (all 16) | 136 days (all 16) |
+
+- One ring of one level-2 cell uses only part of the GPU.
+  - Its kernel is bound by the per-tick grid synchronization, not by gate throughput.
+  - So larger or batched rings get up to 1.8× more site updates per second.
+- G15's 17,100 gates run at about 2.5–4.5·10^9 site updates per second, i.e. about 4–8·10^13 single-site gate evaluations per second.
+
+- **Why the tests below are hybrids.** A level-2 step of even the smallest ring that can take one on its own needs weeks of GPU time.
+  - So these tests run the physical level only as long as needed, up to six level-1 steps.
+  - They then continue on the **level-1 automaton**: the same rule, run on the decoded level-1 ring.
+- **Why the hand-off is exact.** It is exact wherever physical → level-1 closure holds.
+  - Closure has held for arbitrary level-1 states in every test so far.
+  - It is checked again at every physical level-1 step below.
+- **Cost on the level-1 automaton.** A ring of 32 level-2 cells (16,384 level-1 cells) runs at 60 µs per tick, with one ring or three. A level-2 step there takes 6.8 s instead of weeks.
+
+### 26.2 Level-2 steps
+
+**Physical three-level ring** (`phases`, two random level-2 cells).
+- The cells are encoded twice: 1,024 level-1 cells over 524,288 sites.
+- The level-1 automaton is advanced to five stages of the level-2 work period.
+- From each stage, the physical ring runs six level-1 steps (675,648 ticks).
+- After every level-1 step:
+  - the decoded level-1 ring must equal the level-1 automaton;
+  - the twice-decoded ring must equal the level-2 state, or F(level 2) once the level-2 commit has passed.
+
+| stage of the level-2 period | level-1 ages | level 1 exact | level 2 exact |
+|---|---|---:|---:|
+| gathers | 1,062–1,067 | 6/6 | 6/6 |
+| early program | 17,292–17,297 | 6/6 | 6/6 |
+| match pass | 45,025–45,030 | 6/6 | 6/6 |
+| final program | 56,454–56,459 | 6/6 | 6/6 |
+| commit | 112,606–112,611 | 6/6 | 6/6; F(level 2) from 112,608 |
+
+**Level-2 macrosteps on the level-1 automaton** (`closure2`). After each U ticks, decode(level-1 ring) must equal F(level-2 ring):
+- 4 random level-2 cells: 3 of 3 exact;
+- 8 random level-2 cells: 6 of 6 exact;
+- 8 consecutive cells of a healthy level-2 colony: 6 of 6 exact.
+
+### 26.3 Level-0 noise together with level-1 errors
+
+The ring is the whole upper colony: 512 colonies, 262,144 sites, three upper steps.
+- **Error rings (22).** Each has one certified level-1 error: a dense 100×100 box at 9 phases × 2 places, plus 4 random placements.
+- **Noise.** Each error ring also has Gray's E0 grid (G = 50) for the whole run: about 3.5·10^7 level-0 errors per ring, including inside and around the level-1 error.
+- **Control.** One more ring has the E0 grid alone.
+
+| batch | values at the level-1 error | contained / repaired | Prop. 4 time / SimBits | bit-identical at the end |
+|---|---|---:|---:|---:|
+| b81 | random | 22 / 22 | 22 / 22 | 22 |
+| b82 | copy of the colony one further | 22 / 22 | 22 / 22 | 22 |
+
+- **Reference and decoded state.** The reference ring was exact at every upper step.
+  - Wrong upper cells occurred only in the damaged colony: one cell at one upper time, as without noise (b81: 9 of 22; b82: 3 of 22).
+  - None of them survived the next upper step.
+- **Strictness.** The SimBit check here is the per-copy one: every stored Info copy, with fresh noise hits excluded.
+- **Noise-only ring (b81).** At 660 samples, every site that differed had been hit in the previous tick: 0 one-tick violations.
+
+### 26.4 Errors bigger than a colony
+
+At level 1, a wipe of k colonies makes k adjacent level-1 cells wrong at one level-1 time, or k+1 if it straddles a colony boundary.
+- **k ≤ 2.** This is a level-0 error of the level-1 automaton. The level-1 rule removes it in one level-1 step, as the physical rule removes a level-0 error in one tick.
+  - `repair2` confirms this: after 2-colony wipes in the level-2 gathers and the final program, no level-1 cell differs one level-1 step later.
+- **k ≥ 3.** This is a level-1 error of the level-1 automaton, and only level 2 removes it (§26.5).
+
+The table covers the whole upper colony, five phases × two places, four upper steps.
+
+| batch | error | contained / repaired | Prop. 4 time / SimBits / Info slots | bit-identical at the end |
+|---|---|---:|---:|---:|
+| b91 | 1 colony wiped | 10 / 10 | 10 / 10 / 9 | 10 |
+| b92 | 2 colonies wiped, aligned with the colonies ("mid") | 5 / 5 | 5 / 5 / 3 | 5 |
+| b92 | 2 colonies' width, straddling: touches 3 colonies ("left") | level-2 error (§26.5) | — | — |
+| b96 | as b92, with the E0 grid throughout: aligned | 5 / 5 | 5 / 5 / 3 | 5 |
+| b96 | as b92, with the E0 grid throughout: straddling | level-2 error (§26.5) | — | — |
+| b95 | dense 1000×1000 box: over 2 colonies ("left" placements) | 5 / 5 | 5 / 5 / 5 | 5 |
+| b95 | dense 1000×1000 box: over 3 colonies ("mid" placements) | level-2 error (§26.5) | — | — |
+| b93 | 3 colonies wiped | level-2 error (§26.5) | — | — |
+
+- **1–2 colonies.** At most two adjacent upper cells are wrong, at one upper time, and none at the next. The physical state is bit-identical to the error-free ring by the second boundary, including under dense E0 noise (b96).
+- **3 colonies** (b93; the "mid" placements of b95; the straddling placements of b92 and b96).
+  - Level 1 alone does not repair these, as expected.
+  - The wrong level-1 cells grow from 3–4 (9–10 for wipes in the gather phases) to 16–22 by the fourth upper step.
+  - §26.5 shows the next level-2 boundary removes this.
+
+**SimBit check.** Gray's SimBits are the bits of the upper state.
+- "SimBits" in the table is the *represented* SimBit: for each logical cell that holds a bit of the upper state, the majority of its five stored copies.
+- "Info slots" is the earlier per-copy check, with each copy attributed to the site that holds it.
+- They can disagree near a wiped colony. The neighbours hold copies of the wiped colony's two edge cells, which are margin cells holding no SimBit, and those copies differ for up to a period.
+
+### 26.5 Errors that only level 2 can clear
+
+**Method** (`repair2`).
+- **Starting state.** A healthy level-2 colony (an encoded random level-3 cell). In the data-rich runs it is first run for 60,000 level-2 ticks. Its cells then hold gathered histories, scratch and Hold: about 65 nonzero bits per cell, against about 6 for a fresh encoding.
+- **Level-1 ring.** 32 consecutive level-2 cells are encoded into 16,384 level-1 cells. The level-1 automaton advances them to the chosen stage of the level-2 work period.
+- **Physical slice.** 64–192 level-1 cells around the target are encoded physically (32,768–98,304 sites).
+  - The slice runs four level-1 steps with and without the wipe.
+  - Physical health and level-1 closure are checked at every step.
+- **Continuation.** The decoded difference is applied to the full level-1 ring. Both rings then continue on the level-1 automaton across two or more level-2 boundaries.
+- **Comparison.** At each level-2 boundary, the level-2 states and every field of every level-1 cell are compared with the error-free ring.
+- **Hand-off check.** At the hand-off, the wiped slice differs from the error-free one only in Info.
+  - Apart from the encoding of the level-1 difference, at most 410 Info bits differ. In the 12 wiped rings that record it, none of them is in a slot that holds a represented SimBit.
+  - So nothing below level 1 is lost in the hand-off.
+
+**Which level-2 bits a wipe destroys.**
+- Each level-2 bit lives in one level-1 cell, with copies in the four cells next to it.
+- A wipe of k colonies destroys outright only the bits whose five copies all lie inside it: none for k = 3, 3 for k = 7, 23 for k = 27, 60 for k = 64.
+- Each run records these bits and their values. In the data-rich colony, the 64-colony wipe destroys 10 bits that are 1.
+
+**What a wiped colony becomes.** Gray's second special rule zeroes a cell whose stored Address differs from the computed one. So a wiped colony comes back as a blank level-1 cell: Address 0, Age 1, everything else 0.
+
+**Plausible wrong values one level up** (`copy2`).
+- k level-1 cells of the middle level-2 colony are replaced by the cells at the same positions in the next level-2 colony.
+- They keep the same level-1 Address and Age, so no special rule fires. They now carry another level-2 cell's SimBits, histories, scratch and front registers.
+- Physically, this is an error that overwrites k colonies with copies of colonies 262,144 sites away.
+
+**Results.** 61 level-2 errors in all: 44 physical wipes of 3–64 colonies and 17 copies of 5–128 level-1 cells. They cover every stage tested, the comb's fronts, fresh and data-rich colonies, and noise at both lower levels.
+
+| stage | level-2 colony | where | k | level-2 bits destroyed (of them 1) | first level-2 boundary | all fields exact from |
+|---|---|---|---:|---|---|---|
+| level-2 gathers | fresh | middle | 3, 5 | — | clean | boundary 1 |
+| level-2 gathers | rich | middle | 3, 5 | ≤ 1 (0) | clean | boundary 1 |
+| level-2 gathers | rich | middle | 64 | 60 (10) | clean | boundary 1 |
+| start, during both levels' gathers | rich | middle | 3, 4, 3 | 0 | clean | boundary 1 |
+| final program, pass start | fresh | middle; comb | 3, 5; 3, 5, 7 | — | clean | boundary 1 |
+| final program, mid-pass | fresh | comb fronts 0, 1, 2, 4 | 5, 7 | — | clean | boundary 1 |
+| final program, mid-pass | fresh | comb front 3 (live registers) | 5, 7 | — | **cell 0 wrong** (mail copy slots) | boundary 2 |
+| same, with E0 (G = 50) physically and on the level-1 automaton | fresh | comb front 3 | 7 | — | **cell 0 wrong** (mail copy slots) | boundary 2 |
+| final program, mid-pass | rich | middle | 3, 7 | ≤ 3 (0) | clean | boundary 1 |
+| final program, mid-pass | rich | comb fronts 3, 4 | 5, 7 | ≤ 3 (front 3: 2) | clean | boundary 1 |
+| same, with E0 at both levels | rich | comb front 3 | 7 | 3 (2) | clean | boundary 1 |
+| final program, mid-pass | rich | whole comb | 27 | ≈ 23 | clean | boundary 1 |
+| final program, mid-pass | rich | level-2 Age, h1, Info bits | 7, 27 | ≤ 23 (≤ 6) | clean | boundary 1 |
+| final program, mid-pass | rich | middle | 64 | 60 (10) | **cell 0 wrong** (Age) | boundary 2 |
+| match pass | rich | whole comb | 27 | 23 (2) | **cell 0 wrong** (Address, Flag1, Info, h1, h2, scratch) | boundary 2 |
+| straddling the commit | fresh; rich | middle | 3, 5, 7; 3, 7 | ≤ 3 (0) | clean (also just after the commit) | first boundary |
+| *copy* mid-pass | rich | comb | 5, 7, 27 | ≤ 23 (5 changed) | clean | boundary 1 |
+| *copy* mid-pass | rich | middle | 7, 27, 64 | ≤ 60 (20 changed) | clean | boundary 1 |
+| *copy* mid-pass | rich | middle | 128 | 124 (29 changed) | **cell 0 wrong** (Info, h1, h2) | boundary 2 |
+| *copy* gathers | rich | middle | 7, 27, 64, 128 | ≤ 124 (29 changed) | clean | boundary 1 |
+| *copy* match pass | rich | comb | 7, 27 | ≤ 23 (4 changed) | clean | boundary 1 |
+| *copy* 8 level-1 steps before the commit | rich | middle | 7 | 3 (0 changed) | clean | boundary 1 |
+| *copy* 8 level-1 steps before the commit | rich | middle | 27, 64, 128 | ≤ 124 (≤ 29 changed) | **cell 0 wrong** (Info, h1, h2, scratch) | boundary 2 |
+
+"clean" means every field of every level-1 cell equals the error-free run. "cell 0" is the damaged level-2 cell.
+
+**Findings.**
+
+1. **Level 1 alone does not remove an error of three or more colonies.**
+   - The level-1 cells that differ from the error-free run spread by about three cells per level-1 step on each side.
+   - They differ in Flag1, Age, histories, scratch and registers, and also in mail during the level-2 gathers.
+   - A burst at level 0 behaves the same way.
+2. **Level 2 always removes it.**
+   - 52 of the 61 errors were gone at the first level-2 boundary: every field of every level-1 cell was exact.
+   - In the other 9, the damaged level-2 cell, and only it, was wrong at the first boundary, and everything was exact from the second.
+   - That is a level-0 error at level 2: one cell at one level-2 time. The level-2 rule removes it in one step through its own fivefold storage, as the physical rule removes a level-0 error in one tick.
+   - This is Gray's amplification one level further up: the whole chain of physical → level 1 → level 2 is observed, not assumed.
+3. **When the damaged cell is wrong for one step.** It happens when the error disrupts the level-2 computation itself, so that the colony commits a wrong new state:
+   - the comb's live registers destroyed mid-pass;
+   - the whole comb destroyed during the match pass;
+   - an eighth of the colony wiped mid-pass;
+   - a quarter of the colony overwritten mid-pass;
+   - 27 or more cells overwritten just before the commit.
+4. **Destroyed level-2 bits are not enough.** Wipes that destroyed all five copies of up to 60 level-2 bits (10 of them ones) during the gathers, and up to 23 bits mid-pass, were gone at the first boundary. The damaged cell's new state is computed from majority-corrected inputs: each level-2 field's copies in the neighbouring level-2 cells outvote the lost ones.
+5. **Noise at both lower levels changes nothing.**
+   - The setup combines a front-3 wipe with Gray's E0 grid (G = 50) in the physical rings and applied to the level-1 automaton. The latter means level-1 errors everywhere, at the densest level-0 pattern one level up: about 6.5 per level-1 tick in the 16,384-cell ring.
+   - The outcome is the same as without the noise.
+   - After the first boundary, the only level-1 differences are cells hit in the last two level-1 ticks.
+   - A ring with the noise alone never had a wrong level-2 cell.
+
+### 26.6 What this establishes, and what it does not
+
+**Established for G15, on the cases tested.**
+- Every error class tested is removed by the level whose job it is, and leaves at most one wrong cell, or two adjacent ones, for one step at the next level up.
+- The classes tested:
+  - level-0 errors, alone and as dense noise;
+  - certified level-1 errors, alone and under dense noise;
+  - wipes of one or two colonies;
+  - wipes of 3–64 colonies and overwrites of up to 128 level-1 cells, at every stage tested.
+- Level-2 steps are exact, physically across a level-2 commit and on the level-1 automaton over several level-2 steps.
+
+**Not established.**
+- A noise threshold.
+- A level-3 error: damage to three or more adjacent level-2 colonies.
+- Several level-2 errors close together.
+- The hand-off to the level-1 automaton rests on physical → level-1 closure. Closure is checked at every physical step and has held in every closure test, but it is not proven.
+- A full physical level-2 step was not run: it would take weeks of GPU time.

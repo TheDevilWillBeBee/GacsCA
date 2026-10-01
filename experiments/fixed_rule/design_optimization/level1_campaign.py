@@ -42,10 +42,17 @@ Verdicts per error ring:
   prop4              Gray's Proposition 4 at the sampled times, in two parts
                      that are both required: time (no difference in any
                      field of any colony after (k+2)U, for the box
-                     [kU, (k+2)U) containing the error) and simbits (Info
-                     differences only inside a box [jQ, (j+2)Q) x
-                     [kU, (k+2)U) containing the error). Mail and histories
-                     of neighbouring colonies legitimately carry the damaged
+                     [kU, (k+2)U) containing the error) and simbits (the
+                     represented SimBits -- the majority of the five copies
+                     of each logical cell that holds a bit of the upper
+                     state -- differ only inside a box [jQ, (j+2)Q) x
+                     [kU, (k+2)U) containing the error). Also recorded:
+                     info_slots, every stored Info copy attributed to the
+                     site holding it (the strict physical reading; copies
+                     of margin cells next to a damaged colony are held by
+                     its neighbours), and info_slots_logical, every copy
+                     attributed to the logical cell it belongs to. Mail and
+                     histories of neighbouring colonies legitimately carry the damaged
                      colony's state for a period (Gray counts only the
                      SimBits as lasting effects), so the all-field spatial
                      test is recorded separately as prop4_strict;
@@ -158,6 +165,12 @@ def main():
     ap.add_argument('--phases', default='all', help="comma list of phase names, or 'all'")
     ap.add_argument('--places', default='mid,left,right')
     ap.add_argument('--e0', action='store_true', help='add a dense level-0 (G=50) ring')
+    ap.add_argument('--e0-all', action='store_true',
+                    help='dense level-0 noise (G=50) in every error ring as well, alongside its error; '
+                         'the sites corrupted at the previous tick are excluded from the comparison')
+    ap.add_argument('--wipe', type=int, default=0,
+                    help='errors k colonies wide (k*Q cells, aligned to colony boundaries) instead of side x side')
+    ap.add_argument('--height', type=int, default=0, help='duration in ticks of the error box (default: side)')
     ap.add_argument('--density', default='', help='comma list of p: side x side boxes, each site-tick an error with prob. p')
     ap.add_argument('--density-count', type=int, default=6, help='random boxes per density value')
     ap.add_argument('--pairs', type=int, default=0,
@@ -208,14 +221,20 @@ def main():
     ph = phases(p)
     all_phases, all_places = list(ph), ['mid', 'left', 'right']
     names = all_phases if args.phases == 'all' else args.phases.split(',')
-    places = dict(mid=c * Q + Q // 2 - side // 2, left=c * Q - side // 2, right=(c + 1) * Q - side // 2)
+    width = args.wipe * Q if args.wipe else side
+    height = args.height or side
+    places = dict(mid=c * Q + Q // 2 - width // 2, left=c * Q - width // 2, right=(c + 1) * Q - width // 2)
+    if args.wipe:
+        # k whole colonies: c - (k-1)//2 .. c + k//2 ('mid'); shifted by half a colony for left/right
+        places = dict(mid=(c - (args.wipe - 1) // 2) * Q, left=(c - (args.wipe - 1) // 2) * Q - Q // 2,
+                      right=(c - (args.wipe - 1) // 2) * Q + Q // 2)
     crng = np.random.default_rng(args.seed + 2000)
 
     def shaped(s, ident):
         """Fill in the error set of scenario s at (x0, t0)."""
         if args.shape == 'dense' or 'boxes' in s:
             if 'boxes' not in s:
-                s['boxes'] = [(s['x0'], side, s['t0'], side, s.get('p', 1.0))]
+                s['boxes'] = [(s['x0'], width, s['t0'], height, s.get('p', 1.0))]
             return s
         r = np.random.default_rng([args.seed, 3000 + ident])
         for _ in range(100):
@@ -235,8 +254,8 @@ def main():
     j = 0
     for i in range(args.random):
         sc.append(shaped(dict(kind='E1', phase='random', place='random', ident=base + j,
-                              x0=int(rng.integers(c * Q - side + 1, (c + 1) * Q)),
-                              t0=int(rng.integers(0, U - side))), base + j))
+                              x0=int(rng.integers(c * Q - width + 1, (c + 1) * Q)),
+                              t0=int(rng.integers(0, U - height))), base + j))
         j += 1
     for pr in [float(v) for v in args.density.split(',') if v]:
         for i in range(args.density_count):
@@ -261,10 +280,15 @@ def main():
         if s['kind'] == 'E0':
             cfgs.append(gpu.noise(s['noise_seed'], e0_grid=50, mode=args.mode, shift_sites=Q))
         else:
-            cfgs.append(gpu.noise(s['noise_seed'], boxes=s['boxes'], mode=args.mode, shift_sites=Q))
+            cfgs.append(gpu.noise(s['noise_seed'], boxes=s['boxes'], mode=args.mode, shift_sites=Q,
+                                  e0_grid=50 if args.e0_all else 0))
+            s['with_level0_noise'] = bool(args.e0_all)
             pts = []
             dense = all(b[4] >= 1.0 for b in s['boxes'])
-            if dense and len(s['boxes']) == 1 and s['boxes'][0][1] * s['boxes'][0][3] > 400:
+            if dense and len(s['boxes']) == 1 and (s['boxes'][0][1] > 104 or s['boxes'][0][3] > 104):
+                # wider or longer than 104: two separated linked pairs inside, not one level-1 error
+                g = dict(level1=False, method='extent > 104 (dense box: contains separated linked pairs)')
+            elif dense and len(s['boxes']) == 1 and s['boxes'][0][1] * s['boxes'][0][3] > 400:
                 bx = s['boxes'][0]
                 g = gray_errors.classify(gray_errors.dense_box(bx[0], bx[2], bx[1], bx[3]), Q=Q, U=U)
             elif dense:
@@ -303,10 +327,22 @@ def main():
                slice_check=slice_check, reference_exact=[],
                rings=[dict(**{k: v for k, v in s.items()}, steps=[], events=[]) for s in sc])
     e0_ring = [r for r, s in enumerate(sc, 1) if s['kind'] == 'E0']
-    r0 = cand.row[('info', 0)]
-    info_rows = np.arange(r0, r0 + dict(cand.schema)['info'])
+    e0_err_rings = {r for r, s in enumerate(sc, 1) if s.get('with_level0_noise')}
+    info_copy_rows = [(cand.row[('info', bit)], off) for bit, off in p.fam().info_copies(p)]
+    represented = np.zeros(sim.N, dtype=bool)          # logical cells holding a bit of the upper state
+    for y in set(int(v) for v in cand.layout):
+        represented[y::Q] = True
+
+    def simbits(Sr):
+        votes = np.zeros(sim.N, dtype=np.int8)
+        for row, off in info_copy_rows:
+            v = np.unpackbits(Sr[row].view(np.uint8), bitorder='little')[:sim.N]
+            votes += np.roll(v, -off).astype(np.int8)
+        return votes >= 3
     for ring in rec['rings']:
         ring['info_events'] = []
+        ring['info_slot_events'] = []
+        ring['simbit_events'] = []
     one_tick = dict(samples=0, violations=0, by_colony={}, examples=[])
     prev = [ring_up] * R
     for k in range(1, args.upper_steps + 1):
@@ -317,15 +353,44 @@ def main():
             done += chunk
             S = sim.state()
             tnow = sim.t
+            maj0 = None
             for r in range(1, R):
                 dif = diff_sites(S, r)
+                if r in e0_err_rings and dif.any():
+                    dif = dif & ~sim.error_masks(cfgs[r], r, tnow - 1, 1)[0]
                 if dif.any():
                     cols = sorted(set((np.nonzero(dif)[0] // Q).tolist()))
                     rec['rings'][r - 1]['events'].append((tnow, cols, int(dif.sum())))
-                    di = diff_sites(S, r, info_rows)
-                    if di.any():
-                        icols = sorted(set((np.nonzero(di)[0] // Q).tolist()))
-                        rec['rings'][r - 1]['info_events'].append((tnow, icols, int(di.sum())))
+                    # Info copy differences, by the site holding each copy (dh) and by the logical
+                    # cell it belongs to (di): a holder keeps copies of the cells up to two away,
+                    # possibly in the next colony
+                    di = np.zeros(sim.N, dtype=bool)
+                    dh = np.zeros(sim.N, dtype=bool)
+                    mask_prev = sim.error_masks(cfgs[r], r, tnow - 1, 1)[0] if r in e0_err_rings else None
+                    for row, off in info_copy_rows:
+                        x = S[r][row] ^ S[0][row]
+                        if not x.any():
+                            continue
+                        dd = np.unpackbits(x.view(np.uint8), bitorder='little').astype(bool)[:sim.N]
+                        if mask_prev is not None:
+                            dd &= ~mask_prev
+                        dh |= dd
+                        di |= np.roll(dd, -off)
+                    for key, dm in (('info_events', di), ('info_slot_events', dh)):
+                        if dm.any():
+                            rec['rings'][r - 1][key].append(
+                                (tnow, sorted(set((np.nonzero(dm)[0] // Q).tolist())), int(dm.sum())))
+                    # represented SimBits (majority of the copies); logical cells with a copy hit by
+                    # level-0 noise in the last tick are left out
+                    if maj0 is None:
+                        maj0 = simbits(S[0])
+                    ds = (simbits(S[r]) != maj0) & represented
+                    if mask_prev is not None:
+                        for _, off in info_copy_rows:
+                            ds &= ~np.roll(mask_prev, -off)
+                    if ds.any():
+                        rec['rings'][r - 1]['simbit_events'].append(
+                            (tnow, sorted(set((np.nonzero(ds)[0] // Q).tolist())), int(ds.sum())))
                 if r in e0_ring:
                     one_tick['samples'] += 1
                     m = sim.error_masks(cfgs[r], r, tnow - 1, 1)[0]
@@ -374,7 +439,8 @@ def main():
     rec['e0_one_tick'] = one_tick if e0_ring else None
     # verdicts
     summary = dict(total=0, decoded_contained=0, decoded_repaired=0, prop4=0, prop4_time=0,
-                   prop4_simbits=0, prop4_strict=0, identical=0, gray_level1=0, failures=[])
+                   prop4_simbits=0, prop4_info_slots=0, prop4_info_slots_logical=0, prop4_strict=0,
+                   identical=0, gray_level1=0, failures=[])
     for ring in rec['rings']:
         if ring['kind'] != 'E1':
             continue
@@ -391,7 +457,9 @@ def main():
         args4 = (ex['x_lo'], ex['x_hi'], ex['t_lo'], ex['t_hi'], Q, U, n_col)
         ev = [(t, cols) for t, cols, _ in ring['events']]
         p4 = dict(time=prop4_check(ev, *args4, time_only=True)['ok'],
-                  simbits=prop4_check([(t, cols) for t, cols, _ in ring['info_events']], *args4)['ok'],
+                  simbits=prop4_check([(t, cols) for t, cols, _ in ring['simbit_events']], *args4)['ok'],
+                  info_slots=prop4_check([(t, cols) for t, cols, _ in ring['info_slot_events']], *args4)['ok'],
+                  info_slots_logical=prop4_check([(t, cols) for t, cols, _ in ring['info_events']], *args4)['ok'],
                   strict=prop4_check(ev, *args4)['ok'])
         p4['ok'] = p4['time'] and p4['simbits']
         last_t = sim.t
@@ -404,6 +472,8 @@ def main():
         summary['prop4'] += p4['ok']
         summary['prop4_time'] += p4['time']
         summary['prop4_simbits'] += p4['simbits']
+        summary['prop4_info_slots'] += p4['info_slots']
+        summary['prop4_info_slots_logical'] += p4['info_slots_logical']
         summary['prop4_strict'] += p4['strict']
         summary['identical'] += ident
         if not (dmg and repaired and p4['ok'] and ident):

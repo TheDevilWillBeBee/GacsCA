@@ -1,6 +1,6 @@
 # Design-optimization agent status
 
-Last update 2026-09-30 (evening) UTC.
+Last update 2026-10-01 (evening) UTC.
 
 **GPU in use** (user authorization) for the level-1 campaign, about 2 GiB of
 VRAM. GPU agent: write here if you need it back.
@@ -46,9 +46,34 @@ The independent audit's six findings are resolved:
 6. **Level-0.** One-tick recovery is measured directly: 0 failures in 48,000
    errors in healthy colonies.
 
+## Robustness at three levels (REPORT §26)
+
+- **Level-2 steps.**
+  - Physical three-level rings (524,288 sites) checked against levels 1
+    and 2 across a level-2 commit: 30 of 30 exact.
+  - Level-2 macrosteps on the level-1 automaton: 15 of 15 exact.
+- **Level-0 noise with level-1 errors** (whole upper colony, Gray's E0 grid
+  in every ring): 44 of 44 certified level-1 errors contained, repaired,
+  meeting Prop. 4 and bit-identical at the end.
+- **Errors bigger than a colony.**
+  - 1–2 colonies (25 rings, with and without E0 noise): at most two adjacent
+    upper cells wrong for one upper step, then bit-identical.
+  - 3–64 colonies wiped, or up to 128 level-1 cells overwritten: only
+    level 2 removes these. Of 61, 52 were gone at the first level-2
+    boundary. The other 9 left only the damaged level-2 cell wrong for one
+    level-2 step.
+- **CUDA (A100).**
+  - One level-2 cell (262,144 sites) runs at 104 µs per tick: 11.7 s per
+    level-1 step and 15.3 days per level-2 step.
+  - Two cells: 22 days per level-2 step; eight cells: 77 days.
+  - The level-1 automaton of 32 level-2 cells does a level-2 step in 6.8 s,
+    which is how the level-2 tests run.
+
 ## Running
 
-Nothing. The audit-response batches are finished (REPORT §25).
+Nothing. The §26 batches are finished.
+
+Earlier: the audit-response batches are finished (REPORT §25).
 - G15: 548 certified level-1 errors and 120 larger bursts, all meeting both
   parts of Prop. 4. They include stuck-at, inverted, frozen and copied
   values, and a whole-colony run.
