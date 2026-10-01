@@ -33,8 +33,9 @@ def build_one(name):
     fresh = machine.Candidate(p, prog.rom, layout)
     cached = candidates.load(name, check_manifest=False)
     dig_f, dig_c = candidates.digests(fresh), candidates.digests(cached)
+    dig_f['recipe_sha256'] = candidates.recipe_digest(name)
     ident = candidates.summary(fresh)
-    row = dict(name=name, reproduced=dig_f == dig_c, build_seconds=round(time.time() - t, 1),
+    row = dict(name=name, reproduced=all(dig_f[k] == dig_c[k] for k in dig_c), build_seconds=round(time.time() - t, 1),
                Q=ident['Q'], U=ident['U'], width=ident['width'], gates=ident['gates'],
                instructions=ident['rom_nonzero_words'], passes_used=ident['recipe_passes_used'],
                fronts=getattr(p, 'fronts', 1), fresh=dig_f, cached=dig_c, params=ident['params'])

@@ -1,0 +1,1935 @@
+{
+ "rule": "Counts, over an explicit list of receipts, how the decoded upper state behaved after each error:\nnever wrong; wrong at exactly one upper time in at most two adjacent cells, all inside the colonies\nthe error touched; or anything else. Errors are split by the number of colonies they touch:\n  * at most two colonies: level-1-scale errors (bursts, certified level-1 errors, 1-2 colony wipes);\n  * three or more: errors that only level 2 can clear (3-colony wipes, straddling 2-colony wipes,\n    the 1000 x 1000 box over three colonies), reported separately.\nInclusion: every receipt in figs/.../level1_campaign except smoke tests, analyses that are not\ncampaign batches, and reruns of the same faults (which repeat a batch's scenarios exactly); the\nexcluded files and the reason for each are listed in the output.\nWrites Report/fixed_rule/design_optimization/campaign_census.json (tracked), with the sha256 of\nevery receipt counted.",
+ "included": [
+  {
+   "receipt": "G10_b16_age0_mid",
+   "sha256": "8492004493fea7cbf210b355581d83a2c23096c0554f218c0a60ccdb0effa21b"
+  },
+  {
+   "receipt": "G11_b11_age0_mid",
+   "sha256": "612151059614956c0d2230db1614918325b8cca0c99782a7e67eda0c9ffd0724"
+  },
+  {
+   "receipt": "G11_b11s17_age0_mid",
+   "sha256": "816b9818ffaaa255d80843ee6b86b15da8f68b86577fb2698e6241c36f360434"
+  },
+  {
+   "receipt": "G11_b12_eval_front",
+   "sha256": "7fb92565d9c7e164c21ea6668752ab24880dd60610f6dca3ed52161a85901f65"
+  },
+  {
+   "receipt": "G11_b13_precommit_mid",
+   "sha256": "6f1e30e12af682da375502c8eeee9bf3d50ab37b916236883e0cfde22ffaf6ac"
+  },
+  {
+   "receipt": "G11_b14_full_eval_front",
+   "sha256": "cc485751aa176b1559530099aefbdf8508e47c74d2e41a030365cf378dba4335"
+  },
+  {
+   "receipt": "G11_b15_density_pairs",
+   "sha256": "d857dcf56e0d1502d764f9ec395d9ba757584ed3f678a838e17cbdc9c83ec3cd"
+  },
+  {
+   "receipt": "G12_b21_age0_mid",
+   "sha256": "c70bbd561bb00c3aa4ab620f361ffd5af63729024abc33ae4658fa331b69f0c1"
+  },
+  {
+   "receipt": "G12_b22_eval_front",
+   "sha256": "35cdb00817892a6060f650d1d0d38c879b9cb3b483c3149a863f7a874e8efaa2"
+  },
+  {
+   "receipt": "G13_b31_age0_mid",
+   "sha256": "94cf7b758be0253eea362f8f13299af448fc64527cab58e4c7b0ba9fe3fd3293"
+  },
+  {
+   "receipt": "G13_b32_eval_front",
+   "sha256": "c0e6905b3a03dd795b1bb2fa694f16cf9280b72d4b41a4cf2e1c02eb5384b60b"
+  },
+  {
+   "receipt": "G13_b33_final_front",
+   "sha256": "98453bbe6ee9a04cc06a60364eae3ae8f06b94e701faf8544111540b4f46be09"
+  },
+  {
+   "receipt": "G13_b34_age0_mid",
+   "sha256": "2ee2af601df6fda2ba57f1827415768f112e2780651c21b84cb003a381ca5664"
+  },
+  {
+   "receipt": "G13_b35_eval_front",
+   "sha256": "685e4b7d25b0b0dec1e4f1f68d386e8ade17d9bf6763ccbb0d3ffd34d9d0c11a"
+  },
+  {
+   "receipt": "G13_b36_final_front",
+   "sha256": "8099247b4ac015c99e07c11a330f37660dbf69660aee3c51ed16969db9209687"
+  },
+  {
+   "receipt": "G14_b41_age0_mid",
+   "sha256": "13bf07f2455087a20b8335b1baf5ef57a4201fa6a97e6f37a938ab9ed18b912b"
+  },
+  {
+   "receipt": "G14_b42_eval_front",
+   "sha256": "c4646e6bbf2f2b497c11e0a7fecd77cc10e09dd898c6c6d0418e1be4f176b061"
+  },
+  {
+   "receipt": "G14_b43_final_front",
+   "sha256": "83e5e034321e7a7d5cb2cdf4e1e87595461270f809f54e66cd9bc10565a8aad9"
+  },
+  {
+   "receipt": "G14_b71_age0_mid_box200_prop4",
+   "sha256": "af7fe7a01813c90085fb1648179f091649308ec40c85bbe97fbd1dd4dc071a94"
+  },
+  {
+   "receipt": "G14_b72_age0_mid_box100_prop4",
+   "sha256": "2db45853365cc40f50ceec838b4b657d1772eda4553d82d2869ddbcc0a6b33df"
+  },
+  {
+   "receipt": "G14_b73_age0_mid_sparse_prop4",
+   "sha256": "3809b4f151fddd933a4560743f4c2b3ea62889959748f1aa1315d863bd1fcd9b"
+  },
+  {
+   "receipt": "G15_b61_age0_mid_box200",
+   "sha256": "6feaf5f1262e9cc5601727f41b41c74573682a34261603f9784c6c9c3913eae6"
+  },
+  {
+   "receipt": "G15_b62_age0_mid_box100",
+   "sha256": "ba9f73291392dd0c8f5e2d377017119d80dc0de83323d43c88a4d3baf8c85be3"
+  },
+  {
+   "receipt": "G15_b63_age0_mid_sparse",
+   "sha256": "340a2898eeb8f30f73a81555fa225f2e92b54dbe453b1472ceb5a192c1ef68cd"
+  },
+  {
+   "receipt": "G15_b64_eval_front_box100",
+   "sha256": "378216f1c8cce9a7056d5ea40f27e1310236e28c6e8f9eb46eeedbd273a1c01a"
+  },
+  {
+   "receipt": "G15_b65_final_front_box100",
+   "sha256": "69278d3049540705c76f7f6a8c79e80b32a8738d40bb642ab19efbd00a066b62"
+  },
+  {
+   "receipt": "G15_b66_age0_box100_copy",
+   "sha256": "227ec7beac1b7084e5d0c466960cee2259f54a68ca75cf699ca6708ee5a4e643"
+  },
+  {
+   "receipt": "G15_b66_age0_box100_freeze",
+   "sha256": "7bf19bad06edcf9b3abef750365446b65c1d73c1c8048c98da46445dba49992b"
+  },
+  {
+   "receipt": "G15_b66_age0_box100_invert",
+   "sha256": "a5a6678957d795d23b2db43c4da331ec266dd26a588d108ffc3bbe3e6e9f29eb"
+  },
+  {
+   "receipt": "G15_b66_age0_box100_zero",
+   "sha256": "999d651ce6b879e935fe1978031a3884105d87af127ec1078e72752528b31908"
+  },
+  {
+   "receipt": "G15_b67_final_front_box100_copy",
+   "sha256": "09bf6ef4f6888604a514be747a449bf87d8df39b6a37c4056e5dca42be9348ac"
+  },
+  {
+   "receipt": "G15_b68_age0_box200_invert",
+   "sha256": "e778f55937ba46565f6cbc4b8dcb2fcda4d82cd46e57810dc7799dbb1392666d"
+  },
+  {
+   "receipt": "G15_b69_full_final_front_box100",
+   "sha256": "09db11a6a86600d829e39c7d6803166a40155844e4ad7b4ba5472322af0c0c45"
+  },
+  {
+   "receipt": "G15_b81_full_box100_e0all",
+   "sha256": "7af024008c9cea8ff828333eaff05dd49ea7c1d59115b9bd8749380595f029b0"
+  },
+  {
+   "receipt": "G15_b82_full_box100_e0all_copy",
+   "sha256": "62f6439bb46f1128491782108eb69b000fdee2835323891733d8fc355cbd0476"
+  },
+  {
+   "receipt": "G15_b91_full_wipe1",
+   "sha256": "cc498e7198e1de92c6fda71766f554e42a0a084a6f6fd9cb806a8eda825ddf3d"
+  },
+  {
+   "receipt": "G15_b92_full_wipe2",
+   "sha256": "ee08fa9b43b6d2e63a7418aabdaa661d86623aa023edf57453de389b86d9f94f"
+  },
+  {
+   "receipt": "G15_b93_full_wipe3",
+   "sha256": "2727b7e5a23f0a9e08a42a4923a9c10b3d35acac9a9314e59521c956e3374b00"
+  },
+  {
+   "receipt": "G15_b95_full_box1000",
+   "sha256": "54abdfa9136a2398b28c4318a79b2e6f2b5f1669f6f4998f2efab2f412d3200f"
+  },
+  {
+   "receipt": "G15_b96_full_wipe2_e0all",
+   "sha256": "8b1523b05d4993ccdfe1cf0d88d32c83bc28ee429bfbad7a1cf078978a20d7d2"
+  },
+  {
+   "receipt": "G8_b1_age0_mid",
+   "sha256": "502ac4afddd93dcc20184473fb708d5eca1537c6bc40c9c7fb5a13aa220912c4"
+  },
+  {
+   "receipt": "G8_b1_commit_5steps",
+   "sha256": "18791eeb5a513ad991e387e3fc5e131c590c9dbfb54334783b766c48c6dff10e"
+  },
+  {
+   "receipt": "G8_b2_commit_5steps",
+   "sha256": "af48e1861959479366859d8ffc20156a021d4a37f82bb0516a57a0fb677b6474"
+  },
+  {
+   "receipt": "G8_b2_eval_front",
+   "sha256": "c088b750f4d7862560d8f24bc107d703850e6b49976a9b68a3b616141ac0dc2f"
+  },
+  {
+   "receipt": "G8_b3_precommit_mid",
+   "sha256": "ab58cf0d1c01f631ad9981207d1147f9e6305491d8d89b4796e65a2989e773f8"
+  },
+  {
+   "receipt": "G8_b4_density_pairs",
+   "sha256": "27b3354cdfe80222a6f4821343f05b34f1e40bddade1b319cd5881edb956f1b4"
+  },
+  {
+   "receipt": "G8_b5_full_eval_front",
+   "sha256": "5da13861b4bea3602e1997eac0931aa2fb4ae04259a860116a16102e3e5125a1"
+  },
+  {
+   "receipt": "G9_b6_age0_mid",
+   "sha256": "9bf064d7ff3563931c5e55cd9308e79c0a5c20849cf20bf08422e1bf8d0bbecf"
+  },
+  {
+   "receipt": "G9_b7_eval_front",
+   "sha256": "81b8ff2e05646d3e92827d807f245e7ef265caf68c6b1e95390efabe293930b1"
+  }
+ ],
+ "excluded": {
+  "G15_b62t_age0_mid_box100_track": "per-tick rerun of an earlier batch with the same faults (counted there)",
+  "G15_b63t_age0_mid_sparse_track": "per-tick rerun of an earlier batch with the same faults (counted there)",
+  "G15_b65t_final_front_box100_track": "per-tick rerun of an earlier batch with the same faults (counted there)",
+  "G15_b66t_age0_box100_copy_track": "per-tick rerun of an earlier batch with the same faults (counted there)",
+  "G15_b81t_full_box100_e0all_track": "per-tick rerun of an earlier batch with the same faults (counted there)",
+  "G15_b91_full_wipe1_holder_attribution": "same faults as G15_b91_full_wipe1 (earlier Info check)",
+  "G15_b91_full_wipe1_logical_attribution": "same faults as G15_b91_full_wipe1 (earlier Info check)",
+  "G15_b92t_full_wipe2_track_l2": "per-tick rerun of an earlier batch with the same faults (counted there)",
+  "G15_b93t_full_wipe3_track_l2": "per-tick rerun of an earlier batch with the same faults (counted there)",
+  "G15_b95t_full_box1000_track_l2": "per-tick rerun of an earlier batch with the same faults (counted there)",
+  "G15_b96t_full_wipe2_e0all_track_l2": "per-tick rerun of an earlier batch with the same faults (counted there)",
+  "G15_prop4_fields_box100_random": "field-by-field analysis, not a batch",
+  "G8_b1_commit_rerun_sameseeds": "same faults as the commit rings of G8_b1_age0_mid (longer run)",
+  "G8_b2_commit_rerun_sameseeds": "same faults as the commit rings of G8_b2_eval_front (longer run)",
+  "G8_b3_commit_rerun_sameseeds": "same faults as the commit rings of G8_b3_precommit_mid (longer run)",
+  "reclassified": "analysis output, not a batch",
+  "smoke": "smoke test",
+  "smoke2_G14": "smoke test"
+ },
+ "scopes": {
+  "at most two colonies": {
+   "error_rings": 2387,
+   "upper_steps": 9255,
+   "outcomes": {
+    "never wrong": 1789,
+    "one upper time, at most 2 adjacent cells, inside the touched colonies": 598,
+    "other": 0
+   },
+   "other": []
+  },
+  "three or more colonies": {
+   "error_rings": 25,
+   "upper_steps": 100,
+   "outcomes": {
+    "never wrong": 0,
+    "one upper time, at most 2 adjacent cells, inside the touched colonies": 0,
+    "other": 25
+   },
+   "other": [
+    {
+     "receipt": "G15_b92_full_wipe2",
+     "phase": "gather1_mid",
+     "place": "left",
+     "touched_colonies": 3,
+     "wrong": [
+      [
+       1,
+       [
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       2,
+       [
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259
+       ]
+      ],
+      [
+       3,
+       [
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257
+       ]
+      ],
+      [
+       4,
+       [
+        243,
+        244,
+        245,
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254
+       ]
+      ]
+     ]
+    },
+    {
+     "receipt": "G15_b92_full_wipe2",
+     "phase": "gather2_start",
+     "place": "left",
+     "touched_colonies": 3,
+     "wrong": [
+      [
+       1,
+       [
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       2,
+       [
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259
+       ]
+      ],
+      [
+       3,
+       [
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257
+       ]
+      ],
+      [
+       4,
+       [
+        243,
+        244,
+        245,
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254
+       ]
+      ]
+     ]
+    },
+    {
+     "receipt": "G15_b92_full_wipe2",
+     "phase": "special_proc",
+     "place": "left",
+     "touched_colonies": 3,
+     "wrong": [
+      [
+       1,
+       [
+        255,
+        256,
+        257
+       ]
+      ],
+      [
+       2,
+       [
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       3,
+       [
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       4,
+       [
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257
+       ]
+      ]
+     ]
+    },
+    {
+     "receipt": "G15_b92_full_wipe2",
+     "phase": "final_program",
+     "place": "left",
+     "touched_colonies": 3,
+     "wrong": [
+      [
+       1,
+       [
+        255,
+        256,
+        257
+       ]
+      ],
+      [
+       2,
+       [
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       3,
+       [
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       4,
+       [
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257
+       ]
+      ]
+     ]
+    },
+    {
+     "receipt": "G15_b92_full_wipe2",
+     "phase": "commit",
+     "place": "left",
+     "touched_colonies": 3,
+     "wrong": [
+      [
+       1,
+       [
+        255,
+        256,
+        257
+       ]
+      ],
+      [
+       2,
+       [
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       3,
+       [
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       4,
+       [
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257
+       ]
+      ]
+     ]
+    },
+    {
+     "receipt": "G15_b93_full_wipe3",
+     "phase": "gather1_mid",
+     "place": "mid",
+     "touched_colonies": 3,
+     "wrong": [
+      [
+       1,
+       [
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       2,
+       [
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259
+       ]
+      ],
+      [
+       3,
+       [
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257
+       ]
+      ],
+      [
+       4,
+       [
+        243,
+        244,
+        245,
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254
+       ]
+      ]
+     ]
+    },
+    {
+     "receipt": "G15_b93_full_wipe3",
+     "phase": "gather1_mid",
+     "place": "left",
+     "touched_colonies": 4,
+     "wrong": [
+      [
+       1,
+       [
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       2,
+       [
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259
+       ]
+      ],
+      [
+       3,
+       [
+        245,
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256
+       ]
+      ],
+      [
+       4,
+       [
+        242,
+        243,
+        244,
+        245,
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253
+       ]
+      ]
+     ]
+    },
+    {
+     "receipt": "G15_b93_full_wipe3",
+     "phase": "gather2_start",
+     "place": "mid",
+     "touched_colonies": 3,
+     "wrong": [
+      [
+       1,
+       [
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       2,
+       [
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259
+       ]
+      ],
+      [
+       3,
+       [
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257
+       ]
+      ],
+      [
+       4,
+       [
+        243,
+        244,
+        245,
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254
+       ]
+      ]
+     ]
+    },
+    {
+     "receipt": "G15_b93_full_wipe3",
+     "phase": "gather2_start",
+     "place": "left",
+     "touched_colonies": 4,
+     "wrong": [
+      [
+       1,
+       [
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       2,
+       [
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259
+       ]
+      ],
+      [
+       3,
+       [
+        245,
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256
+       ]
+      ],
+      [
+       4,
+       [
+        242,
+        243,
+        244,
+        245,
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253
+       ]
+      ]
+     ]
+    },
+    {
+     "receipt": "G15_b93_full_wipe3",
+     "phase": "special_proc",
+     "place": "mid",
+     "touched_colonies": 3,
+     "wrong": [
+      [
+       1,
+       [
+        255,
+        256,
+        257
+       ]
+      ],
+      [
+       2,
+       [
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       3,
+       [
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       4,
+       [
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257
+       ]
+      ]
+     ]
+    },
+    {
+     "receipt": "G15_b93_full_wipe3",
+     "phase": "special_proc",
+     "place": "left",
+     "touched_colonies": 4,
+     "wrong": [
+      [
+       1,
+       [
+        254,
+        255,
+        256,
+        257
+       ]
+      ],
+      [
+       2,
+       [
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       3,
+       [
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259
+       ]
+      ],
+      [
+       4,
+       [
+        245,
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256
+       ]
+      ]
+     ]
+    },
+    {
+     "receipt": "G15_b93_full_wipe3",
+     "phase": "final_program",
+     "place": "mid",
+     "touched_colonies": 3,
+     "wrong": [
+      [
+       1,
+       [
+        255,
+        256,
+        257
+       ]
+      ],
+      [
+       2,
+       [
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       3,
+       [
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       4,
+       [
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257
+       ]
+      ]
+     ]
+    },
+    {
+     "receipt": "G15_b93_full_wipe3",
+     "phase": "final_program",
+     "place": "left",
+     "touched_colonies": 4,
+     "wrong": [
+      [
+       1,
+       [
+        254,
+        255,
+        256,
+        257
+       ]
+      ],
+      [
+       2,
+       [
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       3,
+       [
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259
+       ]
+      ],
+      [
+       4,
+       [
+        245,
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256
+       ]
+      ]
+     ]
+    },
+    {
+     "receipt": "G15_b93_full_wipe3",
+     "phase": "commit",
+     "place": "mid",
+     "touched_colonies": 3,
+     "wrong": [
+      [
+       1,
+       [
+        255,
+        256,
+        257
+       ]
+      ],
+      [
+       2,
+       [
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       3,
+       [
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       4,
+       [
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257
+       ]
+      ]
+     ]
+    },
+    {
+     "receipt": "G15_b93_full_wipe3",
+     "phase": "commit",
+     "place": "left",
+     "touched_colonies": 4,
+     "wrong": [
+      [
+       1,
+       [
+        254,
+        255,
+        256,
+        257
+       ]
+      ],
+      [
+       2,
+       [
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       3,
+       [
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259
+       ]
+      ],
+      [
+       4,
+       [
+        245,
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256
+       ]
+      ]
+     ]
+    },
+    {
+     "receipt": "G15_b95_full_box1000",
+     "phase": "gather1_mid",
+     "place": "mid",
+     "touched_colonies": 3,
+     "wrong": [
+      [
+       1,
+       [
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       2,
+       [
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259
+       ]
+      ],
+      [
+       3,
+       [
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257
+       ]
+      ],
+      [
+       4,
+       [
+        243,
+        244,
+        245,
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254
+       ]
+      ]
+     ]
+    },
+    {
+     "receipt": "G15_b95_full_box1000",
+     "phase": "gather2_start",
+     "place": "mid",
+     "touched_colonies": 3,
+     "wrong": [
+      [
+       1,
+       [
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       2,
+       [
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       3,
+       [
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257
+       ]
+      ],
+      [
+       4,
+       [
+        243,
+        244,
+        245,
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254
+       ]
+      ]
+     ]
+    },
+    {
+     "receipt": "G15_b95_full_box1000",
+     "phase": "special_proc",
+     "place": "mid",
+     "touched_colonies": 3,
+     "wrong": [
+      [
+       1,
+       [
+        255,
+        256,
+        257
+       ]
+      ],
+      [
+       2,
+       [
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       3,
+       [
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       4,
+       [
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257
+       ]
+      ]
+     ]
+    },
+    {
+     "receipt": "G15_b95_full_box1000",
+     "phase": "final_program",
+     "place": "mid",
+     "touched_colonies": 3,
+     "wrong": [
+      [
+       1,
+       [
+        255,
+        256,
+        257
+       ]
+      ],
+      [
+       2,
+       [
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       3,
+       [
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       4,
+       [
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257
+       ]
+      ]
+     ]
+    },
+    {
+     "receipt": "G15_b95_full_box1000",
+     "phase": "commit",
+     "place": "mid",
+     "touched_colonies": 3,
+     "wrong": [
+      [
+       1,
+       [
+        255,
+        256,
+        257
+       ]
+      ],
+      [
+       2,
+       [
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       3,
+       [
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       4,
+       [
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257
+       ]
+      ]
+     ]
+    },
+    {
+     "receipt": "G15_b96_full_wipe2_e0all",
+     "phase": "gather1_mid",
+     "place": "left",
+     "touched_colonies": 3,
+     "wrong": [
+      [
+       1,
+       [
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       2,
+       [
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259
+       ]
+      ],
+      [
+       3,
+       [
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257
+       ]
+      ],
+      [
+       4,
+       [
+        243,
+        244,
+        245,
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254
+       ]
+      ]
+     ]
+    },
+    {
+     "receipt": "G15_b96_full_wipe2_e0all",
+     "phase": "gather2_start",
+     "place": "left",
+     "touched_colonies": 3,
+     "wrong": [
+      [
+       1,
+       [
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       2,
+       [
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259
+       ]
+      ],
+      [
+       3,
+       [
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257
+       ]
+      ],
+      [
+       4,
+       [
+        243,
+        244,
+        245,
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254
+       ]
+      ]
+     ]
+    },
+    {
+     "receipt": "G15_b96_full_wipe2_e0all",
+     "phase": "special_proc",
+     "place": "left",
+     "touched_colonies": 3,
+     "wrong": [
+      [
+       1,
+       [
+        255,
+        256,
+        257
+       ]
+      ],
+      [
+       2,
+       [
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       3,
+       [
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       4,
+       [
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257
+       ]
+      ]
+     ]
+    },
+    {
+     "receipt": "G15_b96_full_wipe2_e0all",
+     "phase": "final_program",
+     "place": "left",
+     "touched_colonies": 3,
+     "wrong": [
+      [
+       1,
+       [
+        255,
+        256,
+        257
+       ]
+      ],
+      [
+       2,
+       [
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       3,
+       [
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       4,
+       [
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257
+       ]
+      ]
+     ]
+    },
+    {
+     "receipt": "G15_b96_full_wipe2_e0all",
+     "phase": "commit",
+     "place": "left",
+     "touched_colonies": 3,
+     "wrong": [
+      [
+       1,
+       [
+        255,
+        256,
+        257
+       ]
+      ],
+      [
+       2,
+       [
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       3,
+       [
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260
+       ]
+      ],
+      [
+       4,
+       [
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257
+       ]
+      ]
+     ]
+    }
+   ]
+  }
+ }
+}

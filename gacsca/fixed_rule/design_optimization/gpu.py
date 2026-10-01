@@ -55,9 +55,10 @@ def noise(seed=0, e0_grid=0, e0_pair=0.5, boxes=(), mode='random', shift_sites=0
       zero, one  every bit 0 / 1 (stuck-at);
       invert   every bit of the correct new state flipped;
       freeze   the site keeps its previous state (it misses the update);
-      copy     the current state of the site shift_sites further along the
-               ring (shift_sites = Q: the cell with the same Address in the
-               next colony, a plausible but wrong state)."""
+      copy     the state before this tick's update of the site shift_sites
+               further along the ring (shift_sites = Q: the cell with the
+               same Address in the next colony, a plausible but wrong state
+               whose Age is one tick behind)."""
     c = NoiseCfg()
     c.mode = VALUE_MODES.index(mode)
     assert shift_sites % 32 == 0
@@ -297,6 +298,13 @@ __device__ __forceinline__ void tick_word(const wd* X, wd* Y, int NW64, int w, c
   }
 }
 
+/* Per-tick difference tracking (grid mode): for every ring r > 0 and colony, the first and last
+   state index (tick) at which ring r differs from ring 0, (A) in the rows listed in rowsA (e.g. the
+   Info copies) and (B) in any row; sites corrupted by ring r's noise in that same update are
+   excluded, so a difference anywhere else is caught at every tick. */
+struct TrackCfg { int nA; const int* rowsA; int Q; int ncol;
+                  unsigned long long *firstA, *lastA, *firstB, *lastB; };
+
 /* Block mode: one block per ring. Thread i handles 32-bit words i,
    i + blockDim, ... of its ring; __syncthreads() separates ticks. */
 extern "C" __global__ void __launch_bounds__(256, 1) k_run(u64* A, u64* B, int NW64, const uint32_t* rom,
@@ -330,7 +338,8 @@ extern "C" __global__ void __launch_bounds__(256, 1) k_run(u64* A, u64* B, int N
    whole grid; grid.sync() separates ticks. Used for large rings. */
 extern "C" __global__ void __launch_bounds__(256, 1) k_run_grid(u64* A, u64* B, int NW64,
                                  const uint32_t* rom, long t0, long ticks, const NoiseCfg* cfg,
-                                 int nrows, const int* rows, int stride, u64* snap, int nrings) {
+                                 int nrows, const int* rows, int stride, u64* snap, int nrings,
+                                 const TrackCfg* tr) {
   cg::grid_group grid = cg::this_grid();
   const int NW = 2 * NW64;
   const long total = (long)nrings * NW;
@@ -345,6 +354,33 @@ extern "C" __global__ void __launch_bounds__(256, 1) k_run_grid(u64* A, u64* B, 
       tick_word(Xb + off, Yb + off, NW64, w, rom, cfg[ring], ring, t0 + i);
     }
     grid.sync();
+    if (tr) {
+      /* reads only the new state Yb, which the next tick does not write */
+      const unsigned long long tnew = (unsigned long long)(t0 + i + 1);
+      for (long g = gid; g < total; g += gsz) {
+        const int ring = (int)(g / NW), w = (int)(g % NW);
+        if (ring == 0) continue;
+        const wd* Yr = Yb + (size_t)ring * W * NW;
+        const wd* Y0 = Yb;
+        const NoiseCfg& c = cfg[ring];
+        wd fresh = 0;
+        if (c.e0_grid > 0 || c.nbox > 0)
+          fresh = (wd)(error_mask(c, ring, NW64, w >> 1, t0 + i) >> (32 * (w & 1)));
+        wd dA = 0, dB = 0;
+        for (int j = 0; j < tr->nA; j++) {
+          const int r = tr->rowsA[j];
+          dA |= Yr[(size_t)r * NW + w] ^ Y0[(size_t)r * NW + w];
+        }
+        dA &= ~fresh;
+        for (int r = 0; r < W && !dB; r++)
+          dB = (Yr[(size_t)r * NW + w] ^ Y0[(size_t)r * NW + w]) & ~fresh;
+        if (dA | dB) {
+          const size_t k = (size_t)ring * tr->ncol + (int)(((long)w * 32) / tr->Q);
+          if (dA) { atomicMin(&tr->firstA[k], tnew); atomicMax(&tr->lastA[k], tnew); }
+          if (dB) { atomicMin(&tr->firstB[k], tnew); atomicMax(&tr->lastB[k], tnew); }
+        }
+      }
+    }
     flip ^= 1;
     if (stride > 0 && (i + 1) % stride == 0) {
       const long s = (i + 1) / stride - 1;
@@ -367,7 +403,7 @@ extern "C" __global__ void k_masks(const NoiseCfg* cfg, int ring, int NW64, long
     out[g] = error_mask(*cfg, ring, NW64, (int)(g % NW64), t0 + g / NW64);
 }
 
-struct Sim { int nrings, NW; u64 *A, *B; uint32_t* rom; NoiseCfg* cfg; };
+struct Sim { int nrings, NW; u64 *A, *B; uint32_t* rom; NoiseCfg* cfg; TrackCfg* tr; TrackCfg trh; };
 
 /* Error masks of one ring for ticks t0..t0+nt-1 (for tests and receipts). */
 extern "C" int sim_error_masks(const NoiseCfg* host_cfg, int ring, int NW64, long t0, int nt,
@@ -382,7 +418,7 @@ extern "C" int sim_error_masks(const NoiseCfg* host_cfg, int ring, int NW64, lon
 }
 
 extern "C" void* sim_create(int nrings, int NW, const unsigned int* rom_host, int rom_words) {
-  Sim* s = new Sim; s->nrings = nrings; s->NW = NW;
+  Sim* s = new Sim; s->nrings = nrings; s->NW = NW; s->tr = 0;
   size_t bytes = (size_t)nrings * W * NW * sizeof(u64);
   if (cudaMalloc(&s->A, bytes) || cudaMalloc(&s->B, bytes) || cudaMalloc(&s->rom, rom_words * 4)
       || cudaMalloc(&s->cfg, nrings * sizeof(NoiseCfg))) return 0;
@@ -424,7 +460,7 @@ extern "C" int sim_run(void* h, long t0, long ticks, int threads, int grid_block
   } else {
     int NW64 = s->NW, nr = s->nrings;
     void* args[] = {&s->A, &s->B, &NW64, &s->rom, &t0, &ticks, &s->cfg, &nrows, &rows, &stride,
-                    &snap, &nr};
+                    &snap, &nr, &s->tr};
     cudaLaunchCooperativeKernel((void*)k_run_grid, grid_blocks, threads, args, 0, 0);
   }
   cudaEventRecord(e1); cudaEventSynchronize(e1);
@@ -434,8 +470,39 @@ extern "C" int sim_run(void* h, long t0, long ticks, int threads, int grid_block
   cudaEventDestroy(e0); cudaEventDestroy(e1);
   return err;
 }
+static void track_free(Sim* s) {
+  if (!s->tr) return;
+  cudaFree((void*)s->trh.rowsA); cudaFree(s->trh.firstA); cudaFree(s->trh.lastA);
+  cudaFree(s->trh.firstB); cudaFree(s->trh.lastB); cudaFree(s->tr); s->tr = 0;
+}
+/* Start (or restart) per-tick difference tracking with rows A; grid mode only. */
+extern "C" int sim_track_set(void* h, int nA, const int* rows_host, int Q, int ncol) {
+  Sim* s = (Sim*)h; track_free(s);
+  TrackCfg t; t.nA = nA; t.Q = Q; t.ncol = ncol;
+  size_t n = (size_t)s->nrings * ncol;
+  int* rows; cudaMalloc(&rows, (nA > 0 ? nA : 1) * sizeof(int));
+  if (nA > 0) cudaMemcpy(rows, rows_host, nA * sizeof(int), cudaMemcpyHostToDevice);
+  t.rowsA = rows;
+  cudaMalloc(&t.firstA, n * 8); cudaMalloc(&t.lastA, n * 8); cudaMalloc(&t.firstB, n * 8); cudaMalloc(&t.lastB, n * 8);
+  cudaMemset(t.firstA, 0xFF, n * 8); cudaMemset(t.firstB, 0xFF, n * 8);
+  cudaMemset(t.lastA, 0, n * 8); cudaMemset(t.lastB, 0, n * 8);
+  cudaMalloc(&s->tr, sizeof(TrackCfg));
+  cudaMemcpy(s->tr, &t, sizeof(TrackCfg), cudaMemcpyHostToDevice);
+  s->trh = t;
+  return (int)cudaGetLastError();
+}
+extern "C" int sim_track_get(void* h, unsigned long long* fA, unsigned long long* lA,
+                             unsigned long long* fB, unsigned long long* lB) {
+  Sim* s = (Sim*)h;
+  if (!s->tr) return -1;
+  size_t n = (size_t)s->nrings * s->trh.ncol * 8;
+  cudaMemcpy(fA, s->trh.firstA, n, cudaMemcpyDeviceToHost); cudaMemcpy(lA, s->trh.lastA, n, cudaMemcpyDeviceToHost);
+  cudaMemcpy(fB, s->trh.firstB, n, cudaMemcpyDeviceToHost); cudaMemcpy(lB, s->trh.lastB, n, cudaMemcpyDeviceToHost);
+  return (int)cudaGetLastError();
+}
 extern "C" void sim_destroy(void* h) {
-  Sim* s = (Sim*)h; cudaFree(s->A); cudaFree(s->B); cudaFree(s->rom); cudaFree(s->cfg); delete s;
+  Sim* s = (Sim*)h; track_free(s);
+  cudaFree(s->A); cudaFree(s->B); cudaFree(s->rom); cudaFree(s->cfg); delete s;
 }
 '''
     return ('#include <stdint.h>\n#include <cooperative_groups.h>\nnamespace cg = cooperative_groups;\n'
@@ -469,6 +536,8 @@ def build(cand, maxreg=None, order='dfs'):
     lib.sim_error_masks.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_long,
                                     ctypes.c_int, ctypes.c_void_p]
     lib.sim_destroy.argtypes = [ctypes.c_void_p]
+    lib.sim_track_set.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+    lib.sim_track_get.argtypes = [ctypes.c_void_p] + [ctypes.c_void_p] * 4
     return lib, hashlib.sha256(src.encode()).hexdigest()
 
 
@@ -531,6 +600,32 @@ class GpuSim:
         assert len(cfgs) == self.nrings
         arr = (NoiseCfg * self.nrings)(*cfgs)
         self.lib.sim_set_noise(self.h, ctypes.cast(arr, ctypes.c_void_p))
+
+    def track(self, rows):
+        """Track every tick from now on (grid mode): for each ring r > 0 and colony, the first and
+        last state index at which ring r differs from ring 0 in `rows`, and in any row. Sites that
+        ring r's own noise corrupted in that update are excluded. Read with tracking()."""
+        assert self.mode == 'grid', 'tracking needs grid mode'
+        rows_arr = np.ascontiguousarray(rows, dtype=np.int32)
+        err = self.lib.sim_track_set(self.h, len(rows_arr), rows_arr.ctypes.data, self.p.Q, self.N // self.p.Q)
+        if err:
+            raise RuntimeError(f'CUDA error {err}')
+
+    def tracking(self):
+        """dict of (nrings, colonies) int64 arrays first_rows, last_rows, first_any, last_any;
+        -1 where a ring never differed there (ring 0 is all -1)."""
+        n = self.nrings * (self.N // self.p.Q)
+        arrs = [np.empty(n, dtype=np.uint64) for _ in range(4)]
+        err = self.lib.sim_track_get(self.h, *[a.ctypes.data for a in arrs])
+        if err:
+            raise RuntimeError(f'CUDA error {err}')
+        out = {}
+        for name, a, never in zip(('first_rows', 'last_rows', 'first_any', 'last_any'), arrs,
+                                  (2 ** 64 - 1, 0, 2 ** 64 - 1, 0)):
+            v = a.astype(np.int64)
+            v[a == np.uint64(never)] = -1
+            out[name] = v.reshape(self.nrings, -1)
+        return out
 
     def error_masks(self, cfg, ring, t0, nt):
         """Boolean (nt, N) array: the sites that ring `ring` corrupts at ticks

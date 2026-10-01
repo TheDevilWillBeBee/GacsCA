@@ -340,6 +340,33 @@ def repair2_cmd(cand, args, rec):
             unexplained_bits_in_represented_info_slots=int((R[info_rows] & represented).sum()),
             unexplained_bits_elsewhere=int(R.sum() - (R[info_rows] & represented).sum())))
     print('physical at hand-off:', json.dumps(rec['physical_at_handoff']), flush=True)
+    if args.verify_handoff:
+        # each wiped ring and the plain encoding of its decoded state (a canonical twin) run
+        # --verify-handoff more level-1 steps side by side; their decoded states must follow the
+        # level-1 automaton, and once they are physically equal the continuation is the twin's
+        twins = [C.pack(codec.encode(cand, dec[r])) for r in range(1, len(cfgs))]
+        nr = len(cfgs)
+        v = gpu.GpuSim(cand, 2 * nr - 1, n1, mode='grid')
+        v.set_state(np.stack([S[r] for r in range(nr)] + twins), t=sim.t)
+        v.set_noise([gpu.noise()] * (2 * nr - 1))
+        cur = [dec[r] for r in range(nr)]
+        rec['handoff_check'] = [dict(wipe_colonies=wipes[r - 1], steps=[]) for r in range(1, nr)]
+        for k in range(1, args.verify_handoff + 1):
+            v.run(U)
+            V = v.state()
+            for r in range(1, nr):
+                xa, xt = C.unpack(V[r], N), C.unpack(V[nr - 1 + r], N)       # (a is the level-1 age)
+                da, dt = codec.decode(cand, xa), codec.decode(cand, xt)
+                (want,), _ = run_rings(cand, [cur[r]], 1)
+                inner = [x for x in np.nonzero((da != want).any(axis=0))[0] if 6 <= x < n1 - 6]
+                rec['handoff_check'][r - 1]['steps'].append(dict(
+                    level1_step_after_handoff=k,
+                    decoded_actual_vs_automaton_away_from_ends=[int(x) for x in inner],
+                    decoded_actual_equals_twin=bool(np.array_equal(da, dt)),
+                    physical_sites_actual_vs_twin=int((xa != xt).any(axis=0).sum())))
+                cur[r] = da
+        del v
+        print('hand-off check:', json.dumps(rec['handoff_check']), flush=True)
     # apply the decoded damage to the full level-1 ring
     full_ref = level1_states(cand, L1_full, [a + args.phys_steps])[a + args.phys_steps]
     rings = [full_ref]
@@ -494,6 +521,8 @@ def main():
     ap.add_argument('--field', default='age', help='with --target field: the level-2 field to destroy')
     ap.add_argument('--front-index', type=int, default=-1, help='with --target front: which front of the comb, left to right (-1: the whole comb)')
     ap.add_argument('--phys-steps', type=int, default=4)
+    ap.add_argument('--verify-handoff', type=int, default=0,
+                    help='repair2: run each wiped ring and a canonical twin this many more level-1 steps')
     ap.add_argument('--e0', type=int, default=0, help='repair2: E0 grid G (level-0 noise) in the wiped physical rings')
     ap.add_argument('--level1-e0', type=int, default=0,
                     help='repair2: E0 grid G applied to the level-1 automaton (level-1 errors everywhere)')

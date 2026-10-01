@@ -46,9 +46,9 @@ arbitrary upper states.
 | G12 | 512 | 217,328 | 424 | 2^26.73 | 261 | 16,619 | single-step front (same function) + proportional layout (§21) |
 | G13 | 512 | 125,856 | 246 | 2^25.94 | 260 | 16,981 | **comb of five fronts**, each with its own program and register file (§23) |
 | **G14** | **512** | **110,880** | **217** | **2^25.76** | 260 | 16,966 | G13 re-sized by a seeded schedule search (§23) |
-| **G15** | **512** | **112,608** | **220** | **2^25.78** | 260 | 17,100 | G14 + Gray's stage wipes, so that a 200×200 burst leaves nothing after the next period boundary (§25) |
+| **G15** | **512** | **112,608** | **220** | **2^25.78** | 260 | 17,100 | G14 + a wipe schedule adapted from Gray's stage wipes (histories and mail at the commit, Hold at E0−1): every field is exact again by the second period boundary after a level-1 error (§§25, 27) |
 
-G9–G15 keep all of G8's Gray mechanisms; G15 adds the stage wipes. QU
+G9–G15 keep all of G8's Gray mechanisms; G15 adds the two-time wipe schedule. QU
 relative to G8: G9 2.6× smaller, G12 9.6×, G13 16.7×, G14 18.9×,
 G15 18.4×.
 
@@ -83,20 +83,27 @@ G15 18.4×.
       rerun is still running (§25).
   - *Genuine level-1 errors* (certified by `gray_errors.py`): 548 on
     G15 (dense 100×100 boxes and sparse clusters), and 128 on G14 (§25).
+    All keep their certificate under the corrected classifier (§27).
     - All were contained and repaired, and all ended bit-identical.
-    - **G15 meets Proposition 4** at the sampled times: every field of every
-      colony is equal again by the second period boundary, and Info
-      differences never leave two adjacent colonies. G14, without Gray's
-      stage wipes, keeps history-lane residue one period longer.
+    - **G15 has the two measured parts of Proposition 4**, checked at every
+      tick in §27: every field of every colony is equal again by the second
+      period boundary, and the stored Info copies never differ outside two
+      adjacent colonies. The literal all-field statement does not hold:
+      mail and history lanes of other colonies differ within the window
+      (§25). G14, without the wipe schedule, keeps history-lane residue one
+      period longer.
     - G15 also passes with adversarial values (stuck-at zero, inverted,
       frozen, and plausible states copied from another colony), and on the
       whole upper colony (262,144 sites).
   - With the colony margin (G7+), a burst on a colony boundary can damage
     at most one colony.
   - **Undamaged colonies always make the correct level-1 transition** (Gray
-    p. 35). Across all campaign receipts (G8–G15, 2,324 error rings, 9,053
-    upper steps), no colony outside those touched by the error ever had a
-    wrong upper state.
+    p. 35), for errors that touch at most two colonies. Across the 49
+    campaign batches listed in `campaign_census.json` (G8–G15; 2,387 such
+    error rings, 9,255 upper steps; census rule and receipt digests in that
+    file, §27), no colony outside those touched by the error ever had a
+    wrong upper state. Errors touching three or more colonies (25 rings)
+    are level-2 errors and are reported separately (§26.4).
     - Each colony's new state always equals the rule applied to the previous
       decoded ring, including the damaged colony's wrong state. That wrong
       state is outvoted like a level-0 error.
@@ -104,9 +111,11 @@ G15 18.4×.
       adjacent ones once, in G9. They were repaired in the next upper step.
   - **At level 1, every error looks like a level-0 error**, which is what
     Gray's amplification argument uses (p. 36).
-    - Of the 2,324 error rings, 1,755 never changed the decoded upper state.
-    - Each of the other 569 changed it at exactly one level-1 time (one
-      multiple of U), in one cell or two adjacent ones, never at two times.
+    - Of those 2,387 error rings, 1,789 never changed the decoded upper
+      state.
+    - Each of the other 598 changed it at exactly one level-1 time (one
+      multiple of U), in one cell or two adjacent ones inside the touched
+      colonies, never at two times.
     - The transient differences in neighbours' Mailbox and Workspace (§25)
       lie below the level-1 state and never reached it.
 - **Colony-scale and larger errors** (§§15, 26).
@@ -116,7 +125,8 @@ G15 18.4×.
     physical state is bit-identical by the second boundary.
   - *Three to 64 colonies wiped, or up to 128 level-1 cells overwritten
     with another level-2 colony's cells.* Level 1 alone cannot remove
-    these; level 2 does.
+    these; level 2 does, through the hybrid of §26.5 (physical up to a
+    hand-off that §27 checks physically, then the level-1 automaton).
     - Of 61 such errors, 52 were gone at the first level-2 boundary.
     - In the other 9, only the damaged level-2 cell was wrong at that
       boundary, and everything was exact from the next one.
@@ -126,13 +136,15 @@ G15 18.4×.
     level-2 commit: 30 of 30 exact.
   - Level-2 macrosteps on the level-1 automaton: 15 of 15 exact.
 - **Noise together with larger errors** (§26).
-  - Dense level-0 noise together with certified level-1 errors on the
-    whole upper colony: 44 of 44 contained, repaired and bit-identical, with
-    random and copied values. In the ring with the noise alone, every
-    difference at every sample was a hit from the previous tick.
+  - Dense level-0 noise together with a dense 100×100 burst on the whole
+    upper colony: 44 of 44 contained, repaired and bit-identical, with
+    random and copied values. With the noise counted, the burst plus its
+    linked noise hits is one Gray level-1 error in 4 of 22 placements and a
+    higher-level error in the other 18 (§27). In the ring with the noise
+    alone, no difference survived a tick.
   - Noise at both lower levels together with a level-2 error: same outcome
     as without the noise.
-- **Unit tests:** 44 in `test_front_candidate.py`, one of which (a slow
+- **Unit tests:** 47 in `test_front_candidate.py`, one of which (a slow
   G8 GPU test) runs only on request.
 
 **Not established.**
@@ -1511,7 +1523,12 @@ five copies with a one-hot selector and votes once. Lane sources are
 treated the same way.
 - SelFrontEquivalenceTest checks that the state transition is identical to
   `mux_front`. It uses random inputs and forced comb arrivals, including
-  match passes, and a negative control shows it detects a changed bit.
+  match passes. A negative control was missing until the second audit
+  pointed it out (§27): the test now also mutates single gates of the new
+  netlist (one AND, OR or XOR replaced by another) and requires the same
+  comparison to catch every mutant of a gate driving a register output (8
+  of 8) and most mutants of random gates (13 and 16 of 20, for the two
+  modes).
 - G14's netlist shrinks from 16,966 to 14,601 gates (−14%), and the
   register lane reads per bit drop from about 77 to 35.
 
@@ -1607,8 +1624,9 @@ agent and left uncommitted for the user.
     - `zero` / `one`: stuck-at;
     - `invert`: the correct new state, inverted;
     - `freeze`: the old state kept;
-    - `copy`: the state of the same Address one colony further, which is
-      plausible but wrong.
+    - `copy`: the state of the same Address one colony further, as it was
+      at the previous tick, which is plausible but wrong (its Age is one
+      tick behind a healthy updated state; second audit).
 
 ### Finding 2: the six G8 "reruns" drew new faults
 
@@ -1643,15 +1661,18 @@ Proposition 4's two-period box by that much (Finding 3).
   - **SimBits:** Info differences only within two adjacent colonies of the
     box.
 - **Strict variant.** The all-field spatial variant ("strict") is recorded
-  too. It cannot hold for a design in which neighbouring colonies read the
-  damaged colony's state while that state is wrong.
+  too. We argue it cannot hold for a design in which neighbouring colonies
+  read the damaged colony's state while that state is wrong. The second
+  audit points out that this is an argument from Gray's informal prose, not
+  a proof that his full construction fails it (§27).
   - Gray describes exactly this (p. 35): undamaged colonies receive
     "possibly incorrect information about the states of the damaged
     colonies", and "the only lasting effects of the level-1 error are in the
     SimBit fields".
-  - We therefore read Proposition 4 as two parts: the SimBits are confined
-    to the box, and every field is restored after it. The time and SimBits
-    verdicts test exactly that.
+  - We therefore measure two properties weaker than the literal
+    proposition: the stored SimBit fields (every Info copy) are confined to
+    the box, and every field is restored after it. "Meets Proposition 4"
+    below means these two properties, not the literal statement.
   - Per-field diagnostic on G15: one dense 100×100 level-1 error late in
     period 0, compared with the error-free ring during period 1.
     - The damaged colony's Info differs, as allowed.
@@ -1683,16 +1704,17 @@ every phase × 3 places, random values, full state sampled every Q ticks.
 | Flags; local structure | f1, f2; addr, age | 0 / 48 | 0 / 48 |
 
 **What the table shows.**
-- **SimBits.** Proposition 4 holds fully: they never leave the box, in space
-  or in time.
+- **SimBits.** Confined to the box in space and time at every sample; the
+  per-tick checks of §27 confirm it at every tick.
 - **Mailbox and part of Workspace.** Only the time bound holds. Within the
   window they differ in colonies outside the box, and everything is
   restored when it ends.
 - **Workspace part (inherent).** Undamaged neighbours within interaction
   range hold, and compute with, information about the damaged colony; Gray
-  says so on p. 35. So the literal statement does not hold for his
-  construction either. His argument establishes only the SimBit part and
-  the restoration.
+  says so on p. 35. We read that as saying the literal statement does not
+  hold for his construction either, his argument establishing only the
+  SimBit part and the restoration. The second audit disputes that this
+  follows (§27); we claim only the two measured properties.
 - **Mailbox part (G15's design).** It spreads around the whole ring because
   G15 wipes the mail at the period boundary, not at each stage start as
   Gray does. Data loaded at a gather keeps circulating until the commit.
@@ -1743,9 +1765,17 @@ with damaged colony 32.
 - So the time part fails for most bursts at the end of a period (e.g.
   dense 100×100 boxes: 11/64 pass).
 
-**G15 = G14 + Gray's stage wipes.**
-- Histories and mail are cleared at the period boundary, Hold at the start
-  of the evaluation window (`stage_wipe`).
+**G15 = G14 + a wipe schedule adapted from Gray's stage wipes.**
+- Histories and mail are cleared at the commit (Age U−1), Hold at the start
+  of the evaluation window (Age E0−1), and scratch at the commit
+  (`clear_ws`), via `stage_wipe`.
+- This is an adaptation, not Gray's rule: Gray wipes Mailbox and Workspace
+  at *each* stage start. G15 wipes at two fixed times, chosen so that no
+  stage still needs what is wiped. The early program's Hold stores come
+  after E0−1, the special courier arrives at Age 23,904, and the last
+  evaluation pass ends before the commit at 112,607 (second audit,
+  finding 6; checked by successive closure and by the physical hand-off
+  continuations of §27, not proven for every damaged state).
 - Cost: 134 gates; U = 112,608, sized by a 20-seed search.
 - G15 passes GPU parity, one-period closure, and the margin and compact-front
   tests.
@@ -1774,8 +1804,11 @@ state sampled every Q ticks; b69 is the whole upper colony, 262,144 sites,
 | **G15** | b69 | 12 dense 100×100, whole upper colony (no slice), front hit | level-1 (12) | random | 12 / 12 | **12** | **12** | 0 | 12 |
 
 - **G15.** Every error set tested (all certified level-1 sets, plus 120
-  bursts that are unions of level-1 errors) meets both parts of
-  Proposition 4 at the sampled times.
+  bursts that are unions of level-1 errors) has both measured properties
+  at the sampled times: every field restored after the two-period box, and
+  every stored Info copy confined to its two colonies. §27 repeats the
+  main batches with exact per-tick checks. The literal all-field
+  proposition does not hold (strict: 0/64 for b62).
   - Damage to the upper state stays at one cell or none.
   - The upper level repairs it within one upper step.
   - Every field of every colony is exact again by the second period
@@ -1934,7 +1967,7 @@ Measured on the A100 in grid mode, with the GPU otherwise idle (`gpu/G15_level2_
 | final program | 56,454–56,459 | 6/6 | 6/6 |
 | commit | 112,606–112,611 | 6/6 | 6/6; F(level 2) from 112,608 |
 
-**Level-2 macrosteps on the level-1 automaton** (`closure2`). After each U ticks, decode(level-1 ring) must equal F(level-2 ring):
+**Level-2 macrosteps on the level-1 automaton** (`closure2`). After each U ticks, decode(level-1 ring) must equal F(level-2 ring). This is the one-level closure test run one level up, on level-1 cells: it shows level-2 macrosteps of the same rule, not new physical evidence. The reference F is `cand.step_numpy`, a separate evaluator of the same netlist (not an independent specification).
 - 4 random level-2 cells: 3 of 3 exact;
 - 8 random level-2 cells: 6 of 6 exact;
 - 8 consecutive cells of a healthy level-2 colony: 6 of 6 exact.
@@ -1942,11 +1975,13 @@ Measured on the A100 in grid mode, with the GPU otherwise idle (`gpu/G15_level2_
 ### 26.3 Level-0 noise together with level-1 errors
 
 The ring is the whole upper colony: 512 colonies, 262,144 sites, three upper steps.
-- **Error rings (22).** Each has one certified level-1 error: a dense 100×100 box at 9 phases × 2 places, plus 4 random placements.
+- **Error rings (22).** Each has a dense 100×100 burst at 9 phases × 2 places, plus 4 random placements. Alone, each burst is a Gray level-1 error.
+  - The noise changes that classification (second audit, §27). Classified against the full realized error set, the burst alone fails Gray's isolation condition (iv) in 22 of 22 cases, because noise hits within 23 sites of it are not level-0 errors.
+  - Together with the hits linked to it, it is one level-1 error in 4 of 22 cases. In the other 18, a two-site noise hit just outside the burst forms a small cluster at least 104 from the burst's far side, so by Gray's definition the set is a union of linked level-1 errors, i.e. a higher-level error.
 - **Noise.** Each error ring also has Gray's E0 grid (G = 50) for the whole run: about 3.5·10^7 level-0 errors per ring, including inside and around the level-1 error.
 - **Control.** One more ring has the E0 grid alone.
 
-| batch | values at the level-1 error | contained / repaired | Prop. 4 time / SimBits | bit-identical at the end |
+| batch | values at the burst | contained / repaired | Prop. 4 time / SimBits | bit-identical at the end |
 |---|---|---:|---:|---:|
 | b81 | random | 22 / 22 | 22 / 22 | 22 |
 | b82 | copy of the colony one further | 22 / 22 | 22 / 22 | 22 |
@@ -1966,12 +2001,12 @@ At level 1, a wipe of k colonies makes k adjacent level-1 cells wrong at one lev
 
 The table covers the whole upper colony, five phases × two places, four upper steps.
 
-| batch | error | contained / repaired | Prop. 4 time / SimBits / Info slots | bit-identical at the end |
+| batch | error | contained / repaired | time / Info copies / represented bits | bit-identical at the end |
 |---|---|---:|---:|---:|
-| b91 | 1 colony wiped | 10 / 10 | 10 / 10 / 9 | 10 |
-| b92 | 2 colonies wiped, aligned with the colonies ("mid") | 5 / 5 | 5 / 5 / 3 | 5 |
+| b91 | 1 colony wiped | 10 / 10 | 10 / 9 / 10 | 10 |
+| b92 | 2 colonies wiped, aligned with the colonies ("mid") | 5 / 5 | 5 / 3 / 5 | 5 |
 | b92 | 2 colonies' width, straddling: touches 3 colonies ("left") | level-2 error (§26.5) | — | — |
-| b96 | as b92, with the E0 grid throughout: aligned | 5 / 5 | 5 / 5 / 3 | 5 |
+| b96 | as b92, with the E0 grid throughout: aligned | 5 / 5 | 5 / 3 / 5 | 5 |
 | b96 | as b92, with the E0 grid throughout: straddling | level-2 error (§26.5) | — | — |
 | b95 | dense 1000×1000 box: over 2 colonies ("left" placements) | 5 / 5 | 5 / 5 / 5 | 5 |
 | b95 | dense 1000×1000 box: over 3 colonies ("mid" placements) | level-2 error (§26.5) | — | — |
@@ -1981,12 +2016,12 @@ The table covers the whole upper colony, five phases × two places, four upper s
 - **3 colonies** (b93; the "mid" placements of b95; the straddling placements of b92 and b96).
   - Level 1 alone does not repair these, as expected.
   - The wrong level-1 cells grow from 3–4 (9–10 for wipes in the gather phases) to 16–22 by the fourth upper step.
-  - §26.5 shows the next level-2 boundary removes this.
+  - §27 follows these particular errors to the next level-2 boundaries (finding 4 there); §26.5 tests similar wipes in a different, healthy level-2 setting.
 
-**SimBit check.** Gray's SimBits are the bits of the upper state.
-- "SimBits" in the table is the *represented* SimBit: for each logical cell that holds a bit of the upper state, the majority of its five stored copies.
-- "Info slots" is the earlier per-copy check, with each copy attributed to the site that holds it.
-- They can disagree near a wiped colony. The neighbours hold copies of the wiped colony's two edge cells, which are margin cells holding no SimBit, and those copies differ for up to a period.
+**SimBit checks** (sampled every Q ticks; these wipes are not level-1 errors, so Proposition 4 does not formally apply to them).
+- "Info copies" is the check of Gray's stored SimBit fields: every Info copy, attributed to the site that holds it, must differ only inside the two-colony box. It is the primary SimBit verdict (second audit, finding 3).
+- "Represented bits" votes the five copies of each logical cell that holds an upper-state bit. It is a decoder-level check and is reported only as an extra.
+- They disagree near a wiped colony. The neighbours hold copies of the wiped colony's two edge cells, which are margin cells holding no upper-state bit, and those copies differ for up to a period. So the stored fields leave the box in 1 of 10 one-colony wipes and in 2 of 5 aligned two-colony wipes, although no represented bit does.
 
 ### 26.5 Errors that only level 2 can clear
 
@@ -2000,7 +2035,7 @@ The table covers the whole upper colony, five phases × two places, four upper s
 - **Comparison.** At each level-2 boundary, the level-2 states and every field of every level-1 cell are compared with the error-free ring.
 - **Hand-off check.** At the hand-off, the wiped slice differs from the error-free one only in Info.
   - Apart from the encoding of the level-1 difference, at most 410 Info bits differ. In the 12 wiped rings that record it, none of them is in a slot that holds a represented SimBit.
-  - So nothing below level 1 is lost in the hand-off.
+  - That alone does not prove the continuation exact: G15 reads the Info of its reserved cells (3, Q−3, lo, hi−1), which hold no upper-state bit (second audit). §27 therefore checks the hand-off physically: each faulty slice and the plain encoding of its decoded state run on side by side.
 
 **Which level-2 bits a wipe destroys.**
 - Each level-2 bit lives in one level-1 cell, with copies in the four cells next to it.
@@ -2029,7 +2064,7 @@ The table covers the whole upper colony, five phases × two places, four upper s
 | final program, mid-pass | rich | middle | 3, 7 | ≤ 3 (0) | clean | boundary 1 |
 | final program, mid-pass | rich | comb fronts 3, 4 | 5, 7 | ≤ 3 (front 3: 2) | clean | boundary 1 |
 | same, with E0 at both levels | rich | comb front 3 | 7 | 3 (2) | clean | boundary 1 |
-| final program, mid-pass | rich | whole comb | 27 | ≈ 23 | clean | boundary 1 |
+| final program, mid-pass | rich | whole comb | 27 | 23 (2) | clean | boundary 1 |
 | final program, mid-pass | rich | level-2 Age, h1, Info bits | 7, 27 | ≤ 23 (≤ 6) | clean | boundary 1 |
 | final program, mid-pass | rich | middle | 64 | 60 (10) | **cell 0 wrong** (Age) | boundary 2 |
 | match pass | rich | whole comb | 27 | 23 (2) | **cell 0 wrong** (Address, Flag1, Info, h1, h2, scratch) | boundary 2 |
@@ -2042,7 +2077,7 @@ The table covers the whole upper colony, five phases × two places, four upper s
 | *copy* 8 level-1 steps before the commit | rich | middle | 7 | 3 (0 changed) | clean | boundary 1 |
 | *copy* 8 level-1 steps before the commit | rich | middle | 27, 64, 128 | ≤ 124 (≤ 29 changed) | **cell 0 wrong** (Info, h1, h2, scratch) | boundary 2 |
 
-"clean" means every field of every level-1 cell equals the error-free run. "cell 0" is the damaged level-2 cell.
+"clean" means every field of every level-1 cell equals the error-free run; in the rows with noise on the level-1 automaton, the cells that noise hit in the last two level-1 ticks are excluded. "cell 0" is the damaged level-2 cell. The level-2 part is a hybrid: four physical level-1 steps, then the level-1 automaton (`copy2` starts there directly). §27 checks the hand-off physically.
 
 **Findings.**
 
@@ -2054,7 +2089,7 @@ The table covers the whole upper colony, five phases × two places, four upper s
    - 52 of the 61 errors were gone at the first level-2 boundary: every field of every level-1 cell was exact.
    - In the other 9, the damaged level-2 cell, and only it, was wrong at the first boundary, and everything was exact from the second.
    - That is a level-0 error at level 2: one cell at one level-2 time. The level-2 rule removes it in one step through its own fivefold storage, as the physical rule removes a level-0 error in one tick.
-   - This is Gray's amplification one level further up: the whole chain of physical → level 1 → level 2 is observed, not assumed.
+   - This is Gray's amplification one level further up. It is observed through the hybrid: physically up to the hand-off, then on the level-1 automaton, with the hand-off itself checked physically in the cases of §27.
 3. **When the damaged cell is wrong for one step.** It happens when the error disrupts the level-2 computation itself, so that the colony commits a wrong new state:
    - the comb's live registers destroyed mid-pass;
    - the whole comb destroyed during the match pass;
@@ -2083,5 +2118,149 @@ The table covers the whole upper colony, five phases × two places, four upper s
 - A noise threshold.
 - A level-3 error: damage to three or more adjacent level-2 colonies.
 - Several level-2 errors close together.
-- The hand-off to the level-1 automaton rests on physical → level-1 closure. Closure is checked at every physical step and has held in every closure test, but it is not proven.
+- The hand-off to the level-1 automaton rests on physical → level-1 closure. Closure is checked at every physical step and has held in every closure test, and in every case of §27 the faulty physical state became identical to the plain encoding of its decoded state one level-1 step after the hand-off. It is not proven for every residual state.
 - A full physical level-2 step was not run: it would take weeks of GPU time.
+
+## 27. Second independent audit and response (2026-10-01)
+
+A second independent agent audited everything from `7caedb2` to `b3cdabe`, which covers §§24–26. Its report is `Report/fixed_rule/design_optimization_audit/AUDIT2.md`, written by that agent and left uncommitted for the user.
+
+**What it confirmed.**
+- G15 is still one fixed radius-5, 260-bit rule with its own compiled instruction table. A fresh build matches the cache and the manifest.
+- Its own nonzero rings closed at three successive physical periods.
+- The `phases` run really crosses a level-2 commit.
+- The headline counts of §26 match the receipts.
+- It continued two faulty physical rings past a `repair2` hand-off; both stayed on the level-1 automaton.
+
+**Its verdict on the errors.** "Qualified empirical support for Gray-like amplification", with the formal error labels and the literal Proposition 4 claim overstated.
+
+**First-audit findings, as it graded them.**
+- Resolved: the G8 reruns with their original faults, and the corrected numbers.
+- Resolved for the finite trials run: one-tick level-0 recovery.
+- Partially resolved: the Gray error classes (finding 2 below), "repaired" versus Proposition 4 (finding 3) and cache integrity (finding 5). The fixes below complete them.
+
+It made six new findings. All six are right; the responses follow.
+
+### Finding 1 (high): the summary's all-receipt claims were stale
+
+- **The problem.** The summary said that across *all* campaign receipts no undamaged colony was ever wrong, and that every error looked like one level-0 error upstairs (2,324 rings). That was written before §26 added the wipes of three colonies, which are level-2 errors and behave differently at level 1 by design.
+- **The fix.** `campaign_census.py` recounts over an explicit rule. Every receipt is included except smoke tests, non-batch analyses, and reruns of the same faults. It writes `Report/fixed_rule/design_optimization/campaign_census.json` (tracked), with the rule, the excluded files and why, and the sha256 of every receipt counted.
+
+| errors touching | error rings | upper steps | never wrong | wrong at one upper time, ≤ 2 adjacent cells, inside the touched colonies | other |
+|---|---:|---:|---:|---:|---:|
+| at most two colonies | 2,387 | 9,255 | 1,789 | 598 | 0 |
+| three or more colonies | 25 | 100 | 0 | 0 | 25 |
+
+- The summary now states the claim for errors touching at most two colonies, with these counts. The 25 larger errors are level-2 errors; their fate at level 2 is below (finding 4).
+
+### Finding 2 (high): classifier bugs, and "certified" errors under noise
+
+**Two real bugs in `gray_errors.py`, both fixed.**
+- `classify(S)` silently dropped isolated single errors from S and could then certify S. Gray takes level-1 errors inside E minus E0, so such an S is now rejected. The rest of S is classified separately, under `core`.
+- The fast path for large sets missed isolated *pairs* of adjacent errors as level-0 errors. `level0_points` is now exact for any finite set: a point is level-0 when the single site, or one of the two adjacent pairs containing it, is (24, 24)-separated from the rest. A bucket grid keeps it fast.
+
+**Condition (iii) on large sets is now decided exactly, where the window argument alone left it undecided.**
+- Separated sets have separated subsets, so (iii) fails exactly when two 2-point minimal candidates are (104, 104)-separated.
+- A pair with a point inside a 104 × 104 window R is linked to all of R. So in any separated configuration, one pair lies outside R.
+- The decision therefore only needs the linked pairs outside R, each checked against the points far from it.
+
+**New tests.** They reproduce the auditor's counterexamples (an isolated site inside S; an isolated pair next to a dense cluster) and the burst-in-noise cases.
+
+**Re-certification of every campaign error** (`reclassify_receipts.py`, output `reclassified.json`).
+- Every standalone certificate is unchanged:
+  - G15: 548 errors (dense 100×100 boxes and sparse clusters);
+  - G14: 128;
+  - dense 200×200 boxes stay unions of level-1 errors.
+- **b81/b82 (a burst under dense E0 noise).** The auditor is right. Classified against the full realized error set (the kernel's own masks), the burst alone fails isolation (iv) in 22 of 22 placements: noise hits within 23 sites of it are not level-0 errors.
+  - With its linked hits, the burst is one level-1 error in 4 of 22 placements.
+  - In the other 18, a two-site noise hit lands next to the burst. By Gray's literal definitions that pair is itself a minimal candidate (two linked single sites), at least 104 sites from the burst's far side. So the set is a union of linked level-1 errors, i.e. a higher-level error.
+  - All 44 runs (b81 and b82, the same placements) were contained at one upper step and repaired. §26.3 and the summary now use these labels.
+- The campaign driver now classifies every noisy burst against its realized error set (`gray_full_set` in the receipt).
+
+### Finding 3 (medium): sampled and majority-based Proposition 4 verdicts
+
+**Wording.** The literal Proposition 4 (every simulation-structure field equal outside the box) does not hold for G15: the all-field check gives 0/64. §25 and the summary now say so. They claim only two measured properties:
+- every field is equal again after the two-period box;
+- every stored Info copy (Gray's SimBit fields, per copy, attributed to the site holding it) differs only inside the two-colony box.
+
+We still read Gray's p. 35 as saying that the literal form fails for his construction too, but that is an argument, not a proof.
+
+**Exact per-tick checks** (`GpuSim.track`, CUDA).
+- **What is recorded.** After every tick, for every ring and colony: the first and last tick at which the ring differs from the reference, in the Info copies and in any field.
+- **What is excluded.** Only the sites that the ring's own noise corrupted in that same update. A persistent difference at a site hit again is therefore missed at most for that one tick.
+- **Test.** The tracker is checked against states downloaded after every single tick (GPU tests, 7 of 7 pass).
+- **Rerun batches.** The main batches were rerun with `--track`, with the same faults as the originals:
+
+| batch (rerun of) | errors | values | rings | contained / repaired | Info copies confined, every tick | every field restored, every tick | all fields confined, every tick | bit-identical at the end |
+|---|---|---|---:|---:|---:|---:|---:|---:|
+| b62t (b62) | dense 100×100 level-1 errors, 16 phases × 3 places + 16 random | random | 64 | 64 / 64 | **64** | **64** | 0 | 64 |
+| b63t (b63) | sparse level-1 clusters | random | 64 | 64 / 64 | **64** | **64** | 61 | 64 |
+| b65t (b65) | dense 100×100, upper front hit in its final program | random | 64 | 64 / 64 | **64** | **64** | 0 | 64 |
+| b66t (b66) | dense 100×100 | copy | 56 | 56 / 56 | **56** | **56** | 1 | 56 |
+| b81t (b81) | dense 100×100 burst under the E0 grid, whole colony | random | 22 | 22 / 22 | **22** | **22** | 0 | 22 |
+| b92t (b92) | 2 colonies wiped, aligned, whole colony | random | 5 | 5 / 5 | 0 | **5** | 0 | 5 |
+| b96t (b96) | the same under the E0 grid | random | 5 | 5 / 5 | 0 | **5** | 0 | 5 |
+| b95t (b95) | dense 1000×1000 over 2 colonies, whole colony | random | 5 | 5 / 5 | **5** | **5** | 0 | 5 |
+
+- **Level-1 errors.** For all 248 certified level-1 errors and the 22 noisy bursts, the stored Info copies never left the two-colony box at any tick. Every field was equal again after the box at every tick. The sampled verdicts of §25 are confirmed exactly.
+- **Two-colony wipes** (not level-1 errors, so Proposition 4 does not formally apply).
+  - The Info copies outside the box are in the two neighbouring colonies only, and only while the wipe lasts: ticks t₀+2 to t₀+201 for a 200-tick wipe from t₀, and up to about 80 ticks longer under noise, during healing.
+  - The neighbours' two edge sites hold copies of the wiped colony's edge cells, which are margin cells holding no upper-state bit. A level-1 burst never reaches a colony's far edge, so this cannot happen for level-1 errors.
+- **Noise-only rings, every tick.** No difference survived a tick in the middle colonies of the slice (b62t, 450,432 ticks) or anywhere in the whole colony (b81t, 337,824 ticks). In the slice, survivors occur only at its two ends, where the upper level raises Flag1 at the slice's Address jump (finding 6 of the first audit).
+- **What is not done again here.** The 200×200-burst batch (b61) was not rerun per tick. Its sampled verdicts (§25) stand.
+
+### Finding 4 (medium): the level-2 results rest on a hybrid hand-off
+
+**Wording.** §26 now states the boundary plainly.
+- Each `repair2` case is physical for four level-1 steps, then continues on the level-1 automaton.
+- `copy2` is a direct level-1 injection, a model of an adversarial error and not a physical run.
+- The particular b92–b96 errors had not been followed to level 2.
+
+**The hand-off checked physically.** `repair2 --verify-handoff 2`, and the campaign's new `--continue-level2`, run each faulty physical ring next to a canonical twin for one or two more level-1 steps. The twin is the plain encoding of the ring's decoded state.
+
+- **Coverage.** 11 `repair2` configurations, rerun with the same faults:
+  - every physical case that left a wrong level-2 cell: front 3 mid-pass, with and without noise; the whole comb in the match pass; the 64-colony wipe mid-pass;
+  - both 64-colony wipes, which have the largest residues;
+  - wipes straddling the level-2 commit, at the start of the period, and on the level-2 field bits;
+  - the whole comb mid-pass.
+  - That is 18 wiped rings plus one noise-only ring.
+  - Every rerun reproduced its earlier level-2 outcome.
+- **Result.** In all 19, the faulty slice was physically identical to its twin one level-1 step after the hand-off, and still identical a step later. In both steps the decoded states followed the level-1 automaton away from the slice ends.
+- **What follows.** From one level-1 step after the hand-off, the faulty physical run *is* the canonical one. Continuing on the level-1 automaton is then exact up to closure of canonical encodings, which every closure test checks. The residue before that step (at most 410 Info bits, none in a slot that holds an upper-state bit) is overwritten within one level-1 step.
+- **What does not follow.** This is not a proof for every residual state: a residue in the Info of a reserved cell could in principle change the step in which it is overwritten. The auditor's own probe of that case changed five flag sites for a while, and they were gone by the period boundary.
+
+**The b92–b96 errors followed to level 2.** `level1_campaign.py --continue-level2 2` does this for whole-colony runs:
+1. after the physical steps, it records the hand-off residue by kind, including the reserved cells whose Info the rule reads (3, Q−3, lo, hi−1);
+2. it checks the hand-off physically, as above;
+3. it continues every ring on the level-1 automaton across two level-2 boundaries.
+
+- **2-colony wipes, b92t** (5 aligned, 5 straddling three colonies). All 10 are clean at both level-2 boundaries.
+  - At the hand-off, the residue of the straddling ones lies only in Info slots of the reserved cells: 55–60 bits, none in a represented slot.
+  - Every hand-off check passes: decoded states equal F, and the physical ring is identical to its twin after one level-1 step.
+- **3-colony wipes, b93t** (10).
+  - Seven are clean at both level-2 boundaries.
+  - Three change the level-2 state from the first boundary on: final program "left", commit "mid" and commit "left", i.e. wipes late in the first level-1 step of a level-2 period. They change Age, Flag2, Info, Hold, histories and scratch.
+  - They are still wrong at the second boundary. This setting is a ring of *one* level-2 cell, a random state that is its own neighbour, so every level-2 copy of its bits is held by the damaged cell itself and nothing can outvote it. The rule's level-2 redundancy has nothing to work with.
+  - Every hand-off check passes here too (residue 55–100 bits, all in reserved Info slots).
+- **The same timing with real level-2 neighbours** (`repair2 --level1-age 0`, 32 level-2 cells, wipes of 3 and 4 colonies at physical ticks 112,508 and 78,624, data-rich and fresh colonies). All 6 rings are clean at four successive level-2 boundaries. The level-2 commit is never affected, and every hand-off check passes.
+- **b95t and b96t:** all 10 boxes of b95t, including the five over three colonies, and all 10 wipes of b96t under the E0 grid, including the five straddling ones, are clean at both level-2 boundaries; their hand-off checks all pass.
+- **Counts.** 65 hand-off checks in all (25 `repair2` rings, 40 campaign rings), every one identical to its twin one level-1 step after the hand-off.
+
+### Finding 5 (low): the manifest pinned the artifact, not the recipe
+
+- **Manifest.** It now also pins a digest of each recipe (parameters, layout and compile settings), written from fresh builds of all 17 recipes. All 17 reproduced their caches bit for bit, so only the recipe digests were added.
+- **Loading.** `load()` refuses a cache whose parameters differ from the current recipe. `verify()` refuses one whose recipe digest differs, which catches changed compile settings too.
+- **Test.** Changing G15's `stage_wipe`, or its scheduler seed, makes the load fail.
+
+### Finding 6 (low): wording of the wipe schedule; a missing negative control
+
+- **Wipe schedule.** G15's wipes are now described as what they are: a schedule *adapted* from Gray's stage wipes. Histories and mail are cleared at the commit, Hold at E0−1, scratch at the commit. Gray clears at every stage start.
+- **Negative control.** §24 claimed one for the `sel_front` test, but the test had none. It now mutates single gates of the new netlist and must catch every mutant of a gate driving a register output (8 of 8) and most random ones (13 and 16 of 20 for the two modes).
+
+### Smaller points from the ledger
+
+- **`copy` mode.** It copies the neighbouring colony's state from the *previous* tick, so its Age is one tick behind; the wording is fixed.
+- **Noise case in §26.5.** "Clean" there excludes the cells that the level-1 noise hit in the last two ticks.
+- **`closure2`.** It is the one-level closure test run one level up: level-2 macrosteps of the same rule, not new physical evidence. Its reference, `cand.step_numpy`, is a separate evaluator of the same netlist.
+
+**Tests:** 47, one opt-in. The new ones are the per-tick tracker, the classifier counterexamples and the recipe check; the `sel_front` test gained its negative control.

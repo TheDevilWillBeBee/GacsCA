@@ -185,6 +185,11 @@ def manifest():
         return json.load(fh)['candidates']
 
 
+def recipe_digest(name):
+    """sha256 of the recipe (parameters, layout and compile settings) in canonical JSON."""
+    return hashlib.sha256(json.dumps(RECIPES[name], sort_keys=True, default=list).encode()).hexdigest()
+
+
 def digests(cand):
     return dict(candidate_sha256=cand.digest(), netlist_sha256=cand.comp.digest,
                 rom_sha256=hashlib.sha256(cand.rom.tobytes()).hexdigest(),
@@ -192,12 +197,15 @@ def digests(cand):
 
 
 def verify(name, cand):
-    """Raise unless cand matches the trusted manifest entry for name (if any)."""
+    """Raise unless cand matches the trusted manifest entry for name (if any): its ROM, layout
+    and netlist digests, and the digest of the recipe the manifest was built from."""
     want = manifest().get(name)
     if want is None:
         return False
     got = digests(cand)
     bad = [k for k in got if want.get(k) != got[k]]
+    if 'recipe_sha256' in want and want['recipe_sha256'] != recipe_digest(name):
+        bad.append('recipe_sha256')
     if bad:
         raise RuntimeError(f'{name}: {", ".join(bad)} differ from the trusted manifest '
                            f'({os.path.relpath(MANIFEST, ROOT)}); rebuild or re-audit the cache')
@@ -218,6 +226,11 @@ def load(name, rebuild=False, check_manifest=True):
         for key in ('skew', 'gathers_q'):
             if key in params:
                 params[key] = tuple(params[key])
+        stale = [k for k, v in r['params'].items()
+                 if json.dumps(params.get(k), default=list) != json.dumps(v, default=list)]
+        if stale:
+            raise RuntimeError(f'{name}: cache was built from a different recipe ({", ".join(stale)}); '
+                               f'rebuild it (load(name, rebuild=True))')
         p = FAMILIES[r.get('family', 'R')](**params).check()
         cand = machine.Candidate(p, z['rom'], z['layout'])
         if str(z['netlist_sha256']) != cand.comp.digest:

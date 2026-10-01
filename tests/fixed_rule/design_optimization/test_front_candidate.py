@@ -540,6 +540,7 @@ class SelFrontEquivalenceTest(unittest.TestCase):
         rng = np.random.default_rng(5)
         N = 2048
         arrivals = 0
+        seen = []
         for forced in (False, True, True, True):
             vals = {nm: rng.random(N) < 0.5 for nm in comp0.inputs}
             if forced:
@@ -562,15 +563,39 @@ class SelFrontEquivalenceTest(unittest.TestCase):
                         vals[('x', jj, f, 0)] = np.zeros(N, bool)
             o0 = comp0.evaluate(vals, dtype=bool)
             o1 = comp1.evaluate(vals, dtype=bool)
-            arr = o0[('arrive', 0)]
-            self.assertTrue(np.array_equal(arr, o1[('arrive', 0)]))
-            arrivals += int(arr.sum())
-            for k in o0:
-                if k[0] in ('psel', 'laddr'):
-                    self.assertTrue(np.array_equal(o0[k][arr], o1[k][arr]), k)
-                else:
-                    self.assertTrue(np.array_equal(o0[k], o1[k]), k)
+            self.assertTrue(self._same(o0, o1))
+            arrivals += int(o0[('arrive', 0)].sum())
+            seen.append((vals, o0))
         self.assertGreater(arrivals, 2 * N)
+        # negative control: the same comparison, on the same inputs, catches single-gate mutants
+        # of comp1 (one AND/OR/XOR replaced by another): every mutant of a gate that drives a
+        # register output, and most mutants of randomly chosen gates
+        import copy
+        n_in = 2 + len(comp1.inputs)
+
+        def caught(g):
+            m = copy.copy(comp1)
+            m.gates = list(comp1.gates)
+            op, a, b = m.gates[g]
+            m.gates[g] = ((op + 1) % 3, a, b)
+            return any(not self._same(o, m.evaluate(v, dtype=bool)) for v, o in seen)
+        reg = sorted({node - n_in for k, node in comp1.outputs.items()
+                      if k[0] == 'y' and k[1] == 'reg' and node >= n_in})[:8]
+        self.assertEqual(len(reg), 8)
+        self.assertTrue(all(caught(g) for g in reg))
+        rand = np.random.default_rng(mode).choice(len(comp1.gates), 20, replace=False)
+        self.assertGreaterEqual(sum(caught(int(g)) for g in rand), 12)
+
+    @staticmethod
+    def _same(o0, o1):
+        arr = o0[('arrive', 0)]
+        if not np.array_equal(arr, o1[('arrive', 0)]):
+            return False
+        for k in o0:
+            a, b = (o0[k][arr], o1[k][arr]) if k[0] in ('psel', 'laddr') else (o0[k], o1[k])
+            if not np.array_equal(a, b):
+                return False
+        return True
 
 
 class CacheIntegrityTest(unittest.TestCase):
@@ -605,6 +630,29 @@ class CacheIntegrityTest(unittest.TestCase):
                 candidates.CACHE = src
 
 
+    def test_a_changed_recipe_rejects_the_cache(self):
+        """The cache is also checked against the current recipe (second audit, finding 5): a
+        changed rule parameter, or a changed compile setting that leaves the parameters alone
+        (caught by the recipe digest pinned in the manifest), makes load() refuse the cache."""
+        import copy
+        saved = candidates.RECIPES['G15']
+        self.assertEqual(candidates.manifest()['G15'].get('recipe_sha256'), candidates.recipe_digest('G15'))
+        try:
+            r = copy.deepcopy(saved)
+            r['params']['stage_wipe'] = False
+            candidates.RECIPES['G15'] = r
+            with self.assertRaises(RuntimeError):
+                candidates.load('G15')
+            r = copy.deepcopy(saved)
+            r['compile']['multifront']['order_seed'] = 6
+            candidates.RECIPES['G15'] = r
+            with self.assertRaises(RuntimeError):
+                candidates.load('G15')
+        finally:
+            candidates.RECIPES['G15'] = saved
+        candidates.load('G15')
+
+
 class GrayErrorClassTest(unittest.TestCase):
     """gray_errors implements Gray's section 5.1 classes for finite sets."""
 
@@ -632,6 +680,45 @@ class GrayErrorClassTest(unittest.TestCase):
         # isolation (iv): a second cluster closer than (24Q, 24U) disqualifies
         r = ge.classify([(0, 0), (10, 10)], E=[(0, 0), (10, 10), (5000, 0), (5010, 10)],
                         Q=512, U=1 << 16)
+        self.assertFalse(r['level1'])
+
+    def test_level0_errors_inside_S_and_isolated_pairs(self):
+        """S must avoid E0 (Gray takes S inside E minus E0); an isolated adjacent pair is a
+        level-0 error also in a large set; a dense box with E0-grid hits just outside it fails
+        isolation (iv) alone, and together with the linked hits is one level-1 error."""
+        from gacsca.fixed_rule.design_optimization import gray_errors as ge
+        S = set(ge.dense_box(0, 0, 3, 3)) | {(1000, 0)}
+        r = ge.classify(S, Q=512, U=112608)
+        self.assertFalse(r['level1'])
+        self.assertEqual(r['level0'], 1)
+        self.assertTrue(r['core']['level1'])
+        box = set(ge.dense_box(0, 0, 36, 36))
+        pair = {(1000, 0), (1001, 0)}
+        self.assertEqual(ge.level0_points(box | pair), pair)
+        self.assertTrue(ge.classify(box, box | pair, Q=512, U=112608)['level1'])
+        big = set(ge.dense_box(0, 0, 100, 100))
+        hits = {(-10, 40), (120, 70), (50, -15)}
+        far = {(3000, 3000), (3500, 2000), (3501, 2000)}
+        E = big | hits | far
+        self.assertEqual(ge.level0_points(E), far)
+        self.assertFalse(ge.classify(big, E, Q=512, U=112608)['level1'])           # (iv)
+        r = ge.classify(big | hits, E, Q=512, U=112608)
+        self.assertTrue(r['level1'], r)
+        self.assertEqual(r['method'], 'hub window')
+        # an adjacent pair of hits 10 sites left of the box is itself a minimal candidate, 104 or
+        # more away from the box's right edge: (iii) fails, exactly decided
+        E2 = big | {(-10, 40), (-11, 40)}
+        r = ge.classify(E2, Q=512, U=112608)
+        self.assertFalse(r['level1'])
+        self.assertEqual(r['method'], 'witness')
+        a, b = r['witness']
+        self.assertFalse(ge.linked(a, b, 104, 104))
+        # two sites 2 left of the box: every pair at the far side is within 103, (iii) holds
+        r = ge.classify(big | {(-2, 40), (-3, 40)}, Q=512, U=112608)
+        self.assertTrue(r['level1'], r)
+        # two linked stragglers on opposite sides, linked to each other's neighbourhood only
+        # through the box, do not break (iii); two separated linked pairs do
+        r = ge.classify([(0, 0), (10, 10), (300, 0), (310, 10)], Q=512, U=1 << 16)
         self.assertFalse(r['level1'])
 
     def test_generated_clusters_are_checked(self):
@@ -720,6 +807,43 @@ class GpuBackendTest(unittest.TestCase):
         B = sim.error_masks(gpu.noise(seed=1, boxes=[(100, 200, 10, 30, 1.0)]), 0, 0, 50)
         self.assertTrue(B[10:40, 100:300].all())
         self.assertEqual(int(B.sum()), 200 * 30)
+
+    def test_per_tick_tracking_matches_a_tick_by_tick_comparison(self):
+        """GpuSim.track records, per colony, the first and last tick at which a ring differs from
+        ring 0 in the given rows and in any row, excluding the sites the ring's own noise hit in
+        that update; compared with states downloaded after every single tick."""
+        from gacsca.fixed_rule.design_optimization import gpu
+        c = cand()
+        C = c.c_backend()
+        Q, ncol, T = c.p.Q, 6, 120
+        P = C.pack(codec.encode(c, codec.random_upper(c, ncol, np.random.default_rng(3))))
+        cfgs = [gpu.noise(), gpu.noise(7, boxes=[(Q + 40, 30, 5, 20, 1.0)]),
+                gpu.noise(8, e0_grid=50, boxes=[(3 * Q + 10, 30, 40, 10, 1.0)])]
+        rows = [c.row[(f, i)] for f, w in c.schema if f == 'info' for i in range(w)]
+        sim = gpu.GpuSim(c, 3, ncol, mode='grid')
+        sim.set_state(P)
+        sim.set_noise(cfgs)
+        sim.track(rows)
+        ref = gpu.GpuSim(c, 3, ncol, mode='grid')
+        ref.set_state(P)
+        ref.set_noise(cfgs)
+        want = {k: np.full((3, ncol), -1) for k in ('first_rows', 'last_rows', 'first_any', 'last_any')}
+        for t in range(T):
+            ref.run(1)
+            S = ref.state()
+            X = [C.unpack(S[r], ref.N) for r in range(3)]
+            for r in (1, 2):
+                fresh = ref.error_masks(cfgs[r], r, t, 1)[0]
+                for key, d in (('rows', (X[r][rows] != X[0][rows]).any(axis=0)), ('any', (X[r] != X[0]).any(axis=0))):
+                    for col in set((np.nonzero(d & ~fresh)[0] // Q).tolist()):
+                        if want['first_' + key][r, col] < 0:
+                            want['first_' + key][r, col] = t + 1
+                        want['last_' + key][r, col] = t + 1
+        sim.run(T)
+        got = sim.tracking()
+        for k in want:
+            self.assertTrue(np.array_equal(got[k], want[k]), (k, got[k], want[k]))
+        self.assertTrue((want['last_any'][1:] > 0).any(axis=1).all())
 
     def test_value_modes_replace_exactly_the_masked_sites(self):
         """Each error value mode (zero, one, invert, freeze, copy) changes the

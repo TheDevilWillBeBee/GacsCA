@@ -24,7 +24,7 @@ boundary), plus `--random` placements overlapping the target colony:
                   confirms it is one level-1 error.
 Error sites take values by `--mode` (gpu.noise: random bits, stuck-at zero
 or one, the correct new state inverted, the old state frozen, or the state of
-the same Address one colony further: a plausible but wrong state).
+the same Address one colony further at the previous tick: a plausible but wrong state).
 
 The noise seed of a scenario depends only on its identity (phase and place,
 or its index among the random scenarios), so filtering with --phases or
@@ -128,6 +128,93 @@ def front_cell(cand, up):
     return int(cells[len(cells) // 2])
 
 
+def field_cells(cand, A, B):
+    """Number of cells in which each field of the unpacked states A and B differs."""
+    out = {}
+    for f, w in cand.schema:
+        r0 = cand.row[(f, 0)]
+        n = int((A[r0:r0 + w] != B[r0:r0 + w]).any(axis=0).sum())
+        if n:
+            out[f] = n
+    return out
+
+
+def continue_level2(cand, args, sim, R, cfgs):
+    """Follow each ring's damage to the next --continue-level2 level-2 boundaries (whole upper
+    colony only: a consistent level-1 ring of one level-2 cell).
+
+    At the hand-off (the end of the physical run) the physical rings are decoded; the bits that
+    the decoded difference does not explain are recorded by kind (Info slots of represented
+    cells, of the reserved cells the rule reads, of unused cells; other fields). The hand-off is
+    then checked physically: every ring and the plain encoding of its decoded state run one more
+    level-1 step side by side (decoded results against F, and physical equality). Finally the
+    decoded level-1 rings run on the level-1 automaton (the same rule one level up), and at each
+    level-2 boundary the level-2 state and every level-1 field are compared with ring 0."""
+    p, C = cand.p, cand.c_backend()
+    Q, U = p.Q, p.U
+    assert not args.slice, '--continue-level2 needs the whole upper colony (--slice 0)'
+    S = sim.state()
+    N = sim.N
+    X = [C.unpack(S[r], N) for r in range(R)]
+    dec = [codec.decode(cand, x) for x in X]
+    n_col = dec[0].shape[1]
+    enc0 = codec.encode(cand, dec[0])
+    layout = set(int(v) for v in cand.layout)
+    reserved = set(int(v) for v in p.fam().reserved_cells(p)) if hasattr(p.fam(), 'reserved_cells') else set()
+    info_rows = {cand.row[('info', bit)]: off for bit, off in p.fam().info_copies(p)}
+    out = dict(level1_age_at_handoff=args.upper_age + args.upper_steps, rings=[])
+    for r in range(1, R):
+        Rr = X[r] ^ X[0] ^ codec.encode(cand, dec[r]) ^ enc0
+        if cfgs[r].e0_grid or cfgs[r].nbox:
+            Rr[:, sim.error_masks(cfgs[r], r, sim.t - 1, 1)[0]] = False     # hit in the last tick
+        kinds = dict(info_represented=0, info_reserved=0, info_unused=0, other_fields=0)
+        for row in np.nonzero(Rr.any(axis=1))[0]:
+            sites = np.nonzero(Rr[row])[0]
+            if row in info_rows:
+                for y in ((sites - info_rows[row]) % N) % Q:
+                    kinds['info_represented' if y in layout else 'info_reserved' if y in reserved else 'info_unused'] += 1
+            else:
+                kinds['other_fields'] += len(sites)
+        res_sites = np.nonzero(Rr.any(axis=0))[0]
+        out['rings'].append(dict(ring=r, level1_cells_differing_at_handoff=int((dec[r] != dec[0]).any(axis=0).sum()),
+                                 residue_bits=kinds,
+                                 residue_addresses=sorted(set((res_sites % Q).tolist()))[:40]))
+    # physical check of the hand-off: actual rings and canonical twins, one more level-1 step
+    twins = [C.pack(codec.encode(cand, dec[r])) for r in range(1, R)]
+    v = gpu.GpuSim(cand, 2 * R - 1, n_col, mode='grid')
+    v.set_state(np.stack([S[r] for r in range(R)] + twins), t=sim.t)
+    v.set_noise([gpu.noise()] * (2 * R - 1))
+    v.run(U)
+    V = v.state()
+    for r in range(1, R):
+        a, tw = C.unpack(V[r], N), C.unpack(V[R - 1 + r], N)
+        want = cand.step_numpy(dec[r])
+        out['rings'][r - 1].update(handoff_check=dict(
+            decoded_actual_equals_F=bool(np.array_equal(codec.decode(cand, a), want)),
+            decoded_twin_equals_F=bool(np.array_equal(codec.decode(cand, tw), want)),
+            physical_sites_actual_vs_twin=int((a != tw).any(axis=0).sum())))
+    del v
+    # the level-1 automaton to the next level-2 boundaries
+    a1 = out['level1_age_at_handoff']
+    l1 = gpu.GpuSim(cand, R, n_col // Q, mode='block')
+    l1.set_state(np.stack([C.pack(d) for d in dec]), t=0)
+    l1.run((a1 // U + 1) * U - a1)
+    for b in range(args.continue_level2):
+        if b:
+            l1.run(U)
+        L = l1.state()
+        Ls = [C.unpack(L[r], n_col) for r in range(R)]
+        d2 = [codec.decode(cand, x) for x in Ls]
+        for r in range(1, R):
+            out['rings'][r - 1].setdefault('level2_boundaries', []).append(dict(
+                level1_time=(a1 // U + 1 + b) * U,
+                level2_fields_wrong=field_cells(cand, d2[r], d2[0]),
+                level1_cells_differing=int((Ls[r] != Ls[0]).any(axis=0).sum()),
+                level1_fields_differing=field_cells(cand, Ls[r], Ls[0])))
+    del l1
+    return out
+
+
 def diff_sites(S, r, rows=None):
     """Boolean per-site difference between ring r and ring 0 (all fields, or
     the given rows)."""
@@ -171,6 +258,12 @@ def main():
     ap.add_argument('--wipe', type=int, default=0,
                     help='errors k colonies wide (k*Q cells, aligned to colony boundaries) instead of side x side')
     ap.add_argument('--height', type=int, default=0, help='duration in ticks of the error box (default: side)')
+    ap.add_argument('--track', action='store_true',
+                    help='exact per-tick checks on the GPU: per colony, the first and last tick at which a ring '
+                         'differs from ring 0 in the Info copies and in any field (fresh noise hits excluded)')
+    ap.add_argument('--continue-level2', type=int, default=0,
+                    help='whole colony only: follow every ring to this many level-2 boundaries on the level-1 '
+                         'automaton, after a physical check of the hand-off')
     ap.add_argument('--density', default='', help='comma list of p: side x side boxes, each site-tick an error with prob. p')
     ap.add_argument('--density-count', type=int, default=6, help='random boxes per density value')
     ap.add_argument('--pairs', type=int, default=0,
@@ -307,6 +400,22 @@ def main():
     sim.set_state(X0)
     sim.set_noise(cfgs)
     for i, s in enumerate(sc, 1):
+        if s['kind'] == 'E1' and s.get('with_level0_noise'):
+            # Gray's class within the realized full error set: the burst plus the E0-grid hits
+            # around it (a hit within 23 of the burst breaks isolation (iv) for the burst alone)
+            x_lo = max(0, min(b[0] for b in s['boxes']) - 48)
+            x_hi = min(sim.N, max(b[0] + b[1] for b in s['boxes']) + 48)
+            t_lo = max(0, min(b[2] for b in s['boxes']) - 48)
+            t_hi = max(b[2] + b[3] for b in s['boxes']) + 48
+            m = sim.error_masks(cfgs[i], i, t_lo, t_hi - t_lo)
+            ts, xs = np.nonzero(m[:, x_lo:x_hi])
+            E = set(zip((xs + x_lo).tolist(), (ts + t_lo).tolist()))
+            box = {(x + dx, t + dt) for (x, w, t, h, _) in s['boxes'] for dx in range(w) for dt in range(h)}
+            g = gray_errors.classify_burst_in_noise(box, E, Q=Q, U=U)
+            s['gray_full_set'] = dict(burst_alone=g['alone']['level1'], burst_alone_method=g['alone']['method'],
+                                      with_linked_hits=g['with_linked']['level1'],
+                                      with_linked_hits_method=g['with_linked']['method'],
+                                      linked_hits=g['linked_points'], other_hits_in_window=g['other_points'])
         if s['kind'] == 'E1' and 'gray' not in s:
             # the realized error set of a Bernoulli box, from the kernel's own masks
             t_lo = min(b[2] for b in s['boxes'])
@@ -343,6 +452,8 @@ def main():
         ring['info_events'] = []
         ring['info_slot_events'] = []
         ring['simbit_events'] = []
+    if args.track:
+        sim.track(sorted(set(row for row, _ in info_copy_rows)))
     one_tick = dict(samples=0, violations=0, by_colony={}, examples=[])
     prev = [ring_up] * R
     for k in range(1, args.upper_steps + 1):
@@ -437,6 +548,21 @@ def main():
         one_tick['violations_in_middle_colonies'] = sum(one_tick['by_colony'][col] for col in mid)
         one_tick['by_colony'] = {str(k): v for k, v in sorted(one_tick['by_colony'].items())}
     rec['e0_one_tick'] = one_tick if e0_ring else None
+    if args.track:
+        tr = sim.tracking()
+        for r in range(1, R):
+            rec['rings'][r - 1]['per_tick'] = {
+                key: [[int(col), int(tr['first_' + key][r, col]), int(tr['last_' + key][r, col])]
+                      for col in np.nonzero(tr['last_' + key][r] >= 0)[0]] for key in ('rows', 'any')}
+        if e0_ring:
+            cols = rec['rings'][e0_ring[0] - 1]['per_tick']['any']
+            rec['e0_one_tick_per_tick'] = dict(
+                ticks=int(sim.t), colonies_with_a_difference_surviving_a_tick=cols,
+                in_middle_colonies=[x for x in cols if not args.slice or abs(x[0] - c) <= 16])
+    if args.continue_level2:
+        rec['level2_continuation'] = continue_level2(cand, args, sim, R, cfgs)
+        for row in rec['level2_continuation']['rings']:
+            print('level-2 continuation', json.dumps(row)[:400], flush=True)
     # verdicts
     summary = dict(total=0, decoded_contained=0, decoded_repaired=0, prop4=0, prop4_time=0,
                    prop4_simbits=0, prop4_info_slots=0, prop4_info_slots_logical=0, prop4_strict=0,
@@ -462,6 +588,13 @@ def main():
                   info_slots_logical=prop4_check([(t, cols) for t, cols, _ in ring['info_events']], *args4)['ok'],
                   strict=prop4_check(ev, *args4)['ok'])
         p4['ok'] = p4['time'] and p4['simbits']
+        if 'per_tick' in ring:
+            # exact over every tick (no sampling): per colony, first and last differing tick
+            evr = [(t, [col]) for col, f, l in ring['per_tick']['rows'] for t in (f, l)]
+            eva = [(t, [col]) for col, f, l in ring['per_tick']['any'] for t in (f, l)]
+            p4.update(info_fields_per_tick=prop4_check(evr, *args4)['ok'],
+                      time_per_tick=prop4_check(eva, *args4, time_only=True)['ok'],
+                      strict_per_tick=prop4_check(eva, *args4)['ok'])
         last_t = sim.t
         ident = not ring['events'] or ring['events'][-1][0] < last_t
         ring['last_difference_tick'] = ring['events'][-1][0] if ring['events'] else None
@@ -475,6 +608,9 @@ def main():
         summary['prop4_info_slots'] += p4['info_slots']
         summary['prop4_info_slots_logical'] += p4['info_slots_logical']
         summary['prop4_strict'] += p4['strict']
+        for key in ('info_fields_per_tick', 'time_per_tick', 'strict_per_tick'):
+            if key in p4:
+                summary['prop4_' + key] = summary.get('prop4_' + key, 0) + p4[key]
         summary['identical'] += ident
         if not (dmg and repaired and p4['ok'] and ident):
             summary['failures'].append(dict(phase=ring['phase'], place=ring['place'], x0=ring['x0'],

@@ -18,7 +18,7 @@ VRAM. GPU agent: write here if you need it back.
 | G14 | 512 | 110,880 | 2^25.76 | G13 re-sized by a seeded schedule search |
 | **G15** | **512** | **112,608** | **2^25.78** | G14 + Gray's stage wipes (meets Prop. 4 at the sampled times) |
 
-All close exactly (GPU parity plus closure). Tests: 44, one of them
+All close exactly (GPU parity plus closure). Tests: 47, one of them
 opt-in (slow).
 
 ## Level-1 campaign (finished batches, REPORT §19)
@@ -69,9 +69,31 @@ The independent audit's six findings are resolved:
   - The level-1 automaton of 32 level-2 cells does a level-2 step in 6.8 s,
     which is how the level-2 tests run.
 
+## Second audit response (REPORT §27)
+
+A second independent audit (`Report/fixed_rule/design_optimization_audit/AUDIT2.md`,
+uncommitted) reviewed §§24–26. Its six findings are addressed:
+1. **Stale all-receipt claims.** `campaign_census.py` recounts over an explicit rule
+   (`campaign_census.json`, tracked). For errors touching at most two colonies: 2,387
+   rings, 1,789 never wrong, 598 wrong once in at most two adjacent cells inside the
+   touched colonies, 0 other.
+2. **Classifier bugs.** Fixed (S must avoid E0; exact E0 for isolated pairs; exact (iii)
+   for large sets). Every standalone certificate is unchanged. The burst-under-noise
+   batches (b81/b82) are relabelled: one level-1 error in 4 of 22 placements, higher-level
+   in 18.
+3. **Sampled Proposition 4 verdicts.** Exact per-tick checks were added (`GpuSim.track`) and
+   the main batches rerun. The literal all-field proposition is not claimed.
+4. **Hybrid hand-off.** Checked physically: every faulty slice became bit-identical to the
+   plain encoding of its decoded state one level-1 step after the hand-off. The b92–b96
+   larger errors are followed to two level-2 boundaries.
+5. **Recipe check.** `load()` checks the current recipe; the manifest pins recipe digests
+   from fresh builds (17/17 reproduced).
+6. **Wording and test control.** The wipe-schedule wording is fixed, and the `sel_front`
+   test has a negative control.
+
 ## Running
 
-Nothing. The §26 batches are finished.
+Nothing. The §27 batches are finished.
 
 Earlier: the audit-response batches are finished (REPORT §25).
 - G15: 548 certified level-1 errors and 120 larger bursts, all meeting both
