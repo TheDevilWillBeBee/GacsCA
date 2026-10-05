@@ -1,0 +1,14 @@
+{"copies": 3, "Q": 448, "U": 73024, "width": 193, "gates": 9988, "netlist": "b9339e8f3900330a"}
+{"period": 1, "coherent": false, "upper_f1": 6, "upper_f2": 4, "special_ok": true, "wf_ok": true, "decoded_equal": true, "changed_bits": 390, "health": {"addr": true, "age": true, "age0": 0, "flags": 0, "info_copies_agree": true}}
+{"period": 2, "coherent": false, "upper_f1": 6, "upper_f2": 6, "special_ok": true, "wf_ok": true, "decoded_equal": true, "changed_bits": 9, "health": {"addr": true, "age": true, "age0": 0, "flags": 0, "info_copies_agree": true}}
+{"period": 1, "coherent": true, "upper_f1": 6, "upper_f2": 0, "special_ok": true, "wf_ok": true, "decoded_equal": true, "changed_bits": 487, "health": {"addr": true, "age": true, "age0": 0, "flags": 0, "info_copies_agree": true}}
+{"period": 2, "coherent": true, "upper_f1": 6, "upper_f2": 0, "special_ok": true, "wf_ok": true, "decoded_equal": true, "changed_bits": 174, "health": {"addr": true, "age": true, "age0": 0, "flags": 0, "info_copies_agree": true}}
+closure True 14 s
+{"level0_mode": "random", "trials": 2000, "failures": 0, "examples": []}
+7 s
+{"level0_mode": "invert", "trials": 2000, "failures": 0, "examples": []}
+7 s
+{"level0_mode": "zero", "trials": 2000, "failures": 0, "examples": []}
+7 s
+{"level0_mode": "one", "trials": 2000, "failures": 0, "examples": []}
+7 s

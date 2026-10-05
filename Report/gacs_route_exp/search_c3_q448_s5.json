@@ -1,0 +1,186 @@
+{
+ "copies": 3,
+ "q": 448,
+ "margin": 122,
+ "seed": 5,
+ "probe": [
+  52,
+  67,
+  152
+ ],
+ "rounds": [
+  {
+   "round": 0,
+   "ranges": [
+    58,
+    74,
+    166
+   ],
+   "NPe": 59,
+   "MP": 133,
+   "NP": 300,
+   "ok": false,
+   "error": "unfinished: {'last_page': 299, 'idle': {'waits-lane': 9033, 'waits-remote-gate': 98463, 'full': 5883, 'waits-export': 13"
+  },
+  {
+   "round": 1,
+   "ranges": [
+    58,
+    74,
+    181
+   ],
+   "NPe": 59,
+   "MP": 133,
+   "NP": 315,
+   "U": 85120,
+   "Q": 448,
+   "PL": 224,
+   "nb": 380,
+   "m": 17,
+   "width": 193,
+   "gates": 10001,
+   "instructions": 23439,
+   "QU_log2": 25.185,
+   "used": [
+    34,
+    65,
+    153
+   ],
+   "ok": true,
+   "seconds": 17
+  },
+  {
+   "round": 2,
+   "ranges": [
+    35,
+    66,
+    154
+   ],
+   "NPe": 36,
+   "MP": 103,
+   "NP": 258,
+   "ok": false,
+   "error": "unfinished: {'last_page': 102, 'idle': {'waits-lane': 7306, 'full': 339, 'waits-scratch': 5194, 'drained': 50206}, 'inst"
+  },
+  {
+   "round": 3,
+   "ranges": [
+    35,
+    73,
+    154
+   ],
+   "NPe": 36,
+   "MP": 109,
+   "NP": 264,
+   "U": 73696,
+   "Q": 448,
+   "PL": 224,
+   "nb": 329,
+   "m": 17,
+   "width": 193,
+   "gates": 9983,
+   "instructions": 23233,
+   "QU_log2": 24.977,
+   "used": [
+    34,
+    65,
+    150
+   ],
+   "ok": true,
+   "seconds": 17
+  },
+  {
+   "round": 4,
+   "ranges": [
+    35,
+    66,
+    151
+   ],
+   "NPe": 36,
+   "MP": 103,
+   "NP": 255,
+   "ok": false,
+   "error": "unfinished: {'last_page': 102, 'idle': {'waits-lane': 7488, 'full': 735, 'waits-remote-gate': 103, 'waits-scratch': 5370"
+  },
+  {
+   "round": 5,
+   "ranges": [
+    35,
+    73,
+    151
+   ],
+   "NPe": 36,
+   "MP": 109,
+   "NP": 261,
+   "U": 73024,
+   "Q": 448,
+   "PL": 224,
+   "nb": 326,
+   "m": 17,
+   "width": 193,
+   "gates": 9988,
+   "instructions": 23214,
+   "QU_log2": 24.963,
+   "used": [
+    34,
+    70,
+    137
+   ],
+   "ok": true,
+   "seconds": 16
+  },
+  {
+   "round": 6,
+   "ranges": [
+    35,
+    71,
+    138
+   ],
+   "NPe": 36,
+   "MP": 107,
+   "NP": 246,
+   "ok": false,
+   "error": "unfinished: {'last_page': 245, 'idle': {'waits-lane': 8748, 'waits-remote-gate': 77372, 'full': 4345, 'waits-export': 15"
+  },
+  {
+   "round": 7,
+   "ranges": [
+    35,
+    71,
+    151
+   ],
+   "NPe": 36,
+   "MP": 107,
+   "NP": 259,
+   "ok": false,
+   "error": "unfinished: {'last_page': 258, 'idle': {'waits-lane': 7161, 'full': 4939, 'waits-scratch': 50385, 'waits-remote-gate': 7"
+  }
+ ],
+ "best": {
+  "round": 5,
+  "ranges": [
+   35,
+   73,
+   151
+  ],
+  "NPe": 36,
+  "MP": 109,
+  "NP": 261,
+  "U": 73024,
+  "Q": 448,
+  "PL": 224,
+  "nb": 326,
+  "m": 17,
+  "width": 193,
+  "gates": 9988,
+  "instructions": 23214,
+  "QU_log2": 24.963,
+  "used": [
+   34,
+   70,
+   137
+  ],
+  "ok": true,
+  "seconds": 16
+ }
+}

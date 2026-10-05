@@ -1,0 +1,10 @@
+{"seed": 10, "probe": [35, 83, 204]}
+{"round": 0, "ranges": [39, 91, 222], "NPe": 40, "MP": 131, "NP": 354, "U": 93856, "Q": 448, "PL": 224, "nb": 419, "m": 17, "width": 193, "gates": 9988, "instructions": 23269, "QU_log2": 25.326, "used": [28, 75, 149], "ok": true, "seconds": 17}
+{"round": 1, "ranges": [29, 76, 150], "NPe": 30, "MP": 107, "NP": 258, "ok": false, "error": "unfinished: {'last_page': 257, 'idle': {'waits-lane': 9715, 'full': 5227, 'waits-remote-gate': 88359, 'waits-export': 64"}
+{"round": 2, "ranges": [29, 76, 163], "NPe": 30, "MP": 107, "NP": 271, "U": 75264, "Q": 448, "PL": 224, "nb": 336, "m": 17, "width": 193, "gates": 10000, "instructions": 23338, "QU_log2": 25.007, "used": [28, 73, 147], "ok": true, "seconds": 17}
+{"round": 3, "ranges": [29, 74, 148], "NPe": 30, "MP": 105, "NP": 254, "ok": false, "error": "unfinished: {'last_page': 253, 'idle': {'waits-lane': 11021, 'full': 4716, 'waits-remote-gate': 77806, 'waits-export': 6"}
+{"round": 4, "ranges": [29, 74, 161], "NPe": 30, "MP": 105, "NP": 267, "ok": false, "error": "unfinished: {'last_page': 104, 'idle': {'waits-lane': 7460, 'full': 400, 'drained': 56963, 'waits-scratch': 6350}, 'inst"}
+{"round": 5, "ranges": [29, 81, 161], "NPe": 30, "MP": 111, "NP": 273, "U": 75712, "Q": 448, "PL": 224, "nb": 338, "m": 17, "width": 193, "gates": 9994, "instructions": 23482, "QU_log2": 25.016, "used": [28, 72, 132], "ok": true, "seconds": 16}
+{"round": 6, "ranges": [29, 73, 133], "NPe": 30, "MP": 103, "NP": 237, "ok": false, "error": "unfinished: {'last_page': 236, 'idle': {'waits-lane': 9254, 'full': 4557, 'waits-remote-gate': 73788, 'waits-scratch': 3"}
+{"round": 7, "ranges": [29, 73, 145], "NPe": 30, "MP": 103, "NP": 249, "ok": false, "error": "unfinished: {'last_page': 248, 'idle': {'waits-lane': 8715, 'full': 5114, 'waits-remote-gate': 83686, 'waits-scratch': 3"}
+{"seed": 10, "best": {"round": 2, "ranges": [29, 76, 163], "NPe": 30, "MP": 107, "NP": 271, "U": 75264, "Q": 448, "PL": 224, "nb": 336, "m": 17, "width": 193, "gates": 10000, "instructions": 23338, "QU_log2": 25.007, "used": [28, 73, 147], "ok": true, "seconds": 17}}

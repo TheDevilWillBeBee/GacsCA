@@ -1,0 +1,468 @@
+{
+ "candidate": "G16",
+ "Q": 512,
+ "U": 25920,
+ "margin": 122,
+ "lo": 122,
+ "hi": 390,
+ "H": 20,
+ "colonies": 32,
+ "gathers_q": [
+  0,
+  12,
+  24
+ ],
+ "seed": 7,
+ "mode": "random",
+ "obs": 1536,
+ "stride": 4,
+ "closure": {
+  "period1": true,
+  "period2": true,
+  "health1": {
+   "addr": true,
+   "age": true,
+   "age0": 0,
+   "flags": 0,
+   "info_copies_agree": true
+  },
+  "ref_seconds": 9.2
+ },
+ "gray_bound": {
+  "72": 1420.0,
+  "137": 1777.5,
+  "150": 1849.0,
+  "200": 2124.0
+ },
+ "results": [
+  {
+   "candidate": "G16",
+   "phase": "gather2_mid",
+   "place": "reachL",
+   "mode": "random",
+   "t": 7680,
+   "x0": 8052,
+   "w": 150,
+   "h": 150,
+   "seed": 7151375,
+   "box_rel_boundary": [
+    -140,
+    9
+   ],
+   "structure_recovery_ticks": 264,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": [
+    -372,
+    502
+   ],
+   "structure_island_max": 1024,
+   "addr_age_recovery_ticks": 24,
+   "addr_age_island_max": 133,
+   "addr_age_span_rel_box": [
+    12,
+    -5
+   ],
+   "info_span_rel_box": [
+    12,
+    -1
+   ],
+   "wrong_upper_U": [
+    15
+   ],
+   "colonies_work_info_U": [
+    15
+   ],
+   "identical_U": false,
+   "sites_differ_U": 22,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "G16",
+   "phase": "eval_early",
+   "place": "reachL",
+   "mode": "random",
+   "t": 15648,
+   "x0": 8052,
+   "w": 150,
+   "h": 150,
+   "seed": 7151406,
+   "box_rel_boundary": [
+    -140,
+    9
+   ],
+   "structure_recovery_ticks": 260,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": [
+    -372,
+    502
+   ],
+   "structure_island_max": 1024,
+   "addr_age_recovery_ticks": 24,
+   "addr_age_island_max": 133,
+   "addr_age_span_rel_box": [
+    12,
+    -5
+   ],
+   "info_span_rel_box": [
+    12,
+    -3
+   ],
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": false,
+   "sites_differ_U": 13,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "G16",
+   "phase": "match_pass",
+   "place": "reachL",
+   "mode": "random",
+   "t": 21138,
+   "x0": 8052,
+   "w": 150,
+   "h": 150,
+   "seed": 7151437,
+   "box_rel_boundary": [
+    -140,
+    9
+   ],
+   "structure_recovery_ticks": 260,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": [
+    -372,
+    502
+   ],
+   "structure_island_max": 1024,
+   "addr_age_recovery_ticks": 24,
+   "addr_age_island_max": 130,
+   "addr_age_span_rel_box": [
+    12,
+    -8
+   ],
+   "info_span_rel_box": [
+    12,
+    -4
+   ],
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": false,
+   "sites_differ_U": 5,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "G16",
+   "phase": "final_prog",
+   "place": "reachL",
+   "mode": "random",
+   "t": 23424,
+   "x0": 8052,
+   "w": 150,
+   "h": 150,
+   "seed": 7151468,
+   "box_rel_boundary": [
+    -140,
+    9
+   ],
+   "structure_recovery_ticks": 260,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": [
+    -372,
+    502
+   ],
+   "structure_island_max": 1024,
+   "addr_age_recovery_ticks": 24,
+   "addr_age_island_max": 126,
+   "addr_age_span_rel_box": [
+    12,
+    -12
+   ],
+   "info_span_rel_box": [
+    12,
+    -8
+   ],
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "G16",
+   "phase": "commit",
+   "place": "reachL",
+   "mode": "random",
+   "t": 25845,
+   "x0": 8052,
+   "w": 150,
+   "h": 150,
+   "seed": 7151499,
+   "box_rel_boundary": [
+    -140,
+    9
+   ],
+   "structure_recovery_ticks": 264,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": [
+    -372,
+    502
+   ],
+   "structure_island_max": 1024,
+   "addr_age_recovery_ticks": 24,
+   "addr_age_island_max": 138,
+   "addr_age_span_rel_box": [
+    12,
+    0
+   ],
+   "info_span_rel_box": [
+    12,
+    1
+   ],
+   "wrong_upper_U": [
+    15
+   ],
+   "colonies_work_info_U": [
+    15
+   ],
+   "identical_U": false,
+   "sites_differ_U": 515,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "G16",
+   "phase": "gather2_mid",
+   "place": "reachL",
+   "mode": "random",
+   "t": 7680,
+   "x0": 8002,
+   "w": 200,
+   "h": 200,
+   "seed": 7201825,
+   "box_rel_boundary": [
+    -190,
+    9
+   ],
+   "structure_recovery_ticks": 264,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": [
+    -322,
+    502
+   ],
+   "structure_island_max": 1024,
+   "addr_age_recovery_ticks": 32,
+   "addr_age_island_max": 183,
+   "addr_age_span_rel_box": [
+    12,
+    -5
+   ],
+   "info_span_rel_box": [
+    7,
+    -4
+   ],
+   "wrong_upper_U": [
+    15
+   ],
+   "colonies_work_info_U": [
+    15
+   ],
+   "identical_U": false,
+   "sites_differ_U": 27,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "G16",
+   "phase": "eval_early",
+   "place": "reachL",
+   "mode": "random",
+   "t": 15648,
+   "x0": 8002,
+   "w": 200,
+   "h": 200,
+   "seed": 7201856,
+   "box_rel_boundary": [
+    -190,
+    9
+   ],
+   "structure_recovery_ticks": 264,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": [
+    -322,
+    502
+   ],
+   "structure_island_max": 1024,
+   "addr_age_recovery_ticks": 32,
+   "addr_age_island_max": 188,
+   "addr_age_span_rel_box": [
+    12,
+    0
+   ],
+   "info_span_rel_box": [
+    7,
+    2
+   ],
+   "wrong_upper_U": [
+    15
+   ],
+   "colonies_work_info_U": [
+    15
+   ],
+   "identical_U": false,
+   "sites_differ_U": 31,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "G16",
+   "phase": "match_pass",
+   "place": "reachL",
+   "mode": "random",
+   "t": 21138,
+   "x0": 8002,
+   "w": 200,
+   "h": 200,
+   "seed": 7201887,
+   "box_rel_boundary": [
+    -190,
+    9
+   ],
+   "structure_recovery_ticks": 260,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": [
+    -322,
+    502
+   ],
+   "structure_island_max": 1024,
+   "addr_age_recovery_ticks": 32,
+   "addr_age_island_max": 180,
+   "addr_age_span_rel_box": [
+    12,
+    -8
+   ],
+   "info_span_rel_box": [
+    7,
+    -1
+   ],
+   "wrong_upper_U": [
+    15
+   ],
+   "colonies_work_info_U": [
+    15
+   ],
+   "identical_U": false,
+   "sites_differ_U": 21,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "G16",
+   "phase": "final_prog",
+   "place": "reachL",
+   "mode": "random",
+   "t": 23424,
+   "x0": 8002,
+   "w": 200,
+   "h": 200,
+   "seed": 7201918,
+   "box_rel_boundary": [
+    -190,
+    9
+   ],
+   "structure_recovery_ticks": 260,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": [
+    -322,
+    502
+   ],
+   "structure_island_max": 1024,
+   "addr_age_recovery_ticks": 32,
+   "addr_age_island_max": 176,
+   "addr_age_span_rel_box": [
+    12,
+    -12
+   ],
+   "info_span_rel_box": [
+    7,
+    -7
+   ],
+   "wrong_upper_U": [
+    15
+   ],
+   "colonies_work_info_U": [
+    15
+   ],
+   "identical_U": false,
+   "sites_differ_U": 5,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "G16",
+   "phase": "commit",
+   "place": "reachL",
+   "mode": "random",
+   "t": 25820,
+   "x0": 8002,
+   "w": 200,
+   "h": 200,
+   "seed": 7201949,
+   "box_rel_boundary": [
+    -190,
+    9
+   ],
+   "structure_recovery_ticks": 260,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": [
+    -322,
+    502
+   ],
+   "structure_island_max": 1024,
+   "addr_age_recovery_ticks": 32,
+   "addr_age_island_max": 176,
+   "addr_age_span_rel_box": [
+    12,
+    -12
+   ],
+   "info_span_rel_box": [
+    8,
+    -12
+   ],
+   "wrong_upper_U": [
+    15
+   ],
+   "colonies_work_info_U": [
+    15
+   ],
+   "identical_U": false,
+   "sites_differ_U": 682,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  }
+ ],
+ "seconds": 78
+}

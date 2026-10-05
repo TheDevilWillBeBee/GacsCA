@@ -1,0 +1,3085 @@
+{
+ "candidate": "V_q384_g9",
+ "Q": 384,
+ "U": 19296,
+ "margin": 58,
+ "lo": 58,
+ "hi": 326,
+ "H": 20,
+ "colonies": 32,
+ "gathers_q": [
+  0,
+  9,
+  18
+ ],
+ "seed": 7,
+ "mode": "copy",
+ "obs": 1152,
+ "stride": 4,
+ "closure": {
+  "period1": true,
+  "period2": true,
+  "health1": {
+   "addr": true,
+   "age": true,
+   "age0": 0,
+   "flags": 0,
+   "info_copies_agree": true
+  },
+  "ref_seconds": 4.9
+ },
+ "gray_bound": {
+  "72": 1164.0,
+  "137": 1521.5,
+  "150": 1593.0,
+  "200": 1868.0
+ },
+ "results": [
+  {
+   "candidate": "V_q384_g9",
+   "phase": "gather1_mid",
+   "place": "edge",
+   "mode": "copy",
+   "t": 1152,
+   "x0": 6108,
+   "w": 72,
+   "h": 72,
+   "seed": 7072670,
+   "box_rel_boundary": [
+    -36,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": null,
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "gather1_mid",
+   "place": "edgeR",
+   "mode": "copy",
+   "t": 1152,
+   "x0": 6108,
+   "w": 72,
+   "h": 72,
+   "seed": 7072671,
+   "box_rel_boundary": [
+    -36,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": null,
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "gather1_mid",
+   "place": "edgeL",
+   "mode": "copy",
+   "t": 1152,
+   "x0": 6108,
+   "w": 72,
+   "h": 72,
+   "seed": 7072672,
+   "box_rel_boundary": [
+    -36,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": null,
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "gather1_mid",
+   "place": "mid",
+   "mode": "copy",
+   "t": 1152,
+   "x0": 5916,
+   "w": 72,
+   "h": 72,
+   "seed": 7072669,
+   "box_rel_boundary": [
+    -228,
+    -157
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    2,
+    -3
+   ],
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "rest1",
+   "place": "edge",
+   "mode": "copy",
+   "t": 2304,
+   "x0": 6108,
+   "w": 72,
+   "h": 72,
+   "seed": 7072701,
+   "box_rel_boundary": [
+    -36,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": null,
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "rest1",
+   "place": "edgeR",
+   "mode": "copy",
+   "t": 2304,
+   "x0": 6108,
+   "w": 72,
+   "h": 72,
+   "seed": 7072702,
+   "box_rel_boundary": [
+    -36,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": null,
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "rest1",
+   "place": "edgeL",
+   "mode": "copy",
+   "t": 2304,
+   "x0": 6108,
+   "w": 72,
+   "h": 72,
+   "seed": 7072703,
+   "box_rel_boundary": [
+    -36,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": null,
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "rest1",
+   "place": "mid",
+   "mode": "copy",
+   "t": 2304,
+   "x0": 5916,
+   "w": 72,
+   "h": 72,
+   "seed": 7072700,
+   "box_rel_boundary": [
+    -228,
+    -157
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    2,
+    -3
+   ],
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "gather2_start",
+   "place": "edge",
+   "mode": "copy",
+   "t": 3356,
+   "x0": 6108,
+   "w": 72,
+   "h": 72,
+   "seed": 7072732,
+   "box_rel_boundary": [
+    -36,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": null,
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "gather2_start",
+   "place": "edgeR",
+   "mode": "copy",
+   "t": 3356,
+   "x0": 6108,
+   "w": 72,
+   "h": 72,
+   "seed": 7072733,
+   "box_rel_boundary": [
+    -36,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": null,
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "gather2_start",
+   "place": "edgeL",
+   "mode": "copy",
+   "t": 3356,
+   "x0": 6108,
+   "w": 72,
+   "h": 72,
+   "seed": 7072734,
+   "box_rel_boundary": [
+    -36,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": null,
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "gather2_start",
+   "place": "mid",
+   "mode": "copy",
+   "t": 3356,
+   "x0": 5916,
+   "w": 72,
+   "h": 72,
+   "seed": 7072731,
+   "box_rel_boundary": [
+    -228,
+    -157
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    2,
+    -3
+   ],
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "gather2_mid",
+   "place": "edge",
+   "mode": "copy",
+   "t": 4608,
+   "x0": 6108,
+   "w": 72,
+   "h": 72,
+   "seed": 7072763,
+   "box_rel_boundary": [
+    -36,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": null,
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "gather2_mid",
+   "place": "edgeR",
+   "mode": "copy",
+   "t": 4608,
+   "x0": 6108,
+   "w": 72,
+   "h": 72,
+   "seed": 7072764,
+   "box_rel_boundary": [
+    -36,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": null,
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "gather2_mid",
+   "place": "edgeL",
+   "mode": "copy",
+   "t": 4608,
+   "x0": 6108,
+   "w": 72,
+   "h": 72,
+   "seed": 7072765,
+   "box_rel_boundary": [
+    -36,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": null,
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "gather2_mid",
+   "place": "mid",
+   "mode": "copy",
+   "t": 4608,
+   "x0": 5916,
+   "w": 72,
+   "h": 72,
+   "seed": 7072762,
+   "box_rel_boundary": [
+    -228,
+    -157
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    2,
+    -3
+   ],
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "gather3_mid",
+   "place": "edge",
+   "mode": "copy",
+   "t": 8064,
+   "x0": 6108,
+   "w": 72,
+   "h": 72,
+   "seed": 7072794,
+   "box_rel_boundary": [
+    -36,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": null,
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "gather3_mid",
+   "place": "edgeR",
+   "mode": "copy",
+   "t": 8064,
+   "x0": 6108,
+   "w": 72,
+   "h": 72,
+   "seed": 7072795,
+   "box_rel_boundary": [
+    -36,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": null,
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "gather3_mid",
+   "place": "edgeL",
+   "mode": "copy",
+   "t": 8064,
+   "x0": 6108,
+   "w": 72,
+   "h": 72,
+   "seed": 7072796,
+   "box_rel_boundary": [
+    -36,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": null,
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "gather3_mid",
+   "place": "mid",
+   "mode": "copy",
+   "t": 8064,
+   "x0": 5916,
+   "w": 72,
+   "h": 72,
+   "seed": 7072793,
+   "box_rel_boundary": [
+    -228,
+    -157
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    2,
+    -3
+   ],
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "eval_early",
+   "place": "edge",
+   "mode": "copy",
+   "t": 9600,
+   "x0": 6108,
+   "w": 72,
+   "h": 72,
+   "seed": 7072825,
+   "box_rel_boundary": [
+    -36,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": null,
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "eval_early",
+   "place": "edgeR",
+   "mode": "copy",
+   "t": 9600,
+   "x0": 6108,
+   "w": 72,
+   "h": 72,
+   "seed": 7072826,
+   "box_rel_boundary": [
+    -36,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": null,
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "eval_early",
+   "place": "edgeL",
+   "mode": "copy",
+   "t": 9600,
+   "x0": 6108,
+   "w": 72,
+   "h": 72,
+   "seed": 7072827,
+   "box_rel_boundary": [
+    -36,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": null,
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "eval_early",
+   "place": "mid",
+   "mode": "copy",
+   "t": 9600,
+   "x0": 5916,
+   "w": 72,
+   "h": 72,
+   "seed": 7072824,
+   "box_rel_boundary": [
+    -228,
+    -157
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    2,
+    -3
+   ],
+   "wrong_upper_U": [
+    15
+   ],
+   "colonies_work_info_U": [
+    15
+   ],
+   "identical_U": false,
+   "sites_differ_U": 26,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "special_proc",
+   "place": "edge",
+   "mode": "copy",
+   "t": 11996,
+   "x0": 6108,
+   "w": 72,
+   "h": 72,
+   "seed": 7072856,
+   "box_rel_boundary": [
+    -36,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": null,
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "special_proc",
+   "place": "edgeR",
+   "mode": "copy",
+   "t": 11996,
+   "x0": 6108,
+   "w": 72,
+   "h": 72,
+   "seed": 7072857,
+   "box_rel_boundary": [
+    -36,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": null,
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "special_proc",
+   "place": "edgeL",
+   "mode": "copy",
+   "t": 11996,
+   "x0": 6108,
+   "w": 72,
+   "h": 72,
+   "seed": 7072858,
+   "box_rel_boundary": [
+    -36,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": null,
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "special_proc",
+   "place": "mid",
+   "mode": "copy",
+   "t": 11996,
+   "x0": 5916,
+   "w": 72,
+   "h": 72,
+   "seed": 7072855,
+   "box_rel_boundary": [
+    -228,
+    -157
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    2,
+    -3
+   ],
+   "wrong_upper_U": [
+    15
+   ],
+   "colonies_work_info_U": [
+    15
+   ],
+   "identical_U": false,
+   "sites_differ_U": 15,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "trickle",
+   "place": "edge",
+   "mode": "copy",
+   "t": 12289,
+   "x0": 6108,
+   "w": 72,
+   "h": 72,
+   "seed": 7072887,
+   "box_rel_boundary": [
+    -36,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": null,
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "trickle",
+   "place": "edgeR",
+   "mode": "copy",
+   "t": 12289,
+   "x0": 6108,
+   "w": 72,
+   "h": 72,
+   "seed": 7072888,
+   "box_rel_boundary": [
+    -36,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": null,
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "trickle",
+   "place": "edgeL",
+   "mode": "copy",
+   "t": 12289,
+   "x0": 6108,
+   "w": 72,
+   "h": 72,
+   "seed": 7072889,
+   "box_rel_boundary": [
+    -36,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": null,
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "trickle",
+   "place": "mid",
+   "mode": "copy",
+   "t": 12289,
+   "x0": 5916,
+   "w": 72,
+   "h": 72,
+   "seed": 7072886,
+   "box_rel_boundary": [
+    -228,
+    -157
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    2,
+    -3
+   ],
+   "wrong_upper_U": [
+    15
+   ],
+   "colonies_work_info_U": [
+    15
+   ],
+   "identical_U": false,
+   "sites_differ_U": 15,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "match_pass",
+   "place": "edge",
+   "mode": "copy",
+   "t": 15666,
+   "x0": 6108,
+   "w": 72,
+   "h": 72,
+   "seed": 7072918,
+   "box_rel_boundary": [
+    -36,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": null,
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "match_pass",
+   "place": "edgeR",
+   "mode": "copy",
+   "t": 15666,
+   "x0": 6108,
+   "w": 72,
+   "h": 72,
+   "seed": 7072919,
+   "box_rel_boundary": [
+    -36,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": null,
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "match_pass",
+   "place": "edgeL",
+   "mode": "copy",
+   "t": 15666,
+   "x0": 6108,
+   "w": 72,
+   "h": 72,
+   "seed": 7072920,
+   "box_rel_boundary": [
+    -36,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": null,
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "match_pass",
+   "place": "mid",
+   "mode": "copy",
+   "t": 15666,
+   "x0": 5916,
+   "w": 72,
+   "h": 72,
+   "seed": 7072917,
+   "box_rel_boundary": [
+    -228,
+    -157
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    2,
+    -3
+   ],
+   "wrong_upper_U": [
+    15
+   ],
+   "colonies_work_info_U": [
+    15
+   ],
+   "identical_U": false,
+   "sites_differ_U": 20,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "final_prog",
+   "place": "edge",
+   "mode": "copy",
+   "t": 17376,
+   "x0": 6108,
+   "w": 72,
+   "h": 72,
+   "seed": 7072949,
+   "box_rel_boundary": [
+    -36,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": null,
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "final_prog",
+   "place": "edgeR",
+   "mode": "copy",
+   "t": 17376,
+   "x0": 6108,
+   "w": 72,
+   "h": 72,
+   "seed": 7072950,
+   "box_rel_boundary": [
+    -36,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": null,
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "final_prog",
+   "place": "edgeL",
+   "mode": "copy",
+   "t": 17376,
+   "x0": 6108,
+   "w": 72,
+   "h": 72,
+   "seed": 7072951,
+   "box_rel_boundary": [
+    -36,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": null,
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "final_prog",
+   "place": "mid",
+   "mode": "copy",
+   "t": 17376,
+   "x0": 5916,
+   "w": 72,
+   "h": 72,
+   "seed": 7072948,
+   "box_rel_boundary": [
+    -228,
+    -157
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    2,
+    -3
+   ],
+   "wrong_upper_U": [
+    15
+   ],
+   "colonies_work_info_U": [
+    15
+   ],
+   "identical_U": false,
+   "sites_differ_U": 24,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "commit",
+   "place": "edge",
+   "mode": "copy",
+   "t": 19260,
+   "x0": 6108,
+   "w": 72,
+   "h": 72,
+   "seed": 7072980,
+   "box_rel_boundary": [
+    -36,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": null,
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "commit",
+   "place": "edgeR",
+   "mode": "copy",
+   "t": 19260,
+   "x0": 6108,
+   "w": 72,
+   "h": 72,
+   "seed": 7072981,
+   "box_rel_boundary": [
+    -36,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": null,
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "commit",
+   "place": "edgeL",
+   "mode": "copy",
+   "t": 19260,
+   "x0": 6108,
+   "w": 72,
+   "h": 72,
+   "seed": 7072982,
+   "box_rel_boundary": [
+    -36,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": null,
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "commit",
+   "place": "mid",
+   "mode": "copy",
+   "t": 19260,
+   "x0": 5916,
+   "w": 72,
+   "h": 72,
+   "seed": 7072979,
+   "box_rel_boundary": [
+    -228,
+    -157
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    2,
+    -3
+   ],
+   "wrong_upper_U": [
+    15
+   ],
+   "colonies_work_info_U": [
+    15
+   ],
+   "identical_U": false,
+   "sites_differ_U": 24,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "gather1_mid",
+   "place": "edge",
+   "mode": "copy",
+   "t": 1152,
+   "x0": 6044,
+   "w": 200,
+   "h": 200,
+   "seed": 7201822,
+   "box_rel_boundary": [
+    -100,
+    99
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    9,
+    -16
+   ],
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "gather1_mid",
+   "place": "edgeR",
+   "mode": "copy",
+   "t": 1152,
+   "x0": 5980,
+   "w": 200,
+   "h": 200,
+   "seed": 7201823,
+   "box_rel_boundary": [
+    -164,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    0,
+    -122
+   ],
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "gather1_mid",
+   "place": "edgeL",
+   "mode": "copy",
+   "t": 1152,
+   "x0": 6108,
+   "w": 200,
+   "h": 200,
+   "seed": 7201824,
+   "box_rel_boundary": [
+    -36,
+    163
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    107,
+    -27
+   ],
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "gather1_mid",
+   "place": "mid",
+   "mode": "copy",
+   "t": 1152,
+   "x0": 5852,
+   "w": 200,
+   "h": 200,
+   "seed": 7201821,
+   "box_rel_boundary": [
+    -292,
+    -93
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    8,
+    -36
+   ],
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "rest1",
+   "place": "edge",
+   "mode": "copy",
+   "t": 2304,
+   "x0": 6044,
+   "w": 200,
+   "h": 200,
+   "seed": 7201853,
+   "box_rel_boundary": [
+    -100,
+    99
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    9,
+    -16
+   ],
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "rest1",
+   "place": "edgeR",
+   "mode": "copy",
+   "t": 2304,
+   "x0": 5980,
+   "w": 200,
+   "h": 200,
+   "seed": 7201854,
+   "box_rel_boundary": [
+    -164,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    0,
+    -122
+   ],
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "rest1",
+   "place": "edgeL",
+   "mode": "copy",
+   "t": 2304,
+   "x0": 6108,
+   "w": 200,
+   "h": 200,
+   "seed": 7201855,
+   "box_rel_boundary": [
+    -36,
+    163
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    107,
+    -27
+   ],
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "rest1",
+   "place": "mid",
+   "mode": "copy",
+   "t": 2304,
+   "x0": 5852,
+   "w": 200,
+   "h": 200,
+   "seed": 7201852,
+   "box_rel_boundary": [
+    -292,
+    -93
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    8,
+    -36
+   ],
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "gather2_start",
+   "place": "edge",
+   "mode": "copy",
+   "t": 3356,
+   "x0": 6044,
+   "w": 200,
+   "h": 200,
+   "seed": 7201884,
+   "box_rel_boundary": [
+    -100,
+    99
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    9,
+    -16
+   ],
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "gather2_start",
+   "place": "edgeR",
+   "mode": "copy",
+   "t": 3356,
+   "x0": 5980,
+   "w": 200,
+   "h": 200,
+   "seed": 7201885,
+   "box_rel_boundary": [
+    -164,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    0,
+    -122
+   ],
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "gather2_start",
+   "place": "edgeL",
+   "mode": "copy",
+   "t": 3356,
+   "x0": 6108,
+   "w": 200,
+   "h": 200,
+   "seed": 7201886,
+   "box_rel_boundary": [
+    -36,
+    163
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    107,
+    -27
+   ],
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "gather2_start",
+   "place": "mid",
+   "mode": "copy",
+   "t": 3356,
+   "x0": 5852,
+   "w": 200,
+   "h": 200,
+   "seed": 7201883,
+   "box_rel_boundary": [
+    -292,
+    -93
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    8,
+    -36
+   ],
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "gather2_mid",
+   "place": "edge",
+   "mode": "copy",
+   "t": 4608,
+   "x0": 6044,
+   "w": 200,
+   "h": 200,
+   "seed": 7201915,
+   "box_rel_boundary": [
+    -100,
+    99
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    9,
+    -16
+   ],
+   "wrong_upper_U": [
+    16
+   ],
+   "colonies_work_info_U": [
+    16
+   ],
+   "identical_U": false,
+   "sites_differ_U": 33,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "gather2_mid",
+   "place": "edgeR",
+   "mode": "copy",
+   "t": 4608,
+   "x0": 5980,
+   "w": 200,
+   "h": 200,
+   "seed": 7201916,
+   "box_rel_boundary": [
+    -164,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    0,
+    -122
+   ],
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "gather2_mid",
+   "place": "edgeL",
+   "mode": "copy",
+   "t": 4608,
+   "x0": 6108,
+   "w": 200,
+   "h": 200,
+   "seed": 7201917,
+   "box_rel_boundary": [
+    -36,
+    163
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    107,
+    -27
+   ],
+   "wrong_upper_U": [
+    16
+   ],
+   "colonies_work_info_U": [
+    16
+   ],
+   "identical_U": false,
+   "sites_differ_U": 33,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "gather2_mid",
+   "place": "mid",
+   "mode": "copy",
+   "t": 4608,
+   "x0": 5852,
+   "w": 200,
+   "h": 200,
+   "seed": 7201914,
+   "box_rel_boundary": [
+    -292,
+    -93
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    8,
+    -36
+   ],
+   "wrong_upper_U": [
+    15
+   ],
+   "colonies_work_info_U": [
+    15
+   ],
+   "identical_U": false,
+   "sites_differ_U": 41,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "gather3_mid",
+   "place": "edge",
+   "mode": "copy",
+   "t": 8064,
+   "x0": 6044,
+   "w": 200,
+   "h": 200,
+   "seed": 7201946,
+   "box_rel_boundary": [
+    -100,
+    99
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    9,
+    -16
+   ],
+   "wrong_upper_U": [
+    16
+   ],
+   "colonies_work_info_U": [
+    16
+   ],
+   "identical_U": false,
+   "sites_differ_U": 33,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "gather3_mid",
+   "place": "edgeR",
+   "mode": "copy",
+   "t": 8064,
+   "x0": 5980,
+   "w": 200,
+   "h": 200,
+   "seed": 7201947,
+   "box_rel_boundary": [
+    -164,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    0,
+    -122
+   ],
+   "wrong_upper_U": [],
+   "colonies_work_info_U": [],
+   "identical_U": true,
+   "sites_differ_U": 0,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "gather3_mid",
+   "place": "edgeL",
+   "mode": "copy",
+   "t": 8064,
+   "x0": 6108,
+   "w": 200,
+   "h": 200,
+   "seed": 7201948,
+   "box_rel_boundary": [
+    -36,
+    163
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    107,
+    -27
+   ],
+   "wrong_upper_U": [
+    16
+   ],
+   "colonies_work_info_U": [
+    16
+   ],
+   "identical_U": false,
+   "sites_differ_U": 5,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "gather3_mid",
+   "place": "mid",
+   "mode": "copy",
+   "t": 8064,
+   "x0": 5852,
+   "w": 200,
+   "h": 200,
+   "seed": 7201945,
+   "box_rel_boundary": [
+    -292,
+    -93
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    8,
+    -36
+   ],
+   "wrong_upper_U": [
+    15
+   ],
+   "colonies_work_info_U": [
+    15
+   ],
+   "identical_U": false,
+   "sites_differ_U": 41,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "eval_early",
+   "place": "edge",
+   "mode": "copy",
+   "t": 9600,
+   "x0": 6044,
+   "w": 200,
+   "h": 200,
+   "seed": 7201977,
+   "box_rel_boundary": [
+    -100,
+    99
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    9,
+    -16
+   ],
+   "wrong_upper_U": [
+    15,
+    16
+   ],
+   "colonies_work_info_U": [
+    15,
+    16
+   ],
+   "identical_U": false,
+   "sites_differ_U": 55,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "eval_early",
+   "place": "edgeR",
+   "mode": "copy",
+   "t": 9600,
+   "x0": 5980,
+   "w": 200,
+   "h": 200,
+   "seed": 7201978,
+   "box_rel_boundary": [
+    -164,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    0,
+    -122
+   ],
+   "wrong_upper_U": [
+    15
+   ],
+   "colonies_work_info_U": [
+    15
+   ],
+   "identical_U": false,
+   "sites_differ_U": 26,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "eval_early",
+   "place": "edgeL",
+   "mode": "copy",
+   "t": 9600,
+   "x0": 6108,
+   "w": 200,
+   "h": 200,
+   "seed": 7201979,
+   "box_rel_boundary": [
+    -36,
+    163
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    107,
+    -27
+   ],
+   "wrong_upper_U": [
+    16
+   ],
+   "colonies_work_info_U": [
+    16
+   ],
+   "identical_U": false,
+   "sites_differ_U": 5,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "eval_early",
+   "place": "mid",
+   "mode": "copy",
+   "t": 9600,
+   "x0": 5852,
+   "w": 200,
+   "h": 200,
+   "seed": 7201976,
+   "box_rel_boundary": [
+    -292,
+    -93
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    8,
+    -36
+   ],
+   "wrong_upper_U": [
+    15
+   ],
+   "colonies_work_info_U": [
+    15
+   ],
+   "identical_U": false,
+   "sites_differ_U": 42,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "special_proc",
+   "place": "edge",
+   "mode": "copy",
+   "t": 11996,
+   "x0": 6044,
+   "w": 200,
+   "h": 200,
+   "seed": 7202008,
+   "box_rel_boundary": [
+    -100,
+    99
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    9,
+    -16
+   ],
+   "wrong_upper_U": [
+    16
+   ],
+   "colonies_work_info_U": [
+    16
+   ],
+   "identical_U": false,
+   "sites_differ_U": 5,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "special_proc",
+   "place": "edgeR",
+   "mode": "copy",
+   "t": 11996,
+   "x0": 5980,
+   "w": 200,
+   "h": 200,
+   "seed": 7202009,
+   "box_rel_boundary": [
+    -164,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    0,
+    -122
+   ],
+   "wrong_upper_U": [
+    15
+   ],
+   "colonies_work_info_U": [
+    15
+   ],
+   "identical_U": false,
+   "sites_differ_U": 10,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "special_proc",
+   "place": "edgeL",
+   "mode": "copy",
+   "t": 11996,
+   "x0": 6108,
+   "w": 200,
+   "h": 200,
+   "seed": 7202010,
+   "box_rel_boundary": [
+    -36,
+    163
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    107,
+    -27
+   ],
+   "wrong_upper_U": [
+    16
+   ],
+   "colonies_work_info_U": [
+    16
+   ],
+   "identical_U": false,
+   "sites_differ_U": 5,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "special_proc",
+   "place": "mid",
+   "mode": "copy",
+   "t": 11996,
+   "x0": 5852,
+   "w": 200,
+   "h": 200,
+   "seed": 7202007,
+   "box_rel_boundary": [
+    -292,
+    -93
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    8,
+    -36
+   ],
+   "wrong_upper_U": [
+    15
+   ],
+   "colonies_work_info_U": [
+    15
+   ],
+   "identical_U": false,
+   "sites_differ_U": 71,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "trickle",
+   "place": "edge",
+   "mode": "copy",
+   "t": 12289,
+   "x0": 6044,
+   "w": 200,
+   "h": 200,
+   "seed": 7202039,
+   "box_rel_boundary": [
+    -100,
+    99
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    9,
+    -16
+   ],
+   "wrong_upper_U": [
+    16
+   ],
+   "colonies_work_info_U": [
+    16
+   ],
+   "identical_U": false,
+   "sites_differ_U": 13,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "trickle",
+   "place": "edgeR",
+   "mode": "copy",
+   "t": 12289,
+   "x0": 5980,
+   "w": 200,
+   "h": 200,
+   "seed": 7202040,
+   "box_rel_boundary": [
+    -164,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    0,
+    -122
+   ],
+   "wrong_upper_U": [
+    15
+   ],
+   "colonies_work_info_U": [
+    15
+   ],
+   "identical_U": false,
+   "sites_differ_U": 10,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "trickle",
+   "place": "edgeL",
+   "mode": "copy",
+   "t": 12289,
+   "x0": 6108,
+   "w": 200,
+   "h": 200,
+   "seed": 7202041,
+   "box_rel_boundary": [
+    -36,
+    163
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    107,
+    -27
+   ],
+   "wrong_upper_U": [
+    16
+   ],
+   "colonies_work_info_U": [
+    16
+   ],
+   "identical_U": false,
+   "sites_differ_U": 13,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "trickle",
+   "place": "mid",
+   "mode": "copy",
+   "t": 12289,
+   "x0": 5852,
+   "w": 200,
+   "h": 200,
+   "seed": 7202038,
+   "box_rel_boundary": [
+    -292,
+    -93
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    8,
+    -36
+   ],
+   "wrong_upper_U": [
+    15
+   ],
+   "colonies_work_info_U": [
+    15
+   ],
+   "identical_U": false,
+   "sites_differ_U": 71,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "match_pass",
+   "place": "edge",
+   "mode": "copy",
+   "t": 15666,
+   "x0": 6044,
+   "w": 200,
+   "h": 200,
+   "seed": 7202070,
+   "box_rel_boundary": [
+    -100,
+    99
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    9,
+    -16
+   ],
+   "wrong_upper_U": [
+    15,
+    16
+   ],
+   "colonies_work_info_U": [
+    15,
+    16
+   ],
+   "identical_U": false,
+   "sites_differ_U": 44,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "match_pass",
+   "place": "edgeR",
+   "mode": "copy",
+   "t": 15666,
+   "x0": 5980,
+   "w": 200,
+   "h": 200,
+   "seed": 7202071,
+   "box_rel_boundary": [
+    -164,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    0,
+    -122
+   ],
+   "wrong_upper_U": [
+    15
+   ],
+   "colonies_work_info_U": [
+    15
+   ],
+   "identical_U": false,
+   "sites_differ_U": 48,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "match_pass",
+   "place": "edgeL",
+   "mode": "copy",
+   "t": 15666,
+   "x0": 6108,
+   "w": 200,
+   "h": 200,
+   "seed": 7202072,
+   "box_rel_boundary": [
+    -36,
+    163
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    107,
+    -27
+   ],
+   "wrong_upper_U": [
+    16
+   ],
+   "colonies_work_info_U": [
+    16
+   ],
+   "identical_U": false,
+   "sites_differ_U": 11,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "match_pass",
+   "place": "mid",
+   "mode": "copy",
+   "t": 15666,
+   "x0": 5852,
+   "w": 200,
+   "h": 200,
+   "seed": 7202069,
+   "box_rel_boundary": [
+    -292,
+    -93
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    8,
+    -36
+   ],
+   "wrong_upper_U": [
+    15
+   ],
+   "colonies_work_info_U": [
+    15
+   ],
+   "identical_U": false,
+   "sites_differ_U": 43,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "final_prog",
+   "place": "edge",
+   "mode": "copy",
+   "t": 17376,
+   "x0": 6044,
+   "w": 200,
+   "h": 200,
+   "seed": 7202101,
+   "box_rel_boundary": [
+    -100,
+    99
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    9,
+    -16
+   ],
+   "wrong_upper_U": [
+    15,
+    16
+   ],
+   "colonies_work_info_U": [
+    15,
+    16
+   ],
+   "identical_U": false,
+   "sites_differ_U": 21,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "final_prog",
+   "place": "edgeR",
+   "mode": "copy",
+   "t": 17376,
+   "x0": 5980,
+   "w": 200,
+   "h": 200,
+   "seed": 7202102,
+   "box_rel_boundary": [
+    -164,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    0,
+    -122
+   ],
+   "wrong_upper_U": [
+    15
+   ],
+   "colonies_work_info_U": [
+    15
+   ],
+   "identical_U": false,
+   "sites_differ_U": 32,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "final_prog",
+   "place": "edgeL",
+   "mode": "copy",
+   "t": 17376,
+   "x0": 6108,
+   "w": 200,
+   "h": 200,
+   "seed": 7202103,
+   "box_rel_boundary": [
+    -36,
+    163
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    107,
+    -27
+   ],
+   "wrong_upper_U": [
+    16
+   ],
+   "colonies_work_info_U": [
+    16
+   ],
+   "identical_U": false,
+   "sites_differ_U": 21,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "final_prog",
+   "place": "mid",
+   "mode": "copy",
+   "t": 17376,
+   "x0": 5852,
+   "w": 200,
+   "h": 200,
+   "seed": 7202100,
+   "box_rel_boundary": [
+    -292,
+    -93
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    8,
+    -36
+   ],
+   "wrong_upper_U": [
+    15
+   ],
+   "colonies_work_info_U": [
+    15
+   ],
+   "identical_U": false,
+   "sites_differ_U": 55,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "commit",
+   "place": "edge",
+   "mode": "copy",
+   "t": 19196,
+   "x0": 6044,
+   "w": 200,
+   "h": 200,
+   "seed": 7202132,
+   "box_rel_boundary": [
+    -100,
+    99
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    9,
+    -13
+   ],
+   "wrong_upper_U": [
+    15,
+    16
+   ],
+   "colonies_work_info_U": [
+    15,
+    16
+   ],
+   "identical_U": false,
+   "sites_differ_U": 21,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "commit",
+   "place": "edgeR",
+   "mode": "copy",
+   "t": 19196,
+   "x0": 5980,
+   "w": 200,
+   "h": 200,
+   "seed": 7202133,
+   "box_rel_boundary": [
+    -164,
+    35
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    0,
+    -119
+   ],
+   "wrong_upper_U": [
+    15
+   ],
+   "colonies_work_info_U": [
+    15
+   ],
+   "identical_U": false,
+   "sites_differ_U": 26,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "commit",
+   "place": "edgeL",
+   "mode": "copy",
+   "t": 19196,
+   "x0": 6108,
+   "w": 200,
+   "h": 200,
+   "seed": 7202134,
+   "box_rel_boundary": [
+    -36,
+    163
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    107,
+    -24
+   ],
+   "wrong_upper_U": [
+    16
+   ],
+   "colonies_work_info_U": [
+    16
+   ],
+   "identical_U": false,
+   "sites_differ_U": 21,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  },
+  {
+   "candidate": "V_q384_g9",
+   "phase": "commit",
+   "place": "mid",
+   "mode": "copy",
+   "t": 19196,
+   "x0": 5852,
+   "w": 200,
+   "h": 200,
+   "seed": 7202131,
+   "box_rel_boundary": [
+    -292,
+    -93
+   ],
+   "structure_recovery_ticks": -1,
+   "structure_window_exhausted": false,
+   "structure_span_rel_box": null,
+   "structure_island_max": 0,
+   "addr_age_recovery_ticks": -1,
+   "addr_age_island_max": 0,
+   "addr_age_span_rel_box": null,
+   "info_span_rel_box": [
+    8,
+    -36
+   ],
+   "wrong_upper_U": [
+    15
+   ],
+   "colonies_work_info_U": [
+    15
+   ],
+   "identical_U": false,
+   "sites_differ_U": 55,
+   "wrong_upper_2U": [],
+   "colonies_work_info_2U": [],
+   "identical_2U": true,
+   "sites_differ_2U": 0
+  }
+ ],
+ "seconds": 323
+}

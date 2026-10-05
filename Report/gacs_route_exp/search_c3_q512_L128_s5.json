@@ -1,0 +1,200 @@
+{
+ "copies": 3,
+ "q": 512,
+ "margin": 122,
+ "seed": 5,
+ "probe": [
+  28,
+  48,
+  215
+ ],
+ "rounds": [
+  {
+   "round": 0,
+   "ranges": [
+    32,
+    53,
+    234
+   ],
+   "NPe": 33,
+   "MP": 87,
+   "NP": 322,
+   "U": 109440,
+   "Q": 512,
+   "PL": 288,
+   "nb": 380,
+   "m": 18,
+   "width": 258,
+   "gates": 14421,
+   "instructions": 26200,
+   "QU_log2": 25.74,
+   "used": [
+    18,
+    38,
+    207
+   ],
+   "ok": true,
+   "seconds": 27
+  },
+  {
+   "round": 1,
+   "ranges": [
+    19,
+    39,
+    208
+   ],
+   "NPe": 20,
+   "MP": 59,
+   "NP": 268,
+   "U": 93888,
+   "Q": 512,
+   "PL": 288,
+   "nb": 326,
+   "m": 18,
+   "width": 258,
+   "gates": 14412,
+   "instructions": 26147,
+   "QU_log2": 25.519,
+   "used": [
+    18,
+    31,
+    187
+   ],
+   "ok": true,
+   "seconds": 26
+  },
+  {
+   "round": 2,
+   "ranges": [
+    19,
+    32,
+    188
+   ],
+   "NPe": 20,
+   "MP": 53,
+   "NP": 242,
+   "ok": false,
+   "error": "unfinished: {'last_page': 52, 'idle': {'waits-lane': 10189, 'waits-remote-gate': 665, 'waits-export': 2, 'waits-scratch'"
+  },
+  {
+   "round": 3,
+   "ranges": [
+    19,
+    36,
+    188
+   ],
+   "NPe": 20,
+   "MP": 57,
+   "NP": 246,
+   "ok": false,
+   "error": "unfinished: {'last_page': 56, 'idle': {'waits-lane': 10652, 'waits-remote-gate': 665, 'waits-export': 2, 'waits-scratch'"
+  },
+  {
+   "round": 4,
+   "ranges": [
+    19,
+    40,
+    188
+   ],
+   "NPe": 20,
+   "MP": 61,
+   "NP": 250,
+   "U": 88704,
+   "Q": 512,
+   "PL": 288,
+   "nb": 308,
+   "m": 18,
+   "width": 258,
+   "gates": 14391,
+   "instructions": 25983,
+   "QU_log2": 25.437,
+   "used": [
+    18,
+    39,
+    184
+   ],
+   "ok": true,
+   "seconds": 26
+  },
+  {
+   "round": 5,
+   "ranges": [
+    19,
+    40,
+    185
+   ],
+   "NPe": 20,
+   "MP": 61,
+   "NP": 247,
+   "ok": false,
+   "error": "unfinished: {'last_page': 246, 'idle': {'waits-lane': 8457, 'waits-remote-gate': 95441, 'waits-export': 130, 'waits-scra"
+  },
+  {
+   "round": 6,
+   "ranges": [
+    19,
+    40,
+    201
+   ],
+   "NPe": 20,
+   "MP": 61,
+   "NP": 263,
+   "ok": false,
+   "error": "unfinished: {'last_page': 262, 'idle': {'waits-lane': 13598, 'waits-remote-gate': 92291, 'waits-export': 383, 'waits-scr"
+  },
+  {
+   "round": 7,
+   "ranges": [
+    19,
+    40,
+    219
+   ],
+   "NPe": 20,
+   "MP": 61,
+   "NP": 281,
+   "U": 97632,
+   "Q": 512,
+   "PL": 288,
+   "nb": 339,
+   "m": 18,
+   "width": 258,
+   "gates": 14411,
+   "instructions": 26123,
+   "QU_log2": 25.575,
+   "used": [
+    18,
+    34,
+    183
+   ],
+   "ok": true,
+   "seconds": 27
+  }
+ ],
+ "best": {
+  "round": 4,
+  "ranges": [
+   19,
+   40,
+   188
+  ],
+  "NPe": 20,
+  "MP": 61,
+  "NP": 250,
+  "U": 88704,
+  "Q": 512,
+  "PL": 288,
+  "nb": 308,
+  "m": 18,
+  "width": 258,
+  "gates": 14391,
+  "instructions": 25983,
+  "QU_log2": 25.437,
+  "used": [
+   18,
+   39,
+   184
+  ],
+  "ok": true,
+  "seconds": 26
+ }
+}

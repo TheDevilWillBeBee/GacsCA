@@ -1,0 +1,2456 @@
+{
+ "records": [
+  {
+   "base": "G16",
+   "over": {
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "E0q": 23
+   },
+   "skew": [
+    -5,
+    -4,
+    -3,
+    -2,
+    -1,
+    1,
+    2,
+    3,
+    4,
+    5
+   ],
+   "opts": {},
+   "probe": {
+    "NPe": 13,
+    "MP": 25,
+    "NP": 42,
+    "MP_min": 25
+   },
+   "tried": [
+    {
+     "want": [
+      13,
+      25,
+      42
+     ],
+     "usage": {
+      "NPe": 13,
+      "MP": 25,
+      "NP": 40,
+      "MP_min": 25
+     }
+    },
+    {
+     "want": [
+      13,
+      25,
+      40
+     ],
+     "usage": {
+      "NPe": 13,
+      "MP": 25,
+      "NP": 39,
+      "MP_min": 25
+     }
+    },
+    {
+     "want": [
+      13,
+      25,
+      39
+     ],
+     "error": "schedule needs {'NPe': 13, 'MP': 25, 'NP': 40, 'MP_min': 25}, candidate has NPe="
+    }
+   ],
+   "seconds": 40,
+   "params": {
+    "k": 9,
+    "m": 16,
+    "L": 64,
+    "S": 4,
+    "NP": 40,
+    "NPe": 13,
+    "MP": 25,
+    "E0q": 23,
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "margin": 122,
+    "clear_ws": true,
+    "q": 512,
+    "nb": 82,
+    "confined": true,
+    "compact_front": true,
+    "mux_front": true,
+    "computed_front": true,
+    "five_front": true,
+    "fronts": 5,
+    "delta": 5,
+    "stage_wipe": true,
+    "skew": [
+     -5,
+     -4,
+     -3,
+     -2,
+     -1,
+     1,
+     2,
+     3,
+     4,
+     5
+    ]
+   },
+   "Q": 512,
+   "U": 23616,
+   "PL": 288,
+   "QU_log2": 23.527,
+   "U_over_Q": 46.1,
+   "instr": 22801,
+   "gates": 16679,
+   "loads": 4827,
+   "parks": 1018,
+   "max_parked": 679
+  },
+  {
+   "base": "G16",
+   "over": {
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "E0q": 23
+   },
+   "skew": [
+    -5,
+    -4,
+    -3,
+    -2,
+    -1,
+    1,
+    2,
+    3,
+    4,
+    5
+   ],
+   "opts": {
+    "front_k": 100
+   },
+   "probe": {
+    "NPe": 11,
+    "MP": 27,
+    "NP": 41,
+    "MP_min": 27
+   },
+   "tried": [
+    {
+     "want": [
+      11,
+      27,
+      41
+     ],
+     "usage": {
+      "NPe": 11,
+      "MP": 27,
+      "NP": 41,
+      "MP_min": 21
+     }
+    },
+    {
+     "want": [
+      11,
+      21,
+      41
+     ],
+     "error": "key not ready for match pass 21: {'post_match': False, 'MP': 21, 'stores_left': "
+    }
+   ],
+   "seconds": 26,
+   "params": {
+    "k": 9,
+    "m": 16,
+    "L": 64,
+    "S": 4,
+    "NP": 41,
+    "NPe": 11,
+    "MP": 27,
+    "E0q": 23,
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "margin": 122,
+    "clear_ws": true,
+    "q": 512,
+    "nb": 83,
+    "confined": true,
+    "compact_front": true,
+    "mux_front": true,
+    "computed_front": true,
+    "five_front": true,
+    "fronts": 5,
+    "delta": 5,
+    "stage_wipe": true,
+    "skew": [
+     -5,
+     -4,
+     -3,
+     -2,
+     -1,
+     1,
+     2,
+     3,
+     4,
+     5
+    ]
+   },
+   "Q": 512,
+   "U": 23904,
+   "PL": 288,
+   "QU_log2": 23.545,
+   "U_over_Q": 46.7,
+   "instr": 22841,
+   "gates": 16675,
+   "loads": 4863,
+   "parks": 1026,
+   "max_parked": 702
+  },
+  {
+   "base": "G16",
+   "over": {
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "E0q": 23
+   },
+   "skew": [
+    -5,
+    -4,
+    -3,
+    -2,
+    -1,
+    1,
+    2,
+    3,
+    4,
+    5
+   ],
+   "opts": {
+    "window": 300,
+    "front_k": 100
+   },
+   "probe": {
+    "NPe": 13,
+    "MP": 21,
+    "NP": 42,
+    "MP_min": 21
+   },
+   "tried": [
+    {
+     "want": [
+      13,
+      21,
+      42
+     ],
+     "usage": {
+      "NPe": 12,
+      "MP": 21,
+      "NP": 35,
+      "MP_min": 21
+     }
+    },
+    {
+     "want": [
+      12,
+      21,
+      35
+     ],
+     "error": "key not ready for match pass 21: {'post_match': False, 'MP': 21, 'stores_left': "
+    }
+   ],
+   "seconds": 38,
+   "params": {
+    "k": 9,
+    "m": 16,
+    "L": 64,
+    "S": 4,
+    "NP": 42,
+    "NPe": 13,
+    "MP": 21,
+    "E0q": 23,
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "margin": 122,
+    "clear_ws": true,
+    "q": 512,
+    "nb": 84,
+    "confined": true,
+    "compact_front": true,
+    "mux_front": true,
+    "computed_front": true,
+    "five_front": true,
+    "fronts": 5,
+    "delta": 5,
+    "stage_wipe": true,
+    "skew": [
+     -5,
+     -4,
+     -3,
+     -2,
+     -1,
+     1,
+     2,
+     3,
+     4,
+     5
+    ]
+   },
+   "Q": 512,
+   "U": 24192,
+   "PL": 288,
+   "QU_log2": 23.562,
+   "U_over_Q": 47.2,
+   "instr": 23460,
+   "gates": 16683,
+   "loads": 5395,
+   "parks": 1104,
+   "max_parked": 683
+  },
+  {
+   "base": "G16",
+   "over": {
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "E0q": 23
+   },
+   "skew": [
+    -5,
+    -4,
+    -3,
+    -2,
+    -1,
+    1,
+    2,
+    3,
+    4,
+    5
+   ],
+   "opts": {
+    "size_max": 300,
+    "low": 80
+   },
+   "probe": {
+    "NPe": 11,
+    "MP": 27,
+    "NP": 41,
+    "MP_min": 27
+   },
+   "tried": [
+    {
+     "want": [
+      11,
+      27,
+      41
+     ],
+     "error": "key not ready for match pass 27: {'post_match': False, 'MP': 27, 'stores_left': "
+    },
+    {
+     "want": [
+      12,
+      29,
+      44
+     ],
+     "usage": {
+      "NPe": 11,
+      "MP": 29,
+      "NP": 41,
+      "MP_min": 27
+     }
+    }
+   ],
+   "seconds": 26,
+   "params": {
+    "k": 9,
+    "m": 16,
+    "L": 64,
+    "S": 4,
+    "NP": 44,
+    "NPe": 12,
+    "MP": 29,
+    "E0q": 23,
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "margin": 122,
+    "clear_ws": true,
+    "q": 512,
+    "nb": 86,
+    "confined": true,
+    "compact_front": true,
+    "mux_front": true,
+    "computed_front": true,
+    "five_front": true,
+    "fronts": 5,
+    "delta": 5,
+    "stage_wipe": true,
+    "skew": [
+     -5,
+     -4,
+     -3,
+     -2,
+     -1,
+     1,
+     2,
+     3,
+     4,
+     5
+    ]
+   },
+   "Q": 512,
+   "U": 24768,
+   "PL": 288,
+   "QU_log2": 23.596,
+   "U_over_Q": 48.4,
+   "instr": 23039,
+   "gates": 16678,
+   "loads": 4761,
+   "parks": 1323,
+   "max_parked": 765
+  },
+  {
+   "base": "G16",
+   "over": {
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "E0q": 23
+   },
+   "skew": [
+    -5,
+    -4,
+    -3,
+    -2,
+    -1,
+    1,
+    2,
+    3,
+    4,
+    5
+   ],
+   "opts": {
+    "front_k": 100,
+    "size_max": 300,
+    "low": 80
+   },
+   "probe": {
+    "NPe": 15,
+    "MP": 27,
+    "NP": 39,
+    "MP_min": 27
+   },
+   "tried": [
+    {
+     "want": [
+      15,
+      27,
+      39
+     ],
+     "usage": {
+      "NPe": 15,
+      "MP": 27,
+      "NP": 39,
+      "MP_min": 25
+     }
+    },
+    {
+     "want": [
+      15,
+      25,
+      39
+     ],
+     "usage": {
+      "NPe": 15,
+      "MP": 25,
+      "NP": 39,
+      "MP_min": 25
+     }
+    }
+   ],
+   "seconds": 27,
+   "params": {
+    "k": 9,
+    "m": 16,
+    "L": 64,
+    "S": 4,
+    "NP": 39,
+    "NPe": 15,
+    "MP": 25,
+    "E0q": 23,
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "margin": 122,
+    "clear_ws": true,
+    "q": 512,
+    "nb": 81,
+    "confined": true,
+    "compact_front": true,
+    "mux_front": true,
+    "computed_front": true,
+    "five_front": true,
+    "fronts": 5,
+    "delta": 5,
+    "stage_wipe": true,
+    "skew": [
+     -5,
+     -4,
+     -3,
+     -2,
+     -1,
+     1,
+     2,
+     3,
+     4,
+     5
+    ]
+   },
+   "Q": 512,
+   "U": 23328,
+   "PL": 288,
+   "QU_log2": 23.51,
+   "U_over_Q": 45.6,
+   "instr": 23104,
+   "gates": 16668,
+   "loads": 4984,
+   "parks": 1174,
+   "max_parked": 696
+  },
+  {
+   "base": "G16",
+   "over": {
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "E0q": 23
+   },
+   "skew": [
+    -5,
+    -4,
+    -3,
+    -2,
+    -1,
+    1,
+    2,
+    3,
+    4,
+    5
+   ],
+   "opts": {
+    "front_k": 40
+   },
+   "probe": {
+    "NPe": 17,
+    "MP": 29,
+    "NP": 44,
+    "MP_min": 29
+   },
+   "tried": [
+    {
+     "want": [
+      17,
+      29,
+      44
+     ],
+     "error": "schedule needs {'NPe': 13, 'MP': 29, 'NP': 45, 'MP_min': 23}, candidate has NPe="
+    },
+    {
+     "want": [
+      18,
+      31,
+      47
+     ],
+     "usage": {
+      "NPe": 13,
+      "MP": 31,
+      "NP": 44,
+      "MP_min": 21
+     }
+    },
+    {
+     "want": [
+      13,
+      21,
+      44
+     ],
+     "usage": {
+      "NPe": 13,
+      "MP": 21,
+      "NP": 42,
+      "MP_min": 21
+     }
+    },
+    {
+     "want": [
+      13,
+      21,
+      42
+     ],
+     "usage": {
+      "NPe": 13,
+      "MP": 21,
+      "NP": 36,
+      "MP_min": 21
+     }
+    },
+    {
+     "want": [
+      13,
+      21,
+      36
+     ],
+     "error": "schedule needs {'NPe': 13, 'MP': 21, 'NP': 40, 'MP_min': 21}, candidate has NPe="
+    }
+   ],
+   "seconds": 66,
+   "params": {
+    "k": 9,
+    "m": 16,
+    "L": 64,
+    "S": 4,
+    "NP": 42,
+    "NPe": 13,
+    "MP": 21,
+    "E0q": 23,
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "margin": 122,
+    "clear_ws": true,
+    "q": 512,
+    "nb": 84,
+    "confined": true,
+    "compact_front": true,
+    "mux_front": true,
+    "computed_front": true,
+    "five_front": true,
+    "fronts": 5,
+    "delta": 5,
+    "stage_wipe": true,
+    "skew": [
+     -5,
+     -4,
+     -3,
+     -2,
+     -1,
+     1,
+     2,
+     3,
+     4,
+     5
+    ]
+   },
+   "Q": 512,
+   "U": 24192,
+   "PL": 288,
+   "QU_log2": 23.562,
+   "U_over_Q": 47.2,
+   "instr": 22568,
+   "gates": 16683,
+   "loads": 4635,
+   "parks": 972,
+   "max_parked": 676
+  },
+  {
+   "base": "G16",
+   "over": {
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "E0q": 23
+   },
+   "skew": [
+    -10,
+    -8,
+    -6,
+    -4,
+    -2,
+    2,
+    4,
+    6,
+    8,
+    10
+   ],
+   "opts": {},
+   "probe": {
+    "NPe": 12,
+    "MP": 27,
+    "NP": 43,
+    "MP_min": 27
+   },
+   "tried": [
+    {
+     "want": [
+      12,
+      27,
+      43
+     ],
+     "error": "schedule needs {'NPe': 17, 'MP': 27, 'NP': 43, 'MP_min': 27}, candidate has NPe="
+    },
+    {
+     "want": [
+      13,
+      29,
+      46
+     ],
+     "error": "schedule needs {'NPe': 17, 'MP': 29, 'NP': 42, 'MP_min': 25}, candidate has NPe="
+    },
+    {
+     "want": [
+      14,
+      31,
+      49
+     ],
+     "error": "schedule needs {'NPe': 17, 'MP': 31, 'NP': 43, 'MP_min': 27}, candidate has NPe="
+    },
+    {
+     "want": [
+      15,
+      33,
+      52
+     ],
+     "error": "schedule needs {'NPe': 17, 'MP': 33, 'NP': 49, 'MP_min': 25}, candidate has NPe="
+    },
+    {
+     "want": [
+      16,
+      35,
+      55
+     ],
+     "error": "schedule needs {'NPe': 17, 'MP': 35, 'NP': 48, 'MP_min': 25}, candidate has NPe="
+    },
+    {
+     "want": [
+      17,
+      37,
+      58
+     ],
+     "usage": {
+      "NPe": 17,
+      "MP": 37,
+      "NP": 52,
+      "MP_min": 25
+     }
+    },
+    {
+     "want": [
+      17,
+      25,
+      52
+     ],
+     "error": "key not ready for match pass 25: {'post_match': False, 'MP': 25, 'stores_left': "
+    }
+   ],
+   "seconds": 115,
+   "params": {
+    "k": 9,
+    "m": 16,
+    "L": 64,
+    "S": 4,
+    "NP": 58,
+    "NPe": 17,
+    "MP": 37,
+    "E0q": 23,
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "margin": 122,
+    "clear_ws": true,
+    "q": 512,
+    "nb": 100,
+    "confined": true,
+    "compact_front": true,
+    "mux_front": true,
+    "computed_front": true,
+    "five_front": true,
+    "fronts": 5,
+    "delta": 5,
+    "stage_wipe": true,
+    "skew": [
+     -10,
+     -8,
+     -6,
+     -4,
+     -2,
+     2,
+     4,
+     6,
+     8,
+     10
+    ]
+   },
+   "Q": 512,
+   "U": 28800,
+   "PL": 288,
+   "QU_log2": 23.814,
+   "U_over_Q": 56.2,
+   "instr": 22408,
+   "gates": 16679,
+   "loads": 4578,
+   "parks": 873,
+   "max_parked": 684
+  },
+  {
+   "base": "G16",
+   "over": {
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "E0q": 23
+   },
+   "skew": [
+    -10,
+    -8,
+    -6,
+    -4,
+    -2,
+    2,
+    4,
+    6,
+    8,
+    10
+   ],
+   "opts": {
+    "front_k": 100
+   },
+   "probe": {
+    "NPe": 11,
+    "MP": 27,
+    "NP": 41,
+    "MP_min": 27
+   },
+   "tried": [
+    {
+     "want": [
+      11,
+      27,
+      41
+     ],
+     "error": "schedule needs {'NPe': 13, 'MP': 27, 'NP': 41, 'MP_min': 23}, candidate has NPe="
+    },
+    {
+     "want": [
+      12,
+      29,
+      44
+     ],
+     "error": "schedule needs {'NPe': 13, 'MP': 29, 'NP': 42, 'MP_min': 23}, candidate has NPe="
+    },
+    {
+     "want": [
+      13,
+      31,
+      47
+     ],
+     "usage": {
+      "NPe": 13,
+      "MP": 31,
+      "NP": 47,
+      "MP_min": 23
+     }
+    },
+    {
+     "want": [
+      13,
+      23,
+      47
+     ],
+     "usage": {
+      "NPe": 13,
+      "MP": 23,
+      "NP": 37,
+      "MP_min": 23
+     }
+    },
+    {
+     "want": [
+      13,
+      23,
+      37
+     ],
+     "usage": {
+      "NPe": 13,
+      "MP": 23,
+      "NP": 35,
+      "MP_min": 21
+     }
+    },
+    {
+     "want": [
+      13,
+      21,
+      35
+     ],
+     "error": "schedule needs {'NPe': 13, 'MP': 21, 'NP': 39, 'MP_min': 21}, candidate has NPe="
+    }
+   ],
+   "seconds": 66,
+   "params": {
+    "k": 9,
+    "m": 16,
+    "L": 64,
+    "S": 4,
+    "NP": 37,
+    "NPe": 13,
+    "MP": 23,
+    "E0q": 23,
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "margin": 122,
+    "clear_ws": true,
+    "q": 512,
+    "nb": 79,
+    "confined": true,
+    "compact_front": true,
+    "mux_front": true,
+    "computed_front": true,
+    "five_front": true,
+    "fronts": 5,
+    "delta": 5,
+    "stage_wipe": true,
+    "skew": [
+     -10,
+     -8,
+     -6,
+     -4,
+     -2,
+     2,
+     4,
+     6,
+     8,
+     10
+    ]
+   },
+   "Q": 512,
+   "U": 22752,
+   "PL": 288,
+   "QU_log2": 23.474,
+   "U_over_Q": 44.4,
+   "instr": 23021,
+   "gates": 16682,
+   "loads": 4782,
+   "parks": 1279,
+   "max_parked": 657
+  },
+  {
+   "base": "G16",
+   "over": {
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "E0q": 23
+   },
+   "skew": [
+    -10,
+    -8,
+    -6,
+    -4,
+    -2,
+    2,
+    4,
+    6,
+    8,
+    10
+   ],
+   "opts": {
+    "window": 300,
+    "front_k": 100
+   },
+   "probe": {
+    "NPe": 13,
+    "MP": 29,
+    "NP": 41,
+    "MP_min": 29
+   },
+   "tried": [
+    {
+     "want": [
+      13,
+      29,
+      41
+     ],
+     "error": "schedule needs {'NPe': 14, 'MP': 29, 'NP': 43, 'MP_min': 25}, candidate has NPe="
+    },
+    {
+     "want": [
+      14,
+      31,
+      44
+     ],
+     "error": "schedule needs {'NPe': 14, 'MP': 31, 'NP': 48, 'MP_min': 23}, candidate has NPe="
+    },
+    {
+     "want": [
+      15,
+      33,
+      47
+     ],
+     "error": "schedule needs {'NPe': 14, 'MP': 33, 'NP': 48, 'MP_min': 23}, candidate has NPe="
+    },
+    {
+     "want": [
+      16,
+      35,
+      50
+     ],
+     "usage": {
+      "NPe": 14,
+      "MP": 35,
+      "NP": 49,
+      "MP_min": 21
+     }
+    },
+    {
+     "want": [
+      14,
+      21,
+      49
+     ],
+     "error": "key not ready for match pass 21: {'post_match': False, 'MP': 21, 'stores_left': "
+    }
+   ],
+   "seconds": 78,
+   "params": {
+    "k": 9,
+    "m": 16,
+    "L": 64,
+    "S": 4,
+    "NP": 50,
+    "NPe": 16,
+    "MP": 35,
+    "E0q": 23,
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "margin": 122,
+    "clear_ws": true,
+    "q": 512,
+    "nb": 92,
+    "confined": true,
+    "compact_front": true,
+    "mux_front": true,
+    "computed_front": true,
+    "five_front": true,
+    "fronts": 5,
+    "delta": 5,
+    "stage_wipe": true,
+    "skew": [
+     -10,
+     -8,
+     -6,
+     -4,
+     -2,
+     2,
+     4,
+     6,
+     8,
+     10
+    ]
+   },
+   "Q": 512,
+   "U": 26496,
+   "PL": 288,
+   "QU_log2": 23.693,
+   "U_over_Q": 51.8,
+   "instr": 23095,
+   "gates": 16677,
+   "loads": 4906,
+   "parks": 1236,
+   "max_parked": 666
+  },
+  {
+   "base": "G16",
+   "over": {
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "E0q": 23
+   },
+   "skew": [
+    -10,
+    -8,
+    -6,
+    -4,
+    -2,
+    2,
+    4,
+    6,
+    8,
+    10
+   ],
+   "opts": {
+    "size_max": 300,
+    "low": 80
+   },
+   "probe": {
+    "NPe": 11,
+    "MP": 31,
+    "NP": 43,
+    "MP_min": 31
+   },
+   "tried": [
+    {
+     "want": [
+      11,
+      31,
+      43
+     ],
+     "error": "schedule needs {'NPe': 14, 'MP': 31, 'NP': 43, 'MP_min': 31}, candidate has NPe="
+    },
+    {
+     "want": [
+      12,
+      33,
+      46
+     ],
+     "error": "schedule needs {'NPe': 14, 'MP': 33, 'NP': 47, 'MP_min': 27}, candidate has NPe="
+    },
+    {
+     "want": [
+      13,
+      35,
+      49
+     ],
+     "error": "schedule needs {'NPe': 14, 'MP': 35, 'NP': 51, 'MP_min': 29}, candidate has NPe="
+    },
+    {
+     "want": [
+      14,
+      37,
+      52
+     ],
+     "usage": {
+      "NPe": 14,
+      "MP": 37,
+      "NP": 51,
+      "MP_min": 29
+     }
+    },
+    {
+     "want": [
+      14,
+      29,
+      51
+     ],
+     "usage": {
+      "NPe": 14,
+      "MP": 29,
+      "NP": 43,
+      "MP_min": 27
+     }
+    },
+    {
+     "want": [
+      14,
+      27,
+      43
+     ],
+     "error": "key not ready for match pass 27: {'post_match': False, 'MP': 27, 'stores_left': "
+    }
+   ],
+   "seconds": 66,
+   "params": {
+    "k": 9,
+    "m": 16,
+    "L": 64,
+    "S": 4,
+    "NP": 51,
+    "NPe": 14,
+    "MP": 29,
+    "E0q": 23,
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "margin": 122,
+    "clear_ws": true,
+    "q": 512,
+    "nb": 93,
+    "confined": true,
+    "compact_front": true,
+    "mux_front": true,
+    "computed_front": true,
+    "five_front": true,
+    "fronts": 5,
+    "delta": 5,
+    "stage_wipe": true,
+    "skew": [
+     -10,
+     -8,
+     -6,
+     -4,
+     -2,
+     2,
+     4,
+     6,
+     8,
+     10
+    ]
+   },
+   "Q": 512,
+   "U": 26784,
+   "PL": 288,
+   "QU_log2": 23.709,
+   "U_over_Q": 52.3,
+   "instr": 23123,
+   "gates": 16682,
+   "loads": 4995,
+   "parks": 1168,
+   "max_parked": 653
+  },
+  {
+   "base": "G16",
+   "over": {
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "E0q": 23
+   },
+   "skew": [
+    -10,
+    -8,
+    -6,
+    -4,
+    -2,
+    2,
+    4,
+    6,
+    8,
+    10
+   ],
+   "opts": {
+    "front_k": 100,
+    "size_max": 300,
+    "low": 80
+   },
+   "probe": {
+    "NPe": 13,
+    "MP": 27,
+    "NP": 41,
+    "MP_min": 27
+   },
+   "tried": [
+    {
+     "want": [
+      13,
+      27,
+      41
+     ],
+     "usage": {
+      "NPe": 13,
+      "MP": 27,
+      "NP": 41,
+      "MP_min": 25
+     }
+    },
+    {
+     "want": [
+      13,
+      25,
+      41
+     ],
+     "error": "key not ready for match pass 25: {'post_match': False, 'MP': 25, 'stores_left': "
+    }
+   ],
+   "seconds": 23,
+   "params": {
+    "k": 9,
+    "m": 16,
+    "L": 64,
+    "S": 4,
+    "NP": 41,
+    "NPe": 13,
+    "MP": 27,
+    "E0q": 23,
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "margin": 122,
+    "clear_ws": true,
+    "q": 512,
+    "nb": 83,
+    "confined": true,
+    "compact_front": true,
+    "mux_front": true,
+    "computed_front": true,
+    "five_front": true,
+    "fronts": 5,
+    "delta": 5,
+    "stage_wipe": true,
+    "skew": [
+     -10,
+     -8,
+     -6,
+     -4,
+     -2,
+     2,
+     4,
+     6,
+     8,
+     10
+    ]
+   },
+   "Q": 512,
+   "U": 23904,
+   "PL": 288,
+   "QU_log2": 23.545,
+   "U_over_Q": 46.7,
+   "instr": 23252,
+   "gates": 16679,
+   "loads": 5187,
+   "parks": 1110,
+   "max_parked": 604
+  },
+  {
+   "base": "G16",
+   "over": {
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "E0q": 23
+   },
+   "skew": [
+    -10,
+    -8,
+    -6,
+    -4,
+    -2,
+    2,
+    4,
+    6,
+    8,
+    10
+   ],
+   "opts": {
+    "front_k": 40
+   },
+   "probe": {
+    "NPe": 12,
+    "MP": 25,
+    "NP": 39,
+    "MP_min": 25
+   },
+   "tried": [
+    {
+     "want": [
+      12,
+      25,
+      39
+     ],
+     "error": "schedule needs {'NPe': 13, 'MP': 25, 'NP': 43, 'MP_min': 25}, candidate has NPe="
+    },
+    {
+     "want": [
+      13,
+      27,
+      42
+     ],
+     "error": "schedule needs {'NPe': 13, 'MP': 27, 'NP': 43, 'MP_min': 25}, candidate has NPe="
+    },
+    {
+     "want": [
+      14,
+      29,
+      45
+     ],
+     "usage": {
+      "NPe": 13,
+      "MP": 29,
+      "NP": 44,
+      "MP_min": 25
+     }
+    },
+    {
+     "want": [
+      13,
+      25,
+      44
+     ],
+     "error": "schedule needs {'NPe': 13, 'MP': 25, 'NP': 45, 'MP_min': 25}, candidate has NPe="
+    }
+   ],
+   "seconds": 53,
+   "params": {
+    "k": 9,
+    "m": 16,
+    "L": 64,
+    "S": 4,
+    "NP": 45,
+    "NPe": 14,
+    "MP": 29,
+    "E0q": 23,
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "margin": 122,
+    "clear_ws": true,
+    "q": 512,
+    "nb": 87,
+    "confined": true,
+    "compact_front": true,
+    "mux_front": true,
+    "computed_front": true,
+    "five_front": true,
+    "fronts": 5,
+    "delta": 5,
+    "stage_wipe": true,
+    "skew": [
+     -10,
+     -8,
+     -6,
+     -4,
+     -2,
+     2,
+     4,
+     6,
+     8,
+     10
+    ]
+   },
+   "Q": 512,
+   "U": 25056,
+   "PL": 288,
+   "QU_log2": 23.613,
+   "U_over_Q": 48.9,
+   "instr": 22510,
+   "gates": 16681,
+   "loads": 4658,
+   "parks": 893,
+   "max_parked": 697
+  },
+  {
+   "base": "G16",
+   "over": {
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "E0q": 23
+   },
+   "skew": [
+    -15,
+    -12,
+    -9,
+    -6,
+    -3,
+    3,
+    6,
+    9,
+    12,
+    15
+   ],
+   "opts": {},
+   "probe": {
+    "NPe": 11,
+    "MP": 27,
+    "NP": 42,
+    "MP_min": 27
+   },
+   "tried": [
+    {
+     "want": [
+      11,
+      27,
+      42
+     ],
+     "error": "schedule needs {'NPe': 15, 'MP': 27, 'NP': 43, 'MP_min': 23}, candidate has NPe="
+    },
+    {
+     "want": [
+      12,
+      29,
+      45
+     ],
+     "error": "schedule needs {'NPe': 15, 'MP': 29, 'NP': 43, 'MP_min': 23}, candidate has NPe="
+    },
+    {
+     "want": [
+      13,
+      31,
+      48
+     ],
+     "error": "schedule needs {'NPe': 15, 'MP': 31, 'NP': 45, 'MP_min': 23}, candidate has NPe="
+    },
+    {
+     "want": [
+      14,
+      33,
+      51
+     ],
+     "error": "schedule needs {'NPe': 15, 'MP': 33, 'NP': 47, 'MP_min': 25}, candidate has NPe="
+    },
+    {
+     "want": [
+      15,
+      35,
+      54
+     ],
+     "usage": {
+      "NPe": 15,
+      "MP": 35,
+      "NP": 52,
+      "MP_min": 23
+     }
+    },
+    {
+     "want": [
+      15,
+      23,
+      52
+     ],
+     "usage": {
+      "NPe": 15,
+      "MP": 23,
+      "NP": 38,
+      "MP_min": 23
+     }
+    },
+    {
+     "want": [
+      15,
+      23,
+      38
+     ],
+     "error": "schedule needs {'NPe': 15, 'MP': 23, 'NP': 39, 'MP_min': 23}, candidate has NPe="
+    }
+   ],
+   "seconds": 87,
+   "params": {
+    "k": 9,
+    "m": 16,
+    "L": 64,
+    "S": 4,
+    "NP": 52,
+    "NPe": 15,
+    "MP": 23,
+    "E0q": 23,
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "margin": 122,
+    "clear_ws": true,
+    "q": 512,
+    "nb": 94,
+    "confined": true,
+    "compact_front": true,
+    "mux_front": true,
+    "computed_front": true,
+    "five_front": true,
+    "fronts": 5,
+    "delta": 5,
+    "stage_wipe": true,
+    "skew": [
+     -15,
+     -12,
+     -9,
+     -6,
+     -3,
+     3,
+     6,
+     9,
+     12,
+     15
+    ]
+   },
+   "Q": 512,
+   "U": 27072,
+   "PL": 288,
+   "QU_log2": 23.725,
+   "U_over_Q": 52.9,
+   "instr": 22661,
+   "gates": 16684,
+   "loads": 4660,
+   "parks": 1039,
+   "max_parked": 710
+  },
+  {
+   "base": "G16",
+   "over": {
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "E0q": 23
+   },
+   "skew": [
+    -15,
+    -12,
+    -9,
+    -6,
+    -3,
+    3,
+    6,
+    9,
+    12,
+    15
+   ],
+   "opts": {
+    "front_k": 100
+   },
+   "probe": {
+    "NPe": 13,
+    "MP": 23,
+    "NP": 37,
+    "MP_min": 23
+   },
+   "tried": [
+    {
+     "want": [
+      13,
+      23,
+      37
+     ],
+     "usage": {
+      "NPe": 13,
+      "MP": 23,
+      "NP": 37,
+      "MP_min": 21
+     }
+    },
+    {
+     "want": [
+      13,
+      21,
+      37
+     ],
+     "error": "key not ready for match pass 21: {'post_match': False, 'MP': 21, 'stores_left': "
+    }
+   ],
+   "seconds": 25,
+   "params": {
+    "k": 9,
+    "m": 16,
+    "L": 64,
+    "S": 4,
+    "NP": 37,
+    "NPe": 13,
+    "MP": 23,
+    "E0q": 23,
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "margin": 122,
+    "clear_ws": true,
+    "q": 512,
+    "nb": 79,
+    "confined": true,
+    "compact_front": true,
+    "mux_front": true,
+    "computed_front": true,
+    "five_front": true,
+    "fronts": 5,
+    "delta": 5,
+    "stage_wipe": true,
+    "skew": [
+     -15,
+     -12,
+     -9,
+     -6,
+     -3,
+     3,
+     6,
+     9,
+     12,
+     15
+    ]
+   },
+   "Q": 512,
+   "U": 22752,
+   "PL": 288,
+   "QU_log2": 23.474,
+   "U_over_Q": 44.4,
+   "instr": 22757,
+   "gates": 16684,
+   "loads": 4637,
+   "parks": 1159,
+   "max_parked": 712
+  },
+  {
+   "base": "G16",
+   "over": {
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "E0q": 23
+   },
+   "skew": [
+    -15,
+    -12,
+    -9,
+    -6,
+    -3,
+    3,
+    6,
+    9,
+    12,
+    15
+   ],
+   "opts": {
+    "window": 300,
+    "front_k": 100
+   },
+   "probe": {
+    "NPe": 11,
+    "MP": 23,
+    "NP": 37,
+    "MP_min": 23
+   },
+   "tried": [
+    {
+     "want": [
+      11,
+      23,
+      37
+     ],
+     "error": "key not ready for match pass 23: {'post_match': False, 'MP': 23, 'stores_left': "
+    },
+    {
+     "want": [
+      12,
+      25,
+      40
+     ],
+     "error": "schedule needs {'NPe': 13, 'MP': 25, 'NP': 38, 'MP_min': 23}, candidate has NPe="
+    },
+    {
+     "want": [
+      13,
+      27,
+      43
+     ],
+     "usage": {
+      "NPe": 13,
+      "MP": 27,
+      "NP": 42,
+      "MP_min": 25
+     }
+    },
+    {
+     "want": [
+      13,
+      25,
+      42
+     ],
+     "usage": {
+      "NPe": 13,
+      "MP": 25,
+      "NP": 41,
+      "MP_min": 25
+     }
+    },
+    {
+     "want": [
+      13,
+      25,
+      41
+     ],
+     "usage": {
+      "NPe": 13,
+      "MP": 25,
+      "NP": 39,
+      "MP_min": 23
+     }
+    },
+    {
+     "want": [
+      13,
+      23,
+      39
+     ],
+     "error": "key not ready for match pass 23: {'post_match': False, 'MP': 23, 'stores_left': "
+    }
+   ],
+   "seconds": 87,
+   "params": {
+    "k": 9,
+    "m": 16,
+    "L": 64,
+    "S": 4,
+    "NP": 41,
+    "NPe": 13,
+    "MP": 25,
+    "E0q": 23,
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "margin": 122,
+    "clear_ws": true,
+    "q": 512,
+    "nb": 83,
+    "confined": true,
+    "compact_front": true,
+    "mux_front": true,
+    "computed_front": true,
+    "five_front": true,
+    "fronts": 5,
+    "delta": 5,
+    "stage_wipe": true,
+    "skew": [
+     -15,
+     -12,
+     -9,
+     -6,
+     -3,
+     3,
+     6,
+     9,
+     12,
+     15
+    ]
+   },
+   "Q": 512,
+   "U": 23904,
+   "PL": 288,
+   "QU_log2": 23.545,
+   "U_over_Q": 46.7,
+   "instr": 23422,
+   "gates": 16681,
+   "loads": 5164,
+   "parks": 1301,
+   "max_parked": 719
+  },
+  {
+   "base": "G16",
+   "over": {
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "E0q": 23
+   },
+   "skew": [
+    -15,
+    -12,
+    -9,
+    -6,
+    -3,
+    3,
+    6,
+    9,
+    12,
+    15
+   ],
+   "opts": {
+    "size_max": 300,
+    "low": 80
+   },
+   "probe": {
+    "NPe": 13,
+    "MP": 27,
+    "NP": 39,
+    "MP_min": 27
+   },
+   "tried": [
+    {
+     "want": [
+      13,
+      27,
+      39
+     ],
+     "error": "schedule needs {'NPe': 17, 'MP': 27, 'NP': 42, 'MP_min': 25}, candidate has NPe="
+    },
+    {
+     "want": [
+      14,
+      29,
+      42
+     ],
+     "error": "schedule needs {'NPe': 17, 'MP': 29, 'NP': 43, 'MP_min': 27}, candidate has NPe="
+    },
+    {
+     "want": [
+      15,
+      31,
+      45
+     ],
+     "error": "schedule needs {'NPe': 17, 'MP': 31, 'NP': 45, 'MP_min': 25}, candidate has NPe="
+    },
+    {
+     "want": [
+      16,
+      33,
+      48
+     ],
+     "error": "schedule needs {'NPe': 17, 'MP': 33, 'NP': 48, 'MP_min': 25}, candidate has NPe="
+    },
+    {
+     "want": [
+      17,
+      35,
+      51
+     ],
+     "usage": {
+      "NPe": 17,
+      "MP": 35,
+      "NP": 49,
+      "MP_min": 25
+     }
+    },
+    {
+     "want": [
+      17,
+      25,
+      49
+     ],
+     "usage": {
+      "NPe": 17,
+      "MP": 25,
+      "NP": 37,
+      "MP_min": 25
+     }
+    },
+    {
+     "want": [
+      17,
+      25,
+      37
+     ],
+     "error": "key not ready for match pass 25: {'post_match': False, 'MP': 25, 'stores_left': "
+    }
+   ],
+   "seconds": 73,
+   "params": {
+    "k": 9,
+    "m": 16,
+    "L": 64,
+    "S": 4,
+    "NP": 49,
+    "NPe": 17,
+    "MP": 25,
+    "E0q": 23,
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "margin": 122,
+    "clear_ws": true,
+    "q": 512,
+    "nb": 91,
+    "confined": true,
+    "compact_front": true,
+    "mux_front": true,
+    "computed_front": true,
+    "five_front": true,
+    "fronts": 5,
+    "delta": 5,
+    "stage_wipe": true,
+    "skew": [
+     -15,
+     -12,
+     -9,
+     -6,
+     -3,
+     3,
+     6,
+     9,
+     12,
+     15
+    ]
+   },
+   "Q": 512,
+   "U": 26208,
+   "PL": 288,
+   "QU_log2": 23.678,
+   "U_over_Q": 51.2,
+   "instr": 22956,
+   "gates": 16681,
+   "loads": 4883,
+   "parks": 1114,
+   "max_parked": 674
+  },
+  {
+   "base": "G16",
+   "over": {
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "E0q": 23
+   },
+   "skew": [
+    -15,
+    -12,
+    -9,
+    -6,
+    -3,
+    3,
+    6,
+    9,
+    12,
+    15
+   ],
+   "opts": {
+    "front_k": 100,
+    "size_max": 300,
+    "low": 80
+   },
+   "probe": {
+    "NPe": 15,
+    "MP": 27,
+    "NP": 41,
+    "MP_min": 27
+   },
+   "tried": [
+    {
+     "want": [
+      15,
+      27,
+      41
+     ],
+     "error": "schedule needs {'NPe': 13, 'MP': 27, 'NP': 43, 'MP_min': 25}, candidate has NPe="
+    },
+    {
+     "want": [
+      16,
+      29,
+      44
+     ],
+     "usage": {
+      "NPe": 13,
+      "MP": 29,
+      "NP": 42,
+      "MP_min": 25
+     }
+    },
+    {
+     "want": [
+      13,
+      25,
+      42
+     ],
+     "error": "key not ready for match pass 25: {'post_match': False, 'MP': 25, 'stores_left': "
+    }
+   ],
+   "seconds": 33,
+   "params": {
+    "k": 9,
+    "m": 16,
+    "L": 64,
+    "S": 4,
+    "NP": 44,
+    "NPe": 16,
+    "MP": 29,
+    "E0q": 23,
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "margin": 122,
+    "clear_ws": true,
+    "q": 512,
+    "nb": 86,
+    "confined": true,
+    "compact_front": true,
+    "mux_front": true,
+    "computed_front": true,
+    "five_front": true,
+    "fronts": 5,
+    "delta": 5,
+    "stage_wipe": true,
+    "skew": [
+     -15,
+     -12,
+     -9,
+     -6,
+     -3,
+     3,
+     6,
+     9,
+     12,
+     15
+    ]
+   },
+   "Q": 512,
+   "U": 24768,
+   "PL": 288,
+   "QU_log2": 23.596,
+   "U_over_Q": 48.4,
+   "instr": 23362,
+   "gates": 16678,
+   "loads": 4990,
+   "parks": 1416,
+   "max_parked": 641
+  },
+  {
+   "base": "G16",
+   "over": {
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "E0q": 23
+   },
+   "skew": [
+    -15,
+    -12,
+    -9,
+    -6,
+    -3,
+    3,
+    6,
+    9,
+    12,
+    15
+   ],
+   "opts": {
+    "front_k": 40
+   },
+   "probe": {
+    "NPe": 11,
+    "MP": 23,
+    "NP": 41,
+    "MP_min": 23
+   },
+   "tried": [
+    {
+     "want": [
+      11,
+      23,
+      41
+     ],
+     "error": "key not ready for match pass 23: {'post_match': False, 'MP': 23, 'stores_left': "
+    },
+    {
+     "want": [
+      12,
+      25,
+      44
+     ],
+     "error": "schedule needs {'NPe': 15, 'MP': 25, 'NP': 39, 'MP_min': 23}, candidate has NPe="
+    },
+    {
+     "want": [
+      13,
+      27,
+      47
+     ],
+     "error": "schedule needs {'NPe': 15, 'MP': 27, 'NP': 40, 'MP_min': 25}, candidate has NPe="
+    },
+    {
+     "want": [
+      14,
+      29,
+      50
+     ],
+     "error": "schedule needs {'NPe': 15, 'MP': 29, 'NP': 43, 'MP_min': 23}, candidate has NPe="
+    },
+    {
+     "want": [
+      15,
+      31,
+      53
+     ],
+     "usage": {
+      "NPe": 15,
+      "MP": 31,
+      "NP": 43,
+      "MP_min": 23
+     }
+    },
+    {
+     "want": [
+      15,
+      23,
+      43
+     ],
+     "usage": {
+      "NPe": 15,
+      "MP": 23,
+      "NP": 42,
+      "MP_min": 23
+     }
+    },
+    {
+     "want": [
+      15,
+      23,
+      42
+     ],
+     "usage": {
+      "NPe": 15,
+      "MP": 23,
+      "NP": 39,
+      "MP_min": 23
+     }
+    },
+    {
+     "want": [
+      15,
+      23,
+      39
+     ],
+     "error": "key not ready for match pass 23: {'post_match': False, 'MP': 23, 'stores_left': "
+    }
+   ],
+   "seconds": 86,
+   "params": {
+    "k": 9,
+    "m": 16,
+    "L": 64,
+    "S": 4,
+    "NP": 42,
+    "NPe": 15,
+    "MP": 23,
+    "E0q": 23,
+    "gathers_q": [
+     0,
+     9,
+     18
+    ],
+    "margin": 122,
+    "clear_ws": true,
+    "q": 512,
+    "nb": 84,
+    "confined": true,
+    "compact_front": true,
+    "mux_front": true,
+    "computed_front": true,
+    "five_front": true,
+    "fronts": 5,
+    "delta": 5,
+    "stage_wipe": true,
+    "skew": [
+     -15,
+     -12,
+     -9,
+     -6,
+     -3,
+     3,
+     6,
+     9,
+     12,
+     15
+    ]
+   },
+   "Q": 512,
+   "U": 24192,
+   "PL": 288,
+   "QU_log2": 23.562,
+   "U_over_Q": 47.2,
+   "instr": 22625,
+   "gates": 16680,
+   "loads": 4636,
+   "parks": 1032,
+   "max_parked": 708
+  }
+ ],
+ "best": {
+  "base": "G16",
+  "over": {
+   "gathers_q": [
+    0,
+    9,
+    18
+   ],
+   "E0q": 23
+  },
+  "skew": [
+   -10,
+   -8,
+   -6,
+   -4,
+   -2,
+   2,
+   4,
+   6,
+   8,
+   10
+  ],
+  "opts": {
+   "front_k": 100
+  },
+  "probe": {
+   "NPe": 11,
+   "MP": 27,
+   "NP": 41,
+   "MP_min": 27
+  },
+  "tried": [
+   {
+    "want": [
+     11,
+     27,
+     41
+    ],
+    "error": "schedule needs {'NPe': 13, 'MP': 27, 'NP': 41, 'MP_min': 23}, candidate has NPe="
+   },
+   {
+    "want": [
+     12,
+     29,
+     44
+    ],
+    "error": "schedule needs {'NPe': 13, 'MP': 29, 'NP': 42, 'MP_min': 23}, candidate has NPe="
+   },
+   {
+    "want": [
+     13,
+     31,
+     47
+    ],
+    "usage": {
+     "NPe": 13,
+     "MP": 31,
+     "NP": 47,
+     "MP_min": 23
+    }
+   },
+   {
+    "want": [
+     13,
+     23,
+     47
+    ],
+    "usage": {
+     "NPe": 13,
+     "MP": 23,
+     "NP": 37,
+     "MP_min": 23
+    }
+   },
+   {
+    "want": [
+     13,
+     23,
+     37
+    ],
+    "usage": {
+     "NPe": 13,
+     "MP": 23,
+     "NP": 35,
+     "MP_min": 21
+    }
+   },
+   {
+    "want": [
+     13,
+     21,
+     35
+    ],
+    "error": "schedule needs {'NPe': 13, 'MP': 21, 'NP': 39, 'MP_min': 21}, candidate has NPe="
+   }
+  ],
+  "seconds": 66,
+  "params": {
+   "k": 9,
+   "m": 16,
+   "L": 64,
+   "S": 4,
+   "NP": 37,
+   "NPe": 13,
+   "MP": 23,
+   "E0q": 23,
+   "gathers_q": [
+    0,
+    9,
+    18
+   ],
+   "margin": 122,
+   "clear_ws": true,
+   "q": 512,
+   "nb": 79,
+   "confined": true,
+   "compact_front": true,
+   "mux_front": true,
+   "computed_front": true,
+   "five_front": true,
+   "fronts": 5,
+   "delta": 5,
+   "stage_wipe": true,
+   "skew": [
+    -10,
+    -8,
+    -6,
+    -4,
+    -2,
+    2,
+    4,
+    6,
+    8,
+    10
+   ]
+  },
+  "Q": 512,
+  "U": 22752,
+  "PL": 288,
+  "QU_log2": 23.474,
+  "U_over_Q": 44.4,
+  "instr": 23021,
+  "gates": 16682,
+  "loads": 4782,
+  "parks": 1279,
+  "max_parked": 657
+ }
+}

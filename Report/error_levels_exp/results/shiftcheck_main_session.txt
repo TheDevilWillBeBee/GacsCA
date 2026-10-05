@@ -1,0 +1,7 @@
+4 points spanning 150: True | spanning 151: False
+shift burst at Age 1536 : upper cells differing from the error-free ring at U: [] (0 = right-hand colony, -1 = left-hand); identical at 2U: True
+shift burst at Age 7680 : upper cells differing from the error-free ring at U: [-1, 0] (0 = right-hand colony, -1 = left-hand); identical at 2U: True
+shift burst at Age 15642 : upper cells differing from the error-free ring at U: [-1, 0] (0 = right-hand colony, -1 = left-hand); identical at 2U: True
+random burst at Age 1536 : upper cells differing from the error-free ring at U: [] (0 = right-hand colony, -1 = left-hand); identical at 2U: True
+random burst at Age 7680 : upper cells differing from the error-free ring at U: [-1] (0 = right-hand colony, -1 = left-hand); identical at 2U: True
+random burst at Age 15642 : upper cells differing from the error-free ring at U: [-1] (0 = right-hand colony, -1 = left-hand); identical at 2U: True
