@@ -49,6 +49,20 @@
    "recipe_sha256": "d759cef1f12701c896ea52d55abdb755d1cdcf92125a3c71ec11442bae8e0382",
    "rom_sha256": "2e2eea4cee16dea26570c2fae07ba70c891a74a6bfda1a17e8601f4966404a70"
   },
+  "G16": {
+   "candidate_sha256": "3ce1a6fed8631a95dde0ae2d69659af9813c02ca847ca739c95e0dea0ab2d32f",
+   "layout_sha256": "5393c17098e49916a7f1d9ebf50b9d19710c7df531ad89a99e1e545a27581384",
+   "netlist_sha256": "5028779c8054d3c36eaa6a55ba79211e9685848705948380ff52d3168f388e26",
+   "recipe_sha256": "6fff58432a8d808858ffa9080d33d685a668a208ee1dff59c7349b630fd9bcb2",
+   "rom_sha256": "77544b591db4199db3847a3cbe9a678dfde319bd236dea272736932a548af0d9"
+  },
+  "G17": {
+   "candidate_sha256": "23a14aab4d3dc4fde5562cf3e26a4536b05456f84e65850fcb3bd95a104d8ceb",
+   "layout_sha256": "edb16a22109eb916cc597c61285b34589605bfc6f50f88be6bbaac7160ac0d78",
+   "netlist_sha256": "376c96ae03f1cb0565b01df84a5ae2b29626ab2b8d24d07c5476950116b35c2a",
+   "recipe_sha256": "369173f3738b180e442e669fcb0ca5fa8962b6314907c7fc70294d83338a9c74",
+   "rom_sha256": "b245f435f432bfae9eb9ed4c68620e0725ffa8bf9aaf531dba839ac113c94ca9"
+  },
   "G2": {
    "candidate_sha256": "8a9d2a56e594c0dcb77aa451e2f6fa3a45559d012029b57be2faaf1851c6beb5",
    "layout_sha256": "d27893ff77502b959b8cff26cdee5539779a6cc5823446c9e00d35e2368c57e7",
@@ -120,6 +134,6 @@
    "rom_sha256": "b7bff41a975ca08b5d320373607ab4506871c9f11833e5b6e52a0ca0e3077de9"
   }
  },
- "date": "2026-10-01 20:35:06 UTC",
+ "date": "2026-10-05 11:47:29 UTC",
  "note": "Trusted digests of fresh builds of every recipe (build_candidates.py). candidates.load() checks cached candidates against them."
 }

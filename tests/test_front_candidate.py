@@ -439,7 +439,7 @@ class CompactFrontTest(unittest.TestCase):
     front mid-evaluation must be fully corrected: three ticks later the ring
     equals the unfaulted one bit for bit."""
 
-    NAMES = ('G11', 'G12', 'G13')
+    NAMES = ('G11', 'G12', 'G13', 'G16', 'G17')
 
     def _front_state(self, seed, name='G11'):
         c = candidates.load(name)
@@ -721,6 +721,20 @@ class GrayErrorClassTest(unittest.TestCase):
         r = ge.classify([(0, 0), (10, 10), (300, 0), (310, 10)], Q=512, U=1 << 16)
         self.assertFalse(r['level1'])
 
+    def test_separation_is_a_parameter(self):
+        """With c in place of 104 a level-1 error is at most c + 46 wide (GRAY_CONSTANTS.md):
+        four points spanning exactly that are one, one more is not; a dense box wider than c
+        is a union of level-1 errors."""
+        import gacsca.gray_errors as ge
+        for c in (16, 104):
+            pts = [(0, 0), (23, 23), (23 + c - 1, 23 + c - 1), (46 + c - 1, 46 + c - 1)]
+            self.assertTrue(ge.classify(pts, Q=512, U=25920, sep=c)['level1'], c)
+            wider = [(0, 0), (23, 23), (23 + c, 23 + c), (46 + c, 46 + c)]
+            self.assertFalse(ge.classify(wider, Q=512, U=25920, sep=c)['level1'], c)
+            self.assertTrue(ge.classify(ge.dense_box(0, 0, c, c), Q=512, U=25920, sep=c)['level1'], c)
+            self.assertFalse(ge.classify(ge.dense_box(0, 0, c + 24, c + 24), Q=512, U=25920, sep=c)['level1'], c)
+        self.assertEqual(ge.classify([(0, 0), (23, 23)], Q=512, U=25920)['sep'], 104)
+
     def test_generated_clusters_are_checked(self):
         from gacsca import gray_errors as ge
         rng = np.random.default_rng(4)
@@ -907,18 +921,19 @@ class ColonyMarginTest(unittest.TestCase):
     the working range; margin cells carry instructions only at the two
     special cells, during the early Flag program."""
 
-    NAMES = ('G7', 'G8', 'G9', 'G10', 'G11', 'G12', 'G13', 'G14')
+    NAMES = ('G7', 'G8', 'G9', 'G10', 'G11', 'G12', 'G13', 'G14', 'G16', 'G17')
 
     def test_layout_and_instruction_slots_avoid_margins(self):
         for name in self.NAMES:
             c = candidates.load(name)
             p = c.p
             lo, hi = p.fam().work_range(p)
-            # margins of >= 100 cells: a 200-wide burst reaches at most one
-            # colony's working area (G7/G8 also meet Gray's Q >= 2K; G9 uses
-            # the smaller Q >= K + 200 that the margin argument needs)
-            self.assertGreaterEqual(lo, 100)
-            self.assertGreaterEqual(p.Q - hi, 100)
+            # margins of at least half the burst the recipe is sized for (200 up to
+            # G16, 73 for G17): such a burst reaches at most one colony's working
+            # area (G7/G8 also meet Gray's Q >= 2K; G9 uses the smaller Q >= K + 200)
+            half = (getattr(p, 'burst', 200) + 1) // 2
+            self.assertGreaterEqual(lo, half)
+            self.assertGreaterEqual(p.Q - hi, half)
             self.assertGreaterEqual(hi - lo, c.W)
             self.assertTrue(((c.layout >= lo) & (c.layout < hi)).all())
             rows = set(np.nonzero(c.rom.any(axis=1))[0].tolist())
@@ -966,15 +981,15 @@ class CombTest(unittest.TestCase):
     fronts outside the working cells only carry their registers."""
 
     def test_geometry_and_rom_columns(self):
-        for name in ('G13', 'G14'):
+        for name in ('G13', 'G14', 'G16', 'G17'):
             self._geometry(name)
 
     def _geometry(self, name):
         c = candidates.load(name)
         p = c.p
         self.assertEqual((p.fronts, p.delta, p.H, p.PL, p.R), (5, 5, 20, 288, 288))
-        # level-1 bursts (200 cells) cannot reach two colonies' front state
-        self.assertGreaterEqual(2 * p.margin - 2 * p.H - 3, 200)
+        # a burst of the width the recipe is sized for cannot reach two colonies' front state
+        self.assertGreaterEqual(2 * p.margin - 2 * p.H - 3, p.burst)
         cols = np.nonzero(c.rom.any(axis=0))[0]
         fronts = set((cols >> p.logNP).tolist())
         self.assertEqual(fronts, set(range(p.fronts)))
@@ -1044,6 +1059,260 @@ class CombTest(unittest.TestCase):
         self.assertEqual(out['early']['replay_bad'], 0)
         self.assertEqual(out['a']['replay_bad'], 0)
         self.assertEqual(len(out['a']['per_front']), 3)
+
+
+class JobSchedulerTest(unittest.TestCase):
+    """G16: G15's rule compiled by the job scheduler (jobsched.py). The three programs are
+    one pool of gates; the fronts claim work, exchange values through scratch only, and
+    hold the fetch key in front 0's registers at the match pass."""
+
+    @classmethod
+    def setUpClass(cls):
+        from gacsca import jobsched
+        cls.c = candidates.load('G16')
+        p = cls.c.p
+        cls.eng = jobsched.Engine(p, cls.c.comp, cls.c.layout, MP=p.MP,
+                                  **candidates.RECIPES['G16']['compile']['jobs'])
+        cls.eng.run()
+
+    def test_schedule_fits_the_candidate_and_reproduces_the_cached_rom(self):
+        c, eng = self.c, self.eng
+        p = c.p
+        use = eng.usage()
+        self.assertLessEqual(use['NPe'], p.NPe)
+        self.assertEqual(use['MP'], p.MP)
+        self.assertLessEqual(use['NP'], p.NP)
+        rom = np.zeros_like(c.rom)
+        for (seq, page, tick, j, cell, op, kind, a, b, d, note) in eng.prog.listing:
+            col = page + (j << p.logNP)
+            self.assertEqual(rom[cell, col], 0)                  # one instruction per visit
+            rom[cell, col] = rule.encode_instruction(p, op, kind, a, b, d)
+        self.assertTrue(np.array_equal(rom, c.rom))
+        cols = np.nonzero(c.rom.any(axis=0))[0]
+        pages = (cols & ((1 << p.logNP) - 1)).tolist()
+        self.assertNotIn(p.MP, pages)                            # nobody executes in the match pass
+        self.assertLess(max(pages), p.NP)
+        self.assertEqual(set((cols >> p.logNP).tolist()), set(range(p.fronts)))
+        rows = np.nonzero(c.rom.any(axis=1))[0]
+        self.assertTrue(((rows >= p.lo) & (rows < p.hi)).all())  # only working cells execute
+
+    def test_replay_checks_every_value_and_catches_a_changed_instruction(self):
+        """Negative control: one gate instruction computes XOR instead of AND or OR. Replay
+        uses random inputs, on which signals that are almost never 1 (an arrival, a match)
+        make a few changes invisible; it must catch nearly all of them."""
+        from gacsca import jobsched
+        eng = self.eng
+        p = self.c.p
+        self.assertEqual(jobsched.replay(p, eng), 0)
+        self.assertEqual(jobsched.replay(p, eng, seed=3), 0)
+        listing = eng.prog.listing
+        gates = [i for i, x in enumerate(listing) if x[10][0] == 'gate' and x[5] in (rule.AND, rule.OR)]
+        rng = random.Random(4)
+        caught = 0
+        for i in rng.sample(gates, 12):
+            saved = listing[i]
+            try:
+                listing[i] = saved[:5] + (rule.XOR,) + saved[6:]
+                caught += jobsched.replay(p, eng) > 0
+            finally:
+                listing[i] = saved
+        self.assertGreaterEqual(caught, 10)
+        self.assertEqual(jobsched.replay(p, eng), 0)
+
+    def test_replay_on_neighbourhoods_of_a_running_colony(self):
+        """Replay with inputs taken from a healthy colony inside its evaluation window: the
+        cells under the comb (an arriving front, also in the match pass), with the
+        instruction word the rule looks up there. The program must write the netlist's
+        values on these too."""
+        from gacsca import jobsched
+        c, eng = self.c, self.eng
+        p, C = c.p, c.c_backend()
+        rng = np.random.default_rng(2)
+        P = C.pack(codec.encode(c, codec.random_upper(c, 1, rng)))
+        now = 0
+        for page, tk in ((3, 40), (p.MP, 100), (p.MP + 4, 251), (p.NP - 2, 17)):
+            age = p.E0 + page * p.PL + tk
+            P = C.run_packed(P, age - now, threads=4)
+            now = age
+            X = C.unpack(P, p.Q)
+            tt = tk if page % 2 == 0 else p.PL - 1 - tk
+            cells = [x + e for j in range(p.fronts) for x in [p.lo - p.H + tt + j * p.delta]
+                     for e in range(-2, 3) if 0 <= x + e < p.Q]
+            cells += [int(x) for x in rng.permutation(p.Q) if x not in cells][:64 - len(cells)]
+            inputs = jobsched.neighbourhood_vectors(c, X, np.array(cells))
+            arrive = netlist_outputs(c, X)[('arrive', 0)].astype(bool)
+            self.assertGreaterEqual(int(arrive[np.array(cells)].sum()), 5, (page, tk))
+            self.assertEqual(jobsched.replay(p, eng, inputs=inputs), 0, (page, tk))
+
+    def test_key_is_in_front_0_registers_and_all_else_parked_at_the_match_pass(self):
+        """Before the match pass front 0 loads laddr and psel into R[0 : k+PW]; no front
+        uses a register after the match pass that it has not written since (replay raises on
+        a read of an empty register, and it empties every register at the match pass)."""
+        eng = self.eng
+        p = self.c.p
+        placed = {}
+        for (seq, page, tick, j, cell, op, kind, a, b, d, note) in eng.prog.listing:
+            if note[0] == 'place':
+                self.assertEqual((j, page, kind), (0, p.MP - 1, rule.K_REG))
+                placed[d] = note[1]
+        self.assertEqual(placed, eng.dag.key)
+        self.assertEqual(sorted(placed), list(range(p.k + p.PW)))
+
+    def test_signed_skews_put_the_lanes_of_a_bit_on_different_working_cells(self):
+        c = self.c
+        p = c.p
+        self.assertEqual(p.skew, (-5, -4, -3, -2, -1, 1, 2, 3, 4, 5))
+        use, bit = compiler.lane_use(p, c.comp)
+        sk = dict(zip(rule.LANE_OFFSETS, p.skew))
+        sk[0] = 0
+        for b, lanes in use.items():
+            cells = [int(c.layout[b]) + sk[j] for j in lanes]
+            self.assertEqual(len(set(cells)), len(cells))
+            self.assertTrue(all(p.lo <= x < p.hi for x in cells), (b, cells))
+
+    def test_closure_on_random_cells_and_on_cells_under_the_upper_comb(self):
+        """The physical rule (C kernel) on encoded colonies: after U ticks the decoded ring
+        is the rule applied upstairs, twice in a row. This checks the lanes captured with
+        signed skews, the schedule, the match pass and the commit together. The coherent
+        ring is a stretch of a healthy colony inside its own evaluation window, placed so
+        that the upper comb's front 0 arrives in it: the colonies then compute a live front
+        step, with the instruction word they fetched."""
+        c = self.c
+        p, C = c.p, c.c_backend()
+        rng = np.random.default_rng(21)
+        n = 8
+        rand = codec.random_upper(c, n, rng)
+        coh = codec.random_upper(c, n, rng)
+        page, extra = p.MP + 2, 9
+        tt = extra if page % 2 == 0 else p.PL - 1 - extra
+        x0 = p.lo - p.H + tt                                   # front 0's cell at that Age
+        self.assertTrue(p.lo + 4 <= x0 < p.hi - 4)
+        addrs = x0 - 4 + np.arange(n)
+        c.set_field(coh, 'addr', addrs)
+        c.set_field(coh, 'age', np.full(n, p.age_code(p.E0 + page * p.PL + extra)))
+        for f in ('f1', 'f2', 'wf1', 'wf2'):
+            c.set_field(coh, f, np.zeros(n, dtype=int))
+        arrive = netlist_outputs(c, coh)[('arrive', 0)].astype(bool)
+        self.assertTrue(arrive[2:7].all())                     # the five holders of front 0
+        for up in (rand, coh):
+            for _ in range(2):
+                X = C.unpack(C.run_packed(C.pack(codec.encode(c, up)), p.U, threads=4), n * p.Q)
+                ref = c.step_numpy(up)
+                self.assertTrue(np.array_equal(codec.decode(c, X), ref))
+                h = codec.colony_health(c, X)
+                self.assertTrue(h['addr'] and h['age'] and h['info_copies_agree'] and not h['flags'], h)
+                up = ref
+
+
+class RoleKernelPartitionTest(unittest.TestCase):
+    """gpu_roles: who evaluates which gate, and the claim its front skip rests on."""
+
+    @classmethod
+    def setUpClass(cls):
+        from gacsca import gpu_roles
+        cls.c = candidates.load('G16')
+        cls.pt = gpu_roles.Partition(cls.c)
+
+    def test_front_outputs_are_zero_without_an_arrival(self):
+        from gacsca import gpu_roles
+        gpu_roles.check_guard(self.c)
+        # negative control: info is not a front field, so the same check must reject it
+        saved = gpu_roles.FRONT_FIELDS
+        gpu_roles.FRONT_FIELDS = saved + ('info',)
+        try:
+            with self.assertRaises(ValueError):
+                gpu_roles.check_guard(self.c)
+        finally:
+            gpu_roles.FRONT_FIELDS = saved
+
+    def test_every_live_gate_has_a_home_and_only_front_work_is_guarded(self):
+        pt, c = self.pt, self.c
+        n_in, G = pt.n_in, pt.G
+        live, stack = set(), list(pt.y) + pt.key + [pt.arrive]
+        while stack:
+            x = stack.pop()
+            if x in live or x < n_in:
+                continue
+            live.add(x)
+            stack += G[x - n_in][1:]
+        self.assertEqual(len(live), len(G))
+        for x in live:
+            self.assertTrue(pt.home[x], x)
+            if pt.Z[x]:
+                self.assertEqual(pt.guarded[x], pt.home[x])
+            else:
+                self.assertFalse(pt.guarded[x], 'a guarded copy of light logic')
+        # no gate of the light cone or of `arrive` depends on a Z gate
+        for x in live:
+            if not pt.Z[x]:
+                self.assertFalse(any(y >= n_in and pt.Z[y] for y in G[x - n_in][1:]))
+        # the front rows are exactly the outputs computed by Z gates (or constant 0)
+        for r, x in enumerate(pt.y):
+            self.assertEqual(r in pt.front_rows, x == 0 or (x >= n_in and pt.Z[x]), c.rows[r])
+        # every row is stored once, every operand is available when its gate runs
+        self.assertEqual(sorted(r for v in pt.outs.values() for r, _ in v), list(range(c.W)))
+        for (r, s), xs in pt.steps.items():
+            for x in xs:
+                for y in G[x - n_in][1:]:
+                    self.assertLessEqual(pt.avail(y, r)[1], s)
+        self.assertEqual(pt.summary['guard_stage'], 1)
+
+
+@unittest.skipUnless(_gpu_available(), 'no CUDA toolkit or GPU')
+class RoleKernelTest(unittest.TestCase):
+    """gpu_roles.RoleSim executes the same rule as gpu.GpuSim, bit for bit."""
+
+    @classmethod
+    def setUpClass(cls):
+        from gacsca import gpu, gpu_roles
+        cls.c = c = candidates.load('G16')
+        cls.n = 64
+        cls.fast = gpu_roles.RoleSim(c, cls.n)
+        cls.ref = gpu.GpuSim(c, 1, cls.n, mode='grid')
+
+    def both(self, P, ticks):
+        self.fast.set_state(P)
+        self.fast.run(ticks)
+        self.ref.set_state(P)
+        self.ref.run(ticks)
+        return self.fast.state(), self.ref.state()[0]
+
+    def test_arbitrary_states_and_rings_with_and_without_fronts(self):
+        c, C = self.c, self.c.c_backend()
+        rng = np.random.default_rng(11)
+        N = self.n * c.p.Q
+        R = C.pack(rng.random((c.W, N)) < 0.5)
+        a, b = self.both(R, 5)
+        self.assertTrue(np.array_equal(a, b))
+        # half the ring random, half healthy colonies: blocks with and without fronts,
+        # and blocks whose 32 words disagree
+        H = C.pack(codec.encode(c, codec.random_upper(c, self.n, rng)))
+        M = H.copy()
+        M[:, :M.shape[1] // 2] = R[:, :M.shape[1] // 2]
+        a, b = self.both(M, 60)
+        self.assertTrue(np.array_equal(a, b))
+
+    def test_healthy_colonies_through_every_stage_of_the_period(self):
+        c, C, p = self.c, self.c.c_backend(), self.c.p
+        rng = np.random.default_rng(12)
+        colony2 = codec.encode(c, codec.random_upper(c, 1, rng))          # a healthy upper colony
+        for upper in (colony2[:, p.Q // 2 - self.n // 2:p.Q // 2 + self.n // 2],
+                      codec.random_upper(c, self.n, rng)):
+            cur, age = C.pack(codec.encode(c, upper)), 0
+            for start in (0, p.E0 - 150, p.E0 + p.MP * p.PL - 150, p.E0 + (p.MP + 5) * p.PL, p.U - 150):
+                self.ref.set_state(cur)
+                self.ref.run(start - age)
+                cur, age = self.ref.state()[0], start
+                a, b = self.both(cur, 300)
+                self.assertTrue(np.array_equal(a, b), start)
+
+    def test_a_work_period_closes(self):
+        c, C = self.c, self.c.c_backend()
+        up = codec.random_upper(c, self.n, np.random.default_rng(13))
+        self.fast.set_state(C.pack(codec.encode(c, up)))
+        self.fast.run(c.p.U)
+        dec = codec.decode(c, C.unpack(self.fast.state(), self.n * c.p.Q))
+        self.assertTrue(np.array_equal(dec, c.step_numpy(up)))
 
 
 @unittest.skipUnless(_gpu_available() and __import__('os').environ.get('GACSCA_SLOW') == '1',

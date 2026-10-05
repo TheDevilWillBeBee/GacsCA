@@ -39,6 +39,7 @@ def main():
             continue
         cand = candidates.load(d['candidate'])
         Q, U = cand.p.Q, cand.p.U
+        sep = d.get('args', {}).get('sep', gray_errors.SEP)
         N = d['physical_sites']
         rows = []
         for i, r in enumerate(d['rings'], 1):
@@ -50,10 +51,10 @@ def main():
             row = dict(ring=i, phase=r['phase'], place=r['place'], recorded=old)
             if dense and not noisy:
                 S = ring_points(r)
-                if len(r['boxes']) == 1 and (r['boxes'][0][1] > 104 or r['boxes'][0][3] > 104):
-                    g = dict(level1=False, method='extent > 104')     # the driver's own shortcut
+                if len(r['boxes']) == 1 and (r['boxes'][0][1] > sep or r['boxes'][0][3] > sep):
+                    g = dict(level1=False, method=f'extent > {sep}')     # the driver's own shortcut
                 else:
-                    g = gray_errors.classify(S, Q=Q, U=U)
+                    g = gray_errors.classify(S, Q=Q, U=U, sep=sep)
                 row.update(level1=g['level1'], method=g['method'])
             else:
                 key = (d['candidate'], N)
@@ -70,7 +71,7 @@ def main():
                 ts, xs = np.nonzero(m[:, max(0, x_lo):min(N, x_hi)])
                 E = set(zip((xs + max(0, x_lo)).tolist(), (ts + t_lo).tolist()))
                 if not noisy:
-                    g = gray_errors.classify(E, Q=Q, U=U)
+                    g = gray_errors.classify(E, Q=Q, U=U, sep=sep)
                     row.update(level1=g['level1'], method=g['method'], realized_points=len(E))
                 else:
                     g = gray_errors.classify_burst_in_noise(ring_points(r), E, Q=Q, U=U)

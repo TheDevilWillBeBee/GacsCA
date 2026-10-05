@@ -11,14 +11,21 @@ first two levels (Q^0 = U^0 = 1):
     level-0 error: a candidate S with S and E \\ S (24, 24)-separated.
   * candidate level-1 error: S in E \\ E0 with (i) S inside a Q x U box and
     (ii) two disjoint candidate level-0 errors in S that are (24, 24)-linked;
-    level-1 error: (iii) S contains no two (104, 104)-separated candidate
+    level-1 error: (iii) S contains no two (c, c)-separated candidate
     level-1 errors, and (iv) S and E \\ (S u E0) are (24Q, 24U)-separated.
+
+The link and isolation distance 24 is fixed: it must exceed the Flag2 period
+of 16 that is built into the rule (Report/GRAY_CONSTANTS.md). The separation
+c of condition (iii) is a free constant: Gray prints 104 (= 4 * 26), the
+default here; every function takes `sep` to use another value. A level-1
+error is then at most c + 46 wide and long.
 
 Condition (iii) only needs minimal candidates (two linked candidate level-0
 errors, 2-4 points): separated sets have separated subsets. A dense box of
-side <= 104 therefore satisfies (iii) (no two of its points are 104 apart in
+side <= c therefore satisfies (iii) (no two of its points are c apart in
 a coordinate), while a dense 200 x 200 box contains two linked pairs 150
-sites apart and fails it: such a box is a union of level-1 errors, not one.
+sites apart and fails it for c = 104: such a box is a union of level-1
+errors, not one.
 
 E0 is computed exactly for any finite E (`level0_points`, with a bucket grid
 so that large sets stay fast): a point is a level-0 error when the singleton
@@ -29,6 +36,8 @@ and classifies S minus E0 separately as 'core'.
 """
 from itertools import combinations
 import numpy as np
+
+SEP = 104          # Gray's separation in condition (iii)
 
 
 def linked(A, B, m, n):
@@ -101,15 +110,16 @@ def minimal_candidates_level1(S):
     return out
 
 
-def classify(S, E=None, Q=None, U=None, exact_limit=300):
+def classify(S, E=None, Q=None, U=None, exact_limit=300, sep=SEP):
     """Classify the error set S (within the full error set E, default S).
 
     Returns a dict: level0 (points of S that are level-0 errors),
     candidate_level1 (conditions i-ii on S minus E0), level1 (i-iv),
     and, when (iii) fails, a witness pair of separated minimal candidates.
     Dense sets beyond `exact_limit` points are decided by the window
-    argument (extent <= 103 in both coordinates: (iii) holds) or by an
-    explicit separated witness; otherwise 'undecided'."""
+    argument (extent <= sep - 1 in both coordinates: (iii) holds) or by an
+    explicit separated witness; otherwise 'undecided'. `sep` is the
+    separation of condition (iii)."""
     S = set(map(tuple, S))
     E = set(map(tuple, E)) if E is not None else set(S)
     assert S <= E
@@ -119,7 +129,7 @@ def classify(S, E=None, Q=None, U=None, exact_limit=300):
         res = dict(points=len(S), level0=len(S & e0), extent=None, candidate_level1=False, level1=False,
                    witness=None, method='S contains level-0 errors of E')
         if S - e0:
-            res['core'] = classify(S - e0, E, Q, U, exact_limit)
+            res['core'] = classify(S - e0, E, Q, U, exact_limit, sep)
         return res
     core = S
     xs = [p[0] for p in core]
@@ -142,7 +152,7 @@ def classify(S, E=None, Q=None, U=None, exact_limit=300):
     if not res['candidate_level1']:
         return res
     # (iii)
-    if ext[0] <= 104 and ext[1] <= 104:
+    if ext[0] <= sep and ext[1] <= sep:
         cond3, res['method'] = True, 'window'
     elif mins is not None:
         cond3, res['method'] = True, 'exact'
@@ -152,16 +162,16 @@ def classify(S, E=None, Q=None, U=None, exact_limit=300):
                 a, b = arr[i], arr[j]
                 dx = np.abs(a[:, None, 0] - b[None, :, 0])
                 dt = np.abs(a[:, None, 1] - b[None, :, 1])
-                if not np.any((dx < 104) & (dt < 104)):
+                if not np.any((dx < sep) & (dt < sep)):
                     cond3 = False
                     res['witness'] = [sorted(mins[i]), sorted(mins[j])]
                     break
             if not cond3:
                 break
-    elif (dec := _decide_iii(core)) is not None:
+    elif (dec := _decide_iii(core, sep=sep)) is not None:
         cond3, res['method'], res['witness'] = dec
     else:
-        w = _separated_witness(core)
+        w = _separated_witness(core, sep)
         if w is not None:
             cond3, res['method'], res['witness'] = False, 'witness', w
         else:
@@ -175,6 +185,7 @@ def classify(S, E=None, Q=None, U=None, exact_limit=300):
     elif rest:
         cond4 = False
     res['level1'] = bool(cond3 and cond4)
+    res['sep'] = sep
     return res
 
 
@@ -188,20 +199,20 @@ def _has_linked_pair(core):
     return any(_near(Es, buckets, p, 1) for p in Es)
 
 
-def _decide_iii(core, max_outside_pairs=20000):
-    """Exact decision of (iii) for a large set, with a 104 x 104 window R over its dense part.
+def _decide_iii(core, max_outside_pairs=20000, sep=SEP):
+    """Exact decision of (iii) for a large set, with a sep x sep window R over its dense part.
 
     (iii) fails iff two 2-point minimal candidates (two linked single sites each) are
-    (104, 104)-separated: separated sets have separated subsets, and every minimal candidate
+    (sep, sep)-separated: separated sets have separated subsets, and every minimal candidate
     contains two linked single sites. A pair with a point in R is linked to every point of R
-    (R spans at most 103 in each coordinate), so in any separated configuration one of the two
+    (R spans at most sep - 1 in each coordinate), so in any separated configuration one of the two
     pairs lies outside R. Hence (iii) fails iff some linked pair (c, d) outside R is separated
     from some linked pair of the set. Returns (holds, method, witness) or None when no window
     keeps the outside pairs below `max_outside_pairs`."""
     Es = set(core)
     pts = np.array(sorted(Es))
-    for x0, t0 in _windows(Es, pts):
-        inside = (pts[:, 0] >= x0) & (pts[:, 0] < x0 + 104) & (pts[:, 1] >= t0) & (pts[:, 1] < t0 + 104)
+    for x0, t0 in _windows(Es, pts, sep):
+        inside = (pts[:, 0] >= x0) & (pts[:, 0] < x0 + sep) & (pts[:, 1] >= t0) & (pts[:, 1] < t0 + sep)
         out = set(map(tuple, pts[~inside].tolist()))
         ob = {}
         for p in out:
@@ -216,8 +227,8 @@ def _decide_iii(core, max_outside_pairs=20000):
         if not pairs:
             return True, 'hub window', None
         for c, d in sorted(pairs):
-            far = (((np.abs(pts[:, 0] - c[0]) >= 104) | (np.abs(pts[:, 1] - c[1]) >= 104))
-                   & ((np.abs(pts[:, 0] - d[0]) >= 104) | (np.abs(pts[:, 1] - d[1]) >= 104)))
+            far = (((np.abs(pts[:, 0] - c[0]) >= sep) | (np.abs(pts[:, 1] - c[1]) >= sep))
+                   & ((np.abs(pts[:, 0] - d[0]) >= sep) | (np.abs(pts[:, 1] - d[1]) >= sep)))
             F = set(map(tuple, pts[far].tolist()))
             fb = {}
             for p in F:
@@ -230,27 +241,28 @@ def _decide_iii(core, max_outside_pairs=20000):
     return None
 
 
-def _windows(Es, pts):
-    """Candidate 104 x 104 windows: around the median point, and around the bounding box of the
+def _windows(Es, pts, sep=SEP):
+    """Candidate sep x sep windows: around the median point, and around the bounding box of the
     points with at least three others within 23 (a dense burst plus a few stragglers)."""
     buckets = {}
     for p in Es:
         buckets.setdefault((p[0] // 24, p[1] // 24), []).append(p)
-    out = [(int(np.median(pts[:, 0])) - 52, int(np.median(pts[:, 1])) - 52)]
+    h = sep // 2
+    out = [(int(np.median(pts[:, 0])) - h, int(np.median(pts[:, 1])) - h)]
     dense = np.array([p for p in Es if len(_near(Es, buckets, p, 3)) >= 3]) if len(Es) < 200000 else pts
     if len(dense):
         lo, hi = dense.min(axis=0), dense.max(axis=0)
-        if (hi - lo).max() < 104:
+        if (hi - lo).max() < sep:
             mid = (lo + hi) // 2
-            out += [(int(mid[0]) - 52, int(mid[1]) - 52), (int(lo[0]), int(lo[1])),
-                    (int(hi[0]) - 103, int(hi[1]) - 103)]
+            out += [(int(mid[0]) - h, int(mid[1]) - h), (int(lo[0]), int(lo[1])),
+                    (int(hi[0]) - sep + 1, int(hi[1]) - sep + 1)]
     return list(dict.fromkeys(out))
 
 
-def _hub_window(core):
-    """A 104 x 104 window R such that no two points outside R are (24, 24)-linked, or None.
+def _hub_window(core, sep=SEP):
+    """A sep x sep window R such that no two points outside R are (24, 24)-linked, or None.
     Then every minimal candidate (two linked candidate level-0 errors) has a point in R, any
-    two minimal candidates are (104, 104)-linked through R, and (iii) holds. Tried: windows
+    two minimal candidates are (sep, sep)-linked through R, and (iii) holds. Tried: windows
     around the median point and around the bounding box of the points with at least three
     others within 23 (a dense burst plus a few linked stragglers)."""
     Es = set(core)
@@ -259,16 +271,17 @@ def _hub_window(core):
     for p in Es:
         buckets.setdefault((p[0] // 24, p[1] // 24), []).append(p)
     dense = np.array([p for p in Es if len(_near(Es, buckets, p, 3)) >= 3]) if len(Es) < 200000 else pts
-    starts = {(int(np.median(pts[:, 0])) - 52, int(np.median(pts[:, 1])) - 52)}
+    h = sep // 2
+    starts = {(int(np.median(pts[:, 0])) - h, int(np.median(pts[:, 1])) - h)}
     if len(dense):
         lo, hi = dense.min(axis=0), dense.max(axis=0)
-        if (hi - lo).max() < 104:
+        if (hi - lo).max() < sep:
             mid = (lo + hi) // 2
-            starts.add((int(mid[0]) - 52, int(mid[1]) - 52))
+            starts.add((int(mid[0]) - h, int(mid[1]) - h))
             starts.add((int(lo[0]), int(lo[1])))
-            starts.add((int(hi[0]) - 103, int(hi[1]) - 103))
+            starts.add((int(hi[0]) - sep + 1, int(hi[1]) - sep + 1))
     for x0, t0 in sorted(starts):
-        inside = (pts[:, 0] >= x0) & (pts[:, 0] < x0 + 104) & (pts[:, 1] >= t0) & (pts[:, 1] < t0 + 104)
+        inside = (pts[:, 0] >= x0) & (pts[:, 0] < x0 + sep) & (pts[:, 1] >= t0) & (pts[:, 1] < t0 + sep)
         out = set(map(tuple, pts[~inside].tolist()))
         ob = {}
         for p in out:
@@ -278,7 +291,7 @@ def _hub_window(core):
     return None
 
 
-def _separated_witness(core):
+def _separated_witness(core, sep=SEP):
     """Two separated minimal candidates near the extremes of a large set."""
     S = set(core)
     arr = np.array(sorted(S))
@@ -287,7 +300,7 @@ def _separated_witness(core):
         lo_pts, hi_pts = arr[order[:50]], arr[order[-50:]]
         lo = _minimal_around(S, lo_pts)
         hi = _minimal_around(S, hi_pts)
-        if lo and hi and not linked(lo, hi, 104, 104):
+        if lo and hi and not linked(lo, hi, sep, sep):
             return [sorted(lo), sorted(hi)]
     return None
 
@@ -301,7 +314,7 @@ def _minimal_around(S, pts):
     return None
 
 
-def classify_burst_in_noise(S, E, Q=None, U=None):
+def classify_burst_in_noise(S, E, Q=None, U=None, sep=SEP):
     """A burst S inside a larger finite error set E (for instance with dense level-0 noise around
     it): Gray's class of S itself within E, and of S together with the points of E linked to it
     (within 23 in both coordinates, transitively), which Gray's isolation condition (iv) would
@@ -323,7 +336,7 @@ def classify_burst_in_noise(S, E, Q=None, U=None):
                             new.add(q)
         linked |= new
         frontier = new
-    return dict(alone=classify(S, E, Q, U), with_linked=classify(S | linked, E, Q, U),
+    return dict(alone=classify(S, E, Q, U, sep=sep), with_linked=classify(S | linked, E, Q, U, sep=sep),
                 linked_points=len(linked), other_points=len(rest - linked))
 
 
@@ -331,15 +344,21 @@ def dense_box(x0, t0, w, h):
     return [(x, t) for x in range(x0, x0 + w) for t in range(t0, t0 + h)]
 
 
-def random_level1_cluster(rng, x0, t0, pairs=4, window=104, adjacent=0.5):
+def random_level1_cluster(rng, x0, t0, pairs=4, window=SEP, adjacent=0.5):
     """A sparse error set built to be one level-1 error: `pairs` linked pairs
     of candidate level-0 errors (single sites or two adjacent sites at one
     tick); pair anchors in a window x window box, partners within 23 in
-    space and time. Returns (points, boxes) with boxes as (x, w, t, h)."""
+    space and time. For a small window (the separation c of condition
+    (iii) below 48) the partners stay within window // 2 and the anchors
+    within the rest, so that the whole set fits in the window and every two
+    pairs are linked.
+    Returns (points, boxes) with boxes as (x, w, t, h)."""
     pts, boxes = [], []
+    reach = 23 if window >= 48 else window // 2
+    span = window if window >= 48 else window - reach
     for _ in range(pairs):
-        ax, at = x0 + int(rng.integers(0, window)), t0 + int(rng.integers(0, window))
-        bx, bt = ax + int(rng.integers(-23, 24)), at + int(rng.integers(0, 24))
+        ax, at = x0 + reach + int(rng.integers(0, span)), t0 + int(rng.integers(0, span))
+        bx, bt = ax + int(rng.integers(-reach, reach + 1)), at + int(rng.integers(0, reach + 1))
         if bt == at and abs(bx - ax) <= 2:
             bx = ax + 3
         for (x, t) in ((ax, at), (bx, bt)):

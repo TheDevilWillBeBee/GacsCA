@@ -136,7 +136,7 @@ def phases_cmd(cand, args, rec):
     PL = p.PL
     stages = dict(level2_gathers=2 * Q + 37, level2_early_program=p.E0 + 3 * PL + 11,
                   level2_match_pass=p.E0 + p.MP * PL + PL // 3,
-                  level2_final_program=p.E0 + (p.MP + 40) * PL + 5,
+                  level2_final_program=p.E0 + (p.MP + min(40, (p.NP - p.MP) // 2)) * PL + 5,
                   level2_commit=U - 3)
     names = args.stages.split(',') if args.stages else list(stages)
     starts = level1_states(cand, L1, [stages[n] for n in names])
@@ -505,7 +505,7 @@ def copy2_cmd(cand, args, rec):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('cmd', choices=('phases', 'closure2', 'repair2', 'copy2'))
-    ap.add_argument('--candidate', default='G15')
+    ap.add_argument('--candidate', default=candidates.CURRENT)
     ap.add_argument('--n2', type=int, default=2)
     ap.add_argument('--steps', type=int, default=6)
     ap.add_argument('--stages', default='')

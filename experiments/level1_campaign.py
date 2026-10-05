@@ -240,7 +240,7 @@ def prop4_check(events, x_lo, x_hi, t_lo, t_hi, Q, U, n_col, time_only=False):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--candidate', default='G8')
+    ap.add_argument('--candidate', default=candidates.CURRENT)
     ap.add_argument('--upper-age', type=int, default=0)
     ap.add_argument('--target', default='mid', help="'mid', 'front', or an upper cell index")
     ap.add_argument('--slice', type=int, default=64, help='upper cells in the ring (0: whole colony)')
@@ -248,6 +248,11 @@ def main():
     ap.add_argument('--shape', default='dense', choices=('dense', 'sparse'))
     ap.add_argument('--pairs-per-cluster', type=int, default=6)
     ap.add_argument('--mode', default='random', choices=gpu.VALUE_MODES)
+    ap.add_argument('--shift', type=int, default=0,
+                    help="'copy' mode: sites to the source (default Q: the same Address in the next colony; "
+                         "2Q + s for a block of plausible states whose Addresses are off by s, REPORT section 32)")
+    ap.add_argument('--sep', type=int, default=gray_errors.SEP,
+                    help='separation c of condition (iii) for the Gray classification (Gray: 104; G17 is sized for 16)')
     ap.add_argument('--random', type=int, default=16)
     ap.add_argument('--phases', default='all', help="comma list of phase names, or 'all'")
     ap.add_argument('--places', default='mid,left,right')
@@ -331,8 +336,8 @@ def main():
             return s
         r = np.random.default_rng([args.seed, 3000 + ident])
         for _ in range(100):
-            pts, bx = gray_errors.random_level1_cluster(r, s['x0'], s['t0'], pairs=args.pairs_per_cluster)
-            if gray_errors.classify(pts, Q=Q, U=U)['level1']:
+            pts, bx = gray_errors.random_level1_cluster(r, s['x0'], s['t0'], pairs=args.pairs_per_cluster, window=args.sep)
+            if gray_errors.classify(pts, Q=Q, U=U, sep=args.sep)['level1']:
                 break
         s['boxes'] = [b + (1.0,) for b in bx]
         return s
@@ -371,22 +376,22 @@ def main():
     for s in sc:
         s['noise_seed'] = args.seed + 50 + s['ident']
         if s['kind'] == 'E0':
-            cfgs.append(gpu.noise(s['noise_seed'], e0_grid=50, mode=args.mode, shift_sites=Q))
+            cfgs.append(gpu.noise(s['noise_seed'], e0_grid=50, mode=args.mode, shift_sites=args.shift or Q))
         else:
-            cfgs.append(gpu.noise(s['noise_seed'], boxes=s['boxes'], mode=args.mode, shift_sites=Q,
+            cfgs.append(gpu.noise(s['noise_seed'], boxes=s['boxes'], mode=args.mode, shift_sites=args.shift or Q,
                                   e0_grid=50 if args.e0_all else 0))
             s['with_level0_noise'] = bool(args.e0_all)
             pts = []
             dense = all(b[4] >= 1.0 for b in s['boxes'])
-            if dense and len(s['boxes']) == 1 and (s['boxes'][0][1] > 104 or s['boxes'][0][3] > 104):
-                # wider or longer than 104: two separated linked pairs inside, not one level-1 error
-                g = dict(level1=False, method='extent > 104 (dense box: contains separated linked pairs)')
+            if dense and len(s['boxes']) == 1 and (s['boxes'][0][1] > args.sep or s['boxes'][0][3] > args.sep):
+                # wider or longer than the separation: two separated linked pairs inside, not one level-1 error
+                g = dict(level1=False, method=f'extent > {args.sep} (dense box: contains separated linked pairs)')
             elif dense and len(s['boxes']) == 1 and s['boxes'][0][1] * s['boxes'][0][3] > 400:
                 bx = s['boxes'][0]
-                g = gray_errors.classify(gray_errors.dense_box(bx[0], bx[2], bx[1], bx[3]), Q=Q, U=U)
+                g = gray_errors.classify(gray_errors.dense_box(bx[0], bx[2], bx[1], bx[3]), Q=Q, U=U, sep=args.sep)
             elif dense:
                 pts = [(x + dx, t + dt) for (x, w, t, h, _) in s['boxes'] for dx in range(w) for dt in range(h)]
-                g = gray_errors.classify(pts, Q=Q, U=U)
+                g = gray_errors.classify(pts, Q=Q, U=U, sep=args.sep)
             else:
                 g = None                      # Bernoulli box: classified from the realized mask below
             if g is not None:
@@ -411,7 +416,7 @@ def main():
             ts, xs = np.nonzero(m[:, x_lo:x_hi])
             E = set(zip((xs + x_lo).tolist(), (ts + t_lo).tolist()))
             box = {(x + dx, t + dt) for (x, w, t, h, _) in s['boxes'] for dx in range(w) for dt in range(h)}
-            g = gray_errors.classify_burst_in_noise(box, E, Q=Q, U=U)
+            g = gray_errors.classify_burst_in_noise(box, E, Q=Q, U=U, sep=args.sep)
             s['gray_full_set'] = dict(burst_alone=g['alone']['level1'], burst_alone_method=g['alone']['method'],
                                       with_linked_hits=g['with_linked']['level1'],
                                       with_linked_hits_method=g['with_linked']['method'],
@@ -423,7 +428,7 @@ def main():
             m = sim.error_masks(cfgs[i], i, t_lo, t_hi - t_lo)
             ts, xs = np.nonzero(m)
             pts = list(zip(xs.tolist(), (ts + t_lo).tolist()))
-            g = gray_errors.classify(pts, Q=Q, U=U)
+            g = gray_errors.classify(pts, Q=Q, U=U, sep=args.sep)
             s['gray'] = {k: (v if k != 'witness' else (v and [[list(map(int, q)) for q in M] for M in v]))
                          for k, v in g.items()}
             s['gray']['realized_points'] = len(pts)

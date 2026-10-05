@@ -40,7 +40,7 @@ GROUP = dict(info='SimBit', mr='Mailbox', ml='Mailbox', hold='Workspace', h1='Wo
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--candidate', default='G15')
+    ap.add_argument('--candidate', default=candidates.CURRENT)
     ap.add_argument('--side', type=int, default=100)
     ap.add_argument('--mode', default='random', choices=gpu.VALUE_MODES)
     ap.add_argument('--sample', type=int, default=0, help='ticks between samples (0: Q)')

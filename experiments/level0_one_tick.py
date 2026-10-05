@@ -31,7 +31,7 @@ OUT = os.path.join(candidates.ROOT, 'figs', 'level0')
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--candidate', default='G14')
+    ap.add_argument('--candidate', default=candidates.CURRENT)
     ap.add_argument('--trials', type=int, default=2000)
     ap.add_argument('--times', type=int, default=40, help='distinct ticks of the work period sampled')
     ap.add_argument('--mode', default='random', choices=('random', 'invert', 'zero', 'one'))

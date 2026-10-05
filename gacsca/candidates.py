@@ -158,17 +158,50 @@ RECIPES = {
                 compile=dict(lookahead=300, ooo=32,
                              multifront=dict(reassoc=True, cut=False, combine='spread', ctrl_fields=[],
                                              order_seed=5, owner_seed=5))),
+    # G15's rule compiled by the job scheduler (jobsched.py): the three programs are one pool
+    # of gates, claimed by the five fronts as interchangeable workers that exchange values
+    # through scratch; no in-order issue. Lane j is skewed by j cells (signed), so the eleven
+    # lanes of an upper bit sit on eleven different cells and one front loads them in one
+    # sweep. The program needs 37 passes instead of 333. The evaluation window starts at
+    # block 52 (E0q = 29): the last lane is captured at Age 29Q - 4, and G15's three further
+    # colony-lengths of waiting served nothing. NPe, MP, NP sized by experiments/size_jobs.py
+    # (tag g16_e29). U = 90 * 288 = 25,920; QU = 2^23.66.
+    'G16': dict(family='G', params=dict(k=9, m=16, L=64, S=4, NP=37, NPe=12, MP=21,
+                                        E0q=29, gathers_q=(0, 12, 24), margin=122, clear_ws=True,
+                                        q=512, nb=90, confined=True, compact_front=True, mux_front=True,
+                                        computed_front=True, five_front=True, fronts=5, delta=5,
+                                        stage_wipe=True, skew=(-5, -4, -3, -2, -1, 1, 2, 3, 4, 5)),
+                spread=False, layout='end_aware',
+                compile=dict(jobs=dict(window=300, front_k=100))),
+    # G17: G16's rule with the colony margin sized for a 73-cell burst instead of 200 (the
+    # level-1 box with c = 16 in Gray's condition (iii): at most 70 cells, GRAY_CONSTANTS.md)
+    # and the gathers 10Q apart. Q = 384, U = 20,736. Sized by size_jobs.py (best of 18).
+    'G17': dict(family='G', params=dict(k=9, m=16, L=64, S=4, NP=37, NPe=13, MP=21,
+                                        E0q=25, gathers_q=(0, 10, 20), margin=58, burst=73, clear_ws=True,
+                                        q=384, nb=72, confined=True, compact_front=True, mux_front=True,
+                                        computed_front=True, five_front=True, fronts=5, delta=5,
+                                        stage_wipe=True, skew=(-10, -8, -6, -4, -2, 2, 4, 6, 8, 10)),
+                spread=False, layout='end_aware',
+                compile=dict(jobs=dict())),
 }
+
+# The current candidate: what the drivers simulate when no --candidate is given, and what the
+# README describes (REPORT section 33).
+CURRENT = 'G17'
 
 
 def build(name):
     r = RECIPES[name]
     p = FAMILIES[r.get('family', 'R')](**r['params']).check()
-    layout = compiler.default_layout(p, r['spread'])
-    if r.get('layout') == 'proportional':
-        layout = compiler.proportional_layout(p, layout)
-    skew, _ = compiler.choose_skew(p, layout, seed=r['skew_seed'])
-    p = replace(p, skew=skew).check()
+    if r.get('layout') == 'end_aware':
+        # signed skews given by the recipe; the layout keeps every used lane in the working cells
+        layout = compiler.end_aware_layout(p, p.fam().cached(p)[1])
+    else:
+        layout = compiler.default_layout(p, r['spread'])
+        if r.get('layout') == 'proportional':
+            layout = compiler.proportional_layout(p, layout)
+        skew, _ = compiler.choose_skew(p, layout, seed=r['skew_seed'])
+        p = replace(p, skew=skew).check()
     prog = compiler.compile_candidate(p, layout, **r['compile'])
     return p, layout, prog
 

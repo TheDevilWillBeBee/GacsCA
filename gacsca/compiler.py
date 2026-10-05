@@ -137,6 +137,59 @@ def proportional_layout(p, layout):
     return np.array(out)
 
 
+def lane_use(p, comp):
+    """(bit index -> lane offsets the netlist reads, 0 = own Info; (field, i) -> bit index)."""
+    live = set(comp.outputs.values())
+    for op, a, b in comp.gates:
+        live.add(a)
+        live.add(b)
+    bit = {}
+    for f, w in p.fam().schema(p):
+        for i in range(w):
+            bit[(f, i)] = len(bit)
+    use = {b: set() for b in bit.values()}
+    for name, node in comp.index.items():
+        if name[0] == 'x' and node in live:
+            _, j, f, i = name
+            use[bit[(f, i)]].add(j)
+    return use, bit
+
+
+def end_aware_layout(p, comp, kind='proportional'):
+    """Layout for signed lane skews (p.skew): bits in proportional (or schema) order, spread
+    over the working cells, except that a bit is kept away from a cell near a colony end
+    where one of its used lanes would land outside the working range. With skew_j
+    proportional to j the eleven lanes of a bit sit on eleven different cells, so one
+    front can load them all in one sweep."""
+    lo, hi = work_range(p)
+    reserved = set(p.fam().reserved_cells(p))
+    cells = [c for c in range(lo, hi) if c not in reserved]
+    use, bit = lane_use(p, comp)
+    sk = dict(zip(p.fam().LANE_OFFSETS, p.skew))
+    sk[0] = 0
+    keys = []
+    for fi, (f, w) in enumerate(p.fam().schema(p)):
+        for i in range(w):
+            keys.append(((i + 0.5) / w, fi, i) if kind == 'proportional' else (fi, i, 0))
+    order = sorted(range(len(keys)), key=lambda x: keys[x])
+    W = len(order)
+    if W > len(cells):
+        raise CompileError(f'upper state ({W} bits) does not fit in the colony')
+    slots = [cells[(r * len(cells)) // W] for r in range(W)]
+
+    def ok(b, c):
+        return all(lo <= c + sk[j] < hi for j in use[b])
+    out = [None] * W
+    half = W // 2
+    for rem, cs in ((order[:half], slots[:half]), (order[half:][::-1], slots[half:][::-1])):
+        for c in cs:
+            k = next((i for i, b in enumerate(rem) if ok(b, c)), None)
+            if k is None:
+                raise CompileError(f'no bit fits cell {c} with skew {p.skew}')
+            out[rem.pop(k)] = c
+    return np.array(out)
+
+
 def lane_locations(p, comp, layout):
     """(cell, source code) of every upper input bit after the gather.
 
@@ -1473,7 +1526,10 @@ Scheduler.run_sweep = run_sweep
 
 def compile_candidate(p, layout=None, window=64, reserve=2, verbose=False,
                       mode='inorder', lookahead=160, ooo=8, order_seed=None, order_flip=0.2,
-                      free_floor=10**9, order_kind='dfs', reassoc=False, multifront=None):
+                      free_floor=10**9, order_kind='dfs', reassoc=False, multifront=None, jobs=None):
+    if jobs is not None:
+        from .jobsched import compile_program
+        return compile_program(p, layout, **jobs)
     if getattr(p, 'fronts', 1) > 1:
         from .multifront import compile_program
         return compile_program(p, layout, lookahead=lookahead, ooo=ooo, **(multifront or {}))

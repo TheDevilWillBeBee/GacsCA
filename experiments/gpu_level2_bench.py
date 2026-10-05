@@ -21,9 +21,18 @@ from gacsca import candidates, codec, gpu
 OUT = os.path.join(candidates.ROOT, 'figs', 'gpu')
 
 
+def gpu_name():
+    import subprocess
+    try:
+        return subprocess.run(['nvidia-smi', '--query-gpu=name', '--format=csv,noheader'],
+                              capture_output=True, text=True).stdout.strip()
+    except OSError:
+        return 'unknown'
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--candidate', default='G15')
+    ap.add_argument('--candidate', default=candidates.CURRENT)
     ap.add_argument('--ticks', type=int, default=2000)
     ap.add_argument('--configs', default='1x1,1x2,1x4,1x8,4x1,16x1',
                     help='rings x level-2 cells per ring')
@@ -79,7 +88,7 @@ def main():
         del sim
     with open(os.path.join(OUT, f'{args.candidate}_level2_bench.json'), 'w') as fh:
         json.dump(dict(candidate=args.candidate, Q=Q, U=U, W=cand.W, gates=len(cand.comp.gates),
-                       gpu='A100-SXM4-80GB', date=time.strftime('%Y-%m-%d %H:%M UTC', time.gmtime()),
+                       gpu=gpu_name(), date=time.strftime('%Y-%m-%d %H:%M UTC', time.gmtime()),
                        gpu_shared_note=args.note, rows=rows, level1_automaton=level1_rows), fh, indent=1)
 
 

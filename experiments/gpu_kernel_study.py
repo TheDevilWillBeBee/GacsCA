@@ -110,7 +110,7 @@ def ptxas(cand, patch=lambda s: s):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--candidate', default='G15')
+    ap.add_argument('--candidate', default=candidates.CURRENT)
     ap.add_argument('--parts', default='bounds,idle,ptxas')
     args = ap.parse_args()
     parts = args.parts.split(',')

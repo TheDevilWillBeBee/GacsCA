@@ -86,6 +86,10 @@ class ParamsG:
     confined: bool = False    # the front sweeps only the working cells [margin, Q - margin): a pass
                               # takes W = Q - 2*margin ticks and Age is packed with radix W; the new
                               # upper flags reach Gray's cells 3 and Q-3 by a courier on the mail
+    burst: int = 200          # the widest error box the margin is sized for: a burst of up to this
+                              # many cells on a colony boundary reaches the front state or the data
+                              # of at most one colony (Gray's level-1 box is 200 with his constants,
+                              # c + 2*24 + 6 in general: Report/GRAY_CONSTANTS.md)
 
     @property
     def D(self): return 1 << self.dlog
@@ -180,7 +184,8 @@ class ParamsG:
         assert len(self.skew) == len(LANE_OFFSETS) and len(self.gathers_q) == 3
         for g in range(3):
             for off, d in zip(LANE_OFFSETS, self.skew):
-                assert 0 <= d < self.Q - 1
+                # a negative skew captures earlier: the lane then holds address x + |d|
+                assert abs(d) < self.Q - 1
                 t = self.capture_age(off, g)
                 assert t > self.gathers_q[g] * self.Q
                 if g < 2:
@@ -194,12 +199,12 @@ class ParamsG:
         if self.fronts > 1:
             # compact slots and fivefold pending writes see at most one front
             # within two cells; the comb stays inside the colony, and a level-1
-            # burst (200 cells wide) cannot reach front state or SimBits of two
-            # colonies: the front state of the right-hand colony starts
+            # burst (`burst` cells wide) cannot reach front state or SimBits of
+            # two colonies: the front state of the right-hand colony starts
             # 2*margin - 2*H - 3 cells after that of the left-hand one
             assert self.confined and self.mux_front and self.delta >= 5
             assert self.H <= self.lo - 2 and self.hi + 1 + self.H < self.Q
-            assert 2 * self.margin - 2 * self.H - 3 >= 200
+            assert 2 * self.margin - 2 * self.H - 3 >= self.burst
         if self.confined:
             # Gray's flag rule reads Age mod 16 from the low position bits; the
             # couriers need the flag sources inside the window and a free last
