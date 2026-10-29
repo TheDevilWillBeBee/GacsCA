@@ -1,0 +1,220 @@
+"""Exact sparse physical SF executor across all frozen GAW2R phase gates.
+
+The C batch evaluates only native_at, not a CA replacement. Every Mail,
+History, Info, courier, packet and Workspace equation is evaluated below.
+Initially actual chronological H; all later state comes from that fault.
+"""
+from pathlib import Path
+from dataclasses import replace
+from functools import lru_cache
+import ctypes,hashlib,json,sys,time
+S=Path(__file__).resolve().parent;ROOT=S.parents[3]
+sys.path.insert(0,str(S.parent/'unregistered_gaw14'))
+import search_gaw14_mixed_active as previous
+k=previous.k;own=previous.own;base=previous.base;prior=previous.prior
+T=previous.T;P=k.PRIMARY_START
+D=ROOT/'figs/gray_counterexamples/unregistered_gaw15'
+Site=previous.sharedmod.Site
+FIELDS=tuple(n for n in previous.FIELDS if n!='program')
+
+class Result(ctypes.Structure):
+    _fields_=[(n,ctypes.c_int) for n in ('geometry','flags','lo','hi','sources','births')]
+
+def library():
+    c=ctypes.CDLL(str(D/'gaw15_native.so'))
+    c.gaw15_native.argtypes=[ctypes.POINTER(Site),ctypes.POINTER(Site),ctypes.POINTER(ctypes.c_uint8),
+        ctypes.POINTER(ctypes.c_uint8),ctypes.c_int,ctypes.c_int,ctypes.c_int,
+        ctypes.POINTER(ctypes.c_int),ctypes.POINTER(ctypes.c_int),ctypes.POINTER(Result)]
+    c.gaw15_native.restype=ctypes.c_int;return c
+
+def stable(v):return previous.stable(v)
+def signature(v):return previous.signature(v)
+
+def recipes():
+    ages=(k.U-1,0,96*k.Q+1,k.EARLY_BIRTH,120*k.Q+1,75*k.Q)
+    return [dict(tag='phase_%s_%d'%(b,j),start=b,width=16,rows=1,gf_shift=shift,age=age,flags=0,
+        packet_kind='cross-store' if b==k.Q-8 else 'stationary-store',Out=1,Scratch=k.MASK)
+        for b in (P-7,k.Q-8) for j,(shift,age) in enumerate(zip((1,-1,1,-1,1,-1),ages))]
+
+class Phase:
+    def __init__(self,recipe):
+        self.recipe=recipe;self.shadow=previous.Shadow(groups=(-2,-1,0,1,2,3));self.age=T;self.tick=0
+        self.offset=-2*k.Q-32;self.n=6*k.Q+64;self.c=library()
+        self.a=(Site*self.n)(*[Site((x+self.offset)%k.Q,T,0,0,0,0,0) for x in range(self.n)])
+        self.b=(Site*self.n)();self.r=Result();self.sources=(ctypes.c_int*self.n)();self.births=(ctypes.c_int*(self.n*5))()
+        self.beta=(ctypes.c_uint8*k.Q)(*[k.beta_bit(own.ROM,x) for x in range(k.Q)])
+        self.pb=(ctypes.c_uint8*self.n)(*[sum(self.beta[(x+self.offset+s)%k.Q]<<h for h,s in enumerate(k.SLOTS)) for x in range(self.n)])
+        self.nextpb=(ctypes.c_uint8*self.n)();self.diff={};self.payload=[]
+        self.bank_coordinates={y for g in range(-2,4) for y in range(g*k.Q+P-4,g*k.Q+P+k.FRAME_WORDS+4)
+            if prior.B(y) or base.I(y)}
+        b=recipe['start'];support=set()
+        for x in range(b,b+recipe['width']):
+            old=self.raw(x);z=previous.replacement(recipe,x,old,0);assert z!=old
+            self.a[x-self.offset]=Site(z.addr,z.age,z.f1,z.f2,z.wf1,z.wf2,0)
+            self.pb[x-self.offset]=sum(v<<h for h,v in enumerate(z.program))
+            for h,s in enumerate(k.SLOTS):
+                y=x+s;row=self.diff.setdefault(y,{})
+                for name in FIELDS:
+                    values=list(row.get(name,(self.clean(name,y),)*5));values[h]=getattr(z,name)[h];row[name]=tuple(values)
+            self.payload.append(dict(x=x,t=T,old_complete_words=[hex(v) for v in k.cell_words(old)],
+                replacement_complete_words=[hex(v) for v in k.cell_words(z)]));support.add((x,T))
+        self.classification=base.gray_errors.classify(support,support,Q=k.Q,U=k.U,sep=104,exact_limit=1)
+        assert self.classification['level1'] and not self.classification['level0']
+        self.normalize()
+
+    def clean(self,name,y):
+        if name in ('mem','history1','history2','history3'):return prior.B(y)
+        if name=='info':return base.I(y)
+        if name=='heads':return k.pack(self.shadow.heads.get(y,k.ZERO))
+        if name in ('out','scratch'):return getattr(self.shadow,name).get(y,0)
+        return 0
+
+    def normalize(self):
+        for y in list(self.diff):
+            row=self.diff[y]
+            for name in list(row):
+                if row[name]==(self.clean(name,y),)*5:del row[name]
+            if not row:del self.diff[y]
+
+    def copies(self,name,y):return self.diff.get(y,{}).get(name,(self.clean(name,y),)*5)
+    def logical(self,name,y):
+        if name=='program':return int(sum((self.pb[y-s-self.offset]>>h)&1 for h,s in enumerate(k.SLOTS))>=3)
+        return k.vote(self.copies(name,y))
+
+    def raw(self,x):
+        assert self.offset+9<=x<self.offset+self.n-9,('raw finite cut',x)
+        z=self.a[x-self.offset]
+        data={name:tuple(self.copies(name,x+s)[h] for h,s in enumerate(k.SLOTS)) for name in FIELDS}
+        data['program']=tuple((self.pb[x-self.offset]>>h)&1 for h in range(5))
+        return k.Cell(addr=z.gf,age=z.age,f1=z.f1,f2=z.f2,wf1=z.w1,wf2=z.w2,**data)
+
+    def step(self,check=False):
+        nextage=self.age+1
+        assert 102*k.Q+1<nextage<=120*k.Q,('clean chronological prefix exhausted',nextage)
+        assert self.c.gaw15_native(self.a,self.b,self.beta,self.nextpb,self.n,self.offset,nextage,
+            self.sources,self.births,ctypes.byref(self.r))==0,('native finite cut',self.tick)
+        @lru_cache(None)
+        def old(name,y):return self.logical(name,y)
+        # Same current-row computed_primary as the frozen rule, not voted
+        # computed copies and not a supplied Workspace tape.
+        def primary(p):
+            z=self.b[p-self.offset];rawgf=self.a[p-self.offset].gf
+            if z.f1 and z.gf!=rawgf:return 0
+            if z.age==0:return old('out',p)&k.MASK
+            if z.age==80*k.Q-1 and z.gf==3:return old('courier_l',p)&k.MASK
+            if z.age==80*k.Q-1 and z.gf==k.Q-3:return old('courier_r',p)&k.MASK
+            return old('info',p)&k.MASK
+        wf=[]
+        for j in range(self.r.sources):
+            i=self.sources[j];x=i+self.offset;z=self.b[i]
+            if z.gf>=k.Q-5:z.w1=primary(x+k.Q-3-z.gf)&1
+            if z.gf<=4 and not z.f1:z.w2=primary(x+3-z.gf)&1
+            if z.w1 or z.w2:wf.append([x,z.w1,z.w2])
+        targets=set(self.diff)|self.bank_coordinates
+        targets.update(self.shadow.heads);targets.update(y for y,v in self.shadow.out.items() if v)
+        targets.update(y for y,v in self.shadow.scratch.items() if v)
+        for y,row in self.diff.items():
+            if any(n in row for n in ('heads','mail_l','mail_r','courier_l','courier_r')):targets.update((y-1,y+1))
+        targets.update(self.births[j] for j in range(self.r.births))
+        # Changed heads can remove a clean incoming copy at its new target.
+        targets.update(y+(1 if p.move==1 else -1 if p.move==2 else 0) for y,p in self.shadow.heads.items())
+        assert all(self.offset+24<=y<self.offset+self.n-24 for y in targets),('SF finite cut',min(targets),max(targets))
+        outputs={};phase_events={};packet_steps=0
+        for y in sorted(targets):
+            basevals={name:old(name,y) for name in FIELDS}
+            hs=[basevals['history'+str(g)]&((1<<1700)-1) for g in (1,2,3)]
+            incoming=k.incoming([k.unpack(old('heads',y+j)) for j in (-1,0,1)])
+            per={};rows=[]
+            for h,s in enumerate(k.SLOTS):
+                x=y-s;z=self.b[x-self.offset];wipe=bool(z.f1 and z.gf!=self.a[x-self.offset].gf)
+                control=(z.age,(z.gf+s)%k.Q,z.f1,wipe)
+                if control not in per:
+                    age,address,f1,wipe=control;v=dict(basevals);hist=list(hs)
+                    if age in k.STAGE_STARTS:v['mem']=0
+                    elif age in (k.EARLY_RESET,102*k.Q+1):v['mem']=k.majority3(*hs)
+                    if age in k.STAGE_STARTS:v['mail_l']=v['mail_r']=0
+                    elif age in tuple(a+1 for a in k.GATHER_STARTS):v['mail_l']=v['mail_r']=old('info',y)&k.MASK
+                    elif any(a<=age<a+16*k.Q for a in k.GATHER_STARTS):
+                        v['mail_l']=old('mail_l',y+1)&k.MASK;v['mail_r']=old('mail_r',y-1)&k.MASK
+                    if f1:v['mail_l']=v['mail_r']=0
+                    for g in (1,2,3):
+                        if age in k.GATHER_STARTS[:g]:hist[g-1]=0
+                        else:
+                            for lane in range(17):
+                                if age==k.capture(g,lane):
+                                    name='info' if lane==8 else 'mail_r' if lane<8 else 'mail_l'
+                                    hist[g-1]=(hist[g-1]&~(k.MASK<<(lane*100)))|((old(name,y)&k.MASK)<<(lane*100))
+                    for g in (1,2,3):v['history'+str(g)]=hist[g-1]
+                    v['out']&=k.MASK;v['scratch']&=k.MASK;v['info']=(v['out'] if age==0 else v['info'])&k.MASK
+                    if age in k.STAGE_STARTS:v['courier_l']=v['courier_r']=0
+                    elif age==75*k.Q:
+                        v['courier_l']=(v['out']&1) if address==P+3 else 0
+                        v['courier_r']=(v['out']&1) if address==P+2 else 0
+                    elif 75*k.Q<age<80*k.Q:
+                        left=old('courier_l',y+1)&k.MASK;right=old('courier_r',y-1)&k.MASK
+                        v['courier_l']=((v['courier_l']|left) if address==3 else left) if 3<=address<=P+3 else 0
+                        v['courier_r']=((v['courier_r']|right) if address==k.Q-3 else right) if P+2<=address<=k.Q-3 else 0
+                    if age==80*k.Q-1:
+                        if address==3:v['info']=old('courier_l',y)&k.MASK
+                        if address==k.Q-3:v['info']=old('courier_r',y)&k.MASK
+                    if age in k.STAGE_STARTS or age==k.EARLY_RESET:
+                        head=k.ZERO;v['out']=v['scratch']=0
+                    elif age in (k.EARLY_BIRTH,102*k.Q+1):
+                        head=k.Packet(p=1,pc=own.ROM.early_pc if age==k.EARLY_BIRTH else 0) if address==P else k.ZERO
+                    elif k.EARLY_BIRTH<age<75*k.Q or 102*k.Q+1<age<=120*k.Q:
+                        head,ow,sw=k.step_packet(incoming,address,v['mem']&((1<<1700)-1),v['out'],v['scratch'],old('program',y)&k.MASK,own.ROM)
+                        packet_steps+=1
+                        if ow is not None:v['out']=ow
+                        if sw is not None:v['scratch']=sw
+                    else:head=k.unpack(old('heads',y))
+                    v['heads']=k.pack(head)
+                    if wipe:v={name:0 for name in FIELDS}
+                    per[control]=v
+                rows.append(per[control])
+                if z.age in (*k.STAGE_STARTS,k.EARLY_RESET,k.EARLY_BIRTH,102*k.Q+1,75*k.Q,80*k.Q-1) or any(z.age==k.capture(g,lane) for g in (1,2,3) for lane in range(17)):
+                    if z.age!=nextage:phase_events[(x,z.age)]=True
+            outputs[y]={name:tuple(row[name] for row in rows) for name in FIELDS}
+        probes=[]
+        if check:
+            xs=set(range(self.recipe['start']-4,self.recipe['start']+self.recipe['width']+4))
+            xs.update(self.offset+self.sources[j] for j in range(self.r.sources))
+            for y in self.diff:
+                if 'heads' in self.diff[y]:xs.update(y-s for s in k.SLOTS)
+            for x in sorted(xs):
+                got=k.local_transition({d:self.raw(x+d) for d in range(-8,9)},own.ROM)
+                z=self.b[x-self.offset]
+                data={name:tuple(outputs.get(x+s,{}).get(name,(self.clean(name,x+s),)*5)[h] for h,s in enumerate(k.SLOTS)) for name in FIELDS}
+                data['program']=tuple((self.nextpb[x-self.offset]>>h)&1 for h in range(5))
+                actual=k.Cell(addr=z.gf,age=z.age,f1=z.f1,f2=z.f2,wf1=z.w1,wf2=z.w2,**data)
+                assert got==actual,(self.recipe['tag'],self.tick,x,[(n,getattr(got,n),getattr(actual,n)) for n in (*k.NATIVE_NAMES,*previous.FIELDS) if getattr(got,n)!=getattr(actual,n)])
+                probes.append([x,signature(k.cell_words(got))])
+        self.shadow.advance();self.age=nextage;self.tick+=1
+        self.diff={y:{name:v for name,v in row.items() if v!=(self.clean(name,y),)*5} for y,row in outputs.items()}
+        self.diff={y:v for y,v in self.diff.items() if v};self.a,self.b=self.b,self.a;self.pb,self.nextpb=self.nextpb,self.pb
+        return dict(tick=self.tick,age=self.age,geometry=self.r.geometry,native_flags=self.r.flags,
+            actual_Workspace_sources=wf,actual_phase_events=[list(v) for v in sorted(phase_events)],
+            changed_SF_groups=len(self.diff),packet_evaluations=packet_steps,actual_full_local_R_checks=probes,
+            native_hull=None if self.r.hi<self.r.lo else [self.offset+self.r.lo,self.offset+self.r.hi+1])
+
+    def snapshot(self):
+        return dict(age=self.age,changed_SF_groups=[[y,{n:[hex(v) for v in values] for n,values in sorted(row.items())}] for y,row in sorted(self.diff.items())])
+
+def run(recipe,limit=64):
+    start=time.monotonic();state=Phase(recipe);rows=[];digest=hashlib.sha256()
+    for t in range(limit):
+        row=state.step(check=t in (0,1,3,7,15,31,63));rows.append(row)
+        digest.update(json.dumps([row,state.snapshot()],separators=(',',':')).encode()+b'\n')
+    result=dict(recipe=recipe,Q=k.Q,U=k.U,error_lambda=24,error_separation=104,actual_chronological_fault_clock=T,
+        original_c104_classification=state.classification,complete_payload=state.payload,rows=rows,
+        prefix_trace_sha256=digest.hexdigest(),final=state.snapshot(),new_transition_or_assigned_future_tape=False,
+        operational_or_Gray_or_iid_failure=False,elapsed_seconds=time.monotonic()-start)
+    return result,state
+
+def main():
+    D.mkdir(parents=True,exist_ok=True)
+    for recipe in recipes():
+        result,state=run(recipe)
+        (D/(recipe['tag']+'_discovery.json')).write_text(json.dumps(result,indent=2)+'\n')
+        print(json.dumps(dict(tag=recipe['tag'],last=result['rows'][-1],actual_phase_event_rows=sum(bool(v['actual_phase_events']) for v in result['rows']),seconds=result['elapsed_seconds'])),flush=True)
+
+if __name__=='__main__':main()

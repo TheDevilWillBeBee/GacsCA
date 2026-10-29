@@ -1,0 +1,143 @@
+"""Actual native-record renewal to the first derived positive Flag2 supply.
+
+The mathematical lift uses the separate arbitrary-SF absorption and
+zero-source/store contracts. No later command or tape is selected here.
+Full raw boundary records are not claimed beyond the accepted4U.
+"""
+from pathlib import Path
+import hashlib,json,sys,time
+import discover_gaw28_native_renewal as r
+k=r.k;own=r.own;Q=r.Q;U=r.U;P=r.P;S=r.S;ROOT=r.ROOT
+D=ROOT/'figs/gray_counterexamples/unregistered_gaw28'
+def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+def emitter(rows,early=True):
+    tape={P+i:sum(v<<(j*100) for j,v in enumerate(values)) for i,values in enumerate(rows)}
+    out,ticks,packet,trace=k.execute(own.ROM,tape,limit=213,record=True,early=early)
+    assert packet.mode==k.HALT and ticks<=213
+    values=[out.get(P+i,0) for i in range(6)];assert values==r.native(rows)
+    assert all(0<=v<bound for v,bound in zip(values,(Q,U,2,2,2,2)))
+    read=set();dig=hashlib.sha256()
+    for a,old,new,ow,sw in trace:
+        assert P<=a<=P+5 and sw is None
+        if old.mode==k.SEEK and a==old.target and old.args&3!=1:read.add(a)
+        dig.update(json.dumps([a,hex(k.pack(new)),ow],separators=(',',':')).encode())
+    assert read==set(range(P,P+6))
+    return dict(ticks=ticks,outputs=values,trace_sha256=dig.hexdigest())
+def courier_check(seed,direction,A):
+    def addr(x):return (x+(Q//2 if (A+.5)*Q<=x<(A+4)*Q else 0))%Q
+    p=seed;distance=0;dest=Q-3 if direction==1 else 3
+    lo,hi=(P+2,Q-3) if direction==1 else (3,P+3)
+    while addr(p)!=dest:
+        p+=direction;distance+=1
+        if not lo<=addr(p)<=hi:return None,distance
+        assert distance<5*Q
+    return p,distance
+def first_Flag2_local_rows(left_sources):
+    # These cofactor inputs retain exactly the actual native/source
+    # arguments. All unused SF words are arbitrary nuisance, not tapes.
+    outputs=[];dig=hashlib.sha256();births=[]
+    source_set=set(left_sources)
+    for source in left_sources:
+        g=source//Q
+        def row_old(x):return k.Cell(addr=x%Q,age=96*Q-1,
+            info=tuple(int(x+s in source_set) for s in k.SLOTS))
+        wf={}
+        for q in range(-8,17):
+            x=g*Q+q;a=k.local_transition({j:row_old(x+j) for j in range(-8,9)},own.ROM)
+            assert a.addr==x%Q and a.age==96*Q and a.f1==a.f2==a.wf1==0
+            assert a.wf2==int(0<=q<=4);wf[x]=a
+            dig.update(json.dumps([x,k.cell_words(a)],separators=(',',':')).encode())
+        for q in range(13):
+            x=g*Q+q
+            def at(y):return wf.get(y,k.Cell(addr=y%Q,age=96*Q))
+            a=k.local_transition({j:at(x+j) for j in range(-8,9)},own.ROM)
+            assert a.addr==x%Q and a.age==96*Q+1 and a.f1==0
+            assert a.f2==int(0<=q<=7),(source,q,a.f2)
+            if a.f2:births.append(x)
+            dig.update(json.dumps([x,k.cell_words(a)],separators=(',',':')).encode())
+        outputs.append(dict(receiver=g,special_Info_source=source,first_WF2_interval=[g*Q,g*Q+5],first_native_Flag2_interval=[g*Q,g*Q+8]))
+    return dict(derived_first_positive_native_Flag2_row=15*U+96*Q+1,
+        actual_nine_left_special_Info_and_local_births=outputs,
+        positive_native_Flag2_sites_at_that_row=births,
+        literal_local_R_WF_source_and_next_native_birth_cofactors=len(left_sources)*38,
+        local_R_digest=dig.hexdigest(),
+        nuisance_SF_values_not_part_of_the_native_WF_read_support=True,
+        later_Flag2_propagation_and_GF_repair_not_claimed=True)
+def main():
+    start=time.monotonic();issue='--issue' in sys.argv
+    T={g:r.old.native_output_table(g) for g in range(r.LO,r.HI)}
+    V={g:r.old.native_output_table(g,True) for g in range(r.LO,r.HI)}
+    periods=[];allruns=0;maxarrival=0
+    for n in range(4,16):
+        A=3*n+13;runs,right,left=r.commands(T,V,n,A)
+        executed=[];couriers=[];specialruns=[]
+        for g,foreign,values in runs:
+            # Only native prefix inputs are read, even when the other490
+            # retained SF words are arbitrary or incoherent.
+            rows=r.bank(T,V,g,foreign,A);z=emitter(rows);assert z['outputs']==values
+            origin=g*Q-(Q//2 if foreign else 0)
+            z.update(receiver=g,foreign=foreign,physical_origin=origin);executed.append(z);allruns+=1
+            if values[3]:
+                specialruns.append(dict(receiver=g,foreign=foreign,actual_all100bit_native_bank=[
+                    hex(sum(v<<(j*100) for j,v in enumerate(row))) for row in rows],
+                    actual_seventeen_lane_native_words=rows,emitted=z))
+            for index,direction in ((2,1),(3,-1)):
+                if not values[index]:continue
+                dest,arrival=courier_check(origin+P+index,direction,A)
+                maxarrival=max(maxarrival,arrival if dest is not None else 0)
+                couriers.append(dict(receiver=g,foreign=foreign,direction=direction,
+                    source_seed=origin+P+index,actual_destination=dest,ticks_after75Q=arrival))
+        right2=sorted(c['actual_destination'] for c in couriers if c['direction']==1 and c['actual_destination'] is not None)
+        left2=sorted(c['actual_destination'] for c in couriers if c['direction']==-1 and c['actual_destination'] is not None)
+        assert right2==right and left2==left
+        expected=sorted([g*Q+Q//2-3 for g in range(A+1,A+4)]+[(g+1)*Q-3 for g in range(A+4,A+7)])
+        core=[p for p in right if p>=A*Q];assert core==expected
+        assert all(z['outputs'][4:]==[0,0] and 1<=z['outputs'][1]<=n+1 for z in executed)
+        if n<15:assert not left and all(z['outputs'][3]==0 for z in executed)
+        else:
+            assert left==[g*Q+3 for g in range(40,49)]
+            assert [(z['receiver'],z['foreign']) for z in specialruns]==[(g,False) for g in range(40,49)]
+            assert all(z['emitted']['outputs']==[g if g<=45 else 0,16,1,1,0,0] for g,z in zip(range(40,49),specialruns))
+            assert all(not v for z in specialruns for v in z['actual_seventeen_lane_native_words'][3]),'old upper F2 is zero'
+        # The complete tables are literal unmasked native records. The
+        # finite analysis margin has twelve8cell steps and an infinite
+        # canonical native exterior as justified in the proof.
+        periods.append(dict(boundary_period=n,physical_period=n+1,A=A,
+            full_true_native_record_table={str(g):v for g,v in sorted(T.items())},
+            full_foreign_native_record_table={str(g):v for g,v in sorted(V.items())},
+            actual_native_early_executions=executed,actual_guarded_courier_lineages=couriers,
+            actual_nonzero_right_sources=right,actual_nonzero_left_sources=left,
+            exactly_six_RF_core_sources=core,native_GF_core_interval=[(2*A+1)*Q//2,(A+4)*Q],
+            first_positive_Flag2_receivers_with_full_native_banks=specialruns))
+        if n<15:T,V=r.next_records(T,V,n,A)
+    mask_actual=json.loads((D/'GAW28_actual_fifth_retention_issue01.json').read_text())
+    mask_template=json.loads((D/'GAW28_RF_template_retention_issue01.json').read_text())
+    assert mask_actual['pulse_H2_H3_zero_tag_intervals']==[[208896,233472,0],[237568,262144,0]]
+    assert [[a-25*Q,b-25*Q,v] for a,b,v in mask_actual['pulse_H2_H3_zero_tag_intervals']]==mask_template['pulse_H2_H3_zero_tag_intervals']
+    born=first_Flag2_local_rows(periods[-1]['actual_nonzero_left_sources'])
+    result=dict(passed=True,Q=Q,U=U,error_lambda=24,error_separation=104,
+        same_intact_H_row1_GF_only139264site_original_c104_real2_no_future_errors=True,
+        actual_native_record_and_zero_special_Info_projection_not_all_SF_boundary=True,
+        accepted_actual4U_start_receipt_sha256=sha(r.old.D/'GAW27_full_4U_physical_certificate.json'),
+        full_actual_native_bank_renewal_and_commands=periods,
+        actual_RF_only_six_core_command_renewal_from_period5_through15=True,
+        actual_native_GF_boundary_intervals_4U_through15U=[[((3*n+13)*2+1)*Q//2,(3*n+17)*Q] for n in range(4,16)],
+        native_core_width_7Q_half=7*Q//2,
+        all_native_fields_legal_old_Flag2_and_Workspace_records_zero_before_first_command=True,
+        no_common_upper_Age_or_selected_future_SF_bank_assumption=True,
+        maximum_guarded_courier_first_arrival_ticks=maxarrival,
+        first_positive_upper_Flag2_evaluation_period=16,
+        actual_Flag2_birth=born,
+        infinite_RF_only_persistence_extrapolation_for_this_history_invalidated=True,
+        actual_positive_Flag2_supply_consequence_not_a_Gray_recovery_failure=True,
+        Address_union_through15U=[0,62*Q],
+        finite_Address_history_fits_original_real2_Gray_P5_box=True,
+        full_raw5U_to15U_boundaries_late16U_GF_erosion_or_eventual_repair_proved=False,
+        faithful_Gray_Gacs_higher_error_iid_or_shorterU_claim=False)
+    result=json.loads(json.dumps(result));path=D/'GAW28_actual_command_renewal_certificate.json'
+    if issue:assert not path.exists();path.write_text(json.dumps(result,indent=2)+'\n')
+    else:assert result==json.loads(path.read_text())
+    print(json.dumps(dict(passed=True,seconds=time.monotonic()-start,early_emissions=allruns,periods=len(periods),
+        first_positive_Flag2_period=16,first_native_Flag2_row=born['derived_first_positive_native_Flag2_row'],
+        receipt_sha256=sha(path))),flush=True);return result
+if __name__=='__main__':main()

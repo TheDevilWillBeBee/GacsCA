@@ -1,6 +1,18 @@
 # Status
 
-Last update 2026-10-05. The full account, with every measurement and its
+Reliability status updated2026-10-11; work is **paused at the owner's
+request**. [ROBUSTNESS.md](ROBUSTNESS.md) and [LEDGER.md](LEDGER.md)
+supersede conflicting reliability arguments below. No complete iid
+theorem, explicit proved positive noise rate or smallest globally
+sufficient change is established. G17/CURRENT remains unchanged.
+[ROBUSTNESS_HANDOFF.md](ROBUSTNESS_HANDOFF.md) records results through
+J309/G285, implementation issues, open proof steps, receipts and the
+interrupted unaccepted GBD7 draft. Individual new replays/preflight
+passed; the full audit covers only J307 because automatic approval
+review enforced the stop instruction before the pending J309 run.
+
+The finite campaign summary below was last updated2026-10-05.
+The full account, with every measurement and its
 receipt, is [REPORT.md](REPORT.md); G16 is §29, the faster GPU kernel and
 the physical level-2 steps §30, the margin study §31, the misaligned-colony
 limit §32, G17 §33. The two independent
@@ -29,15 +41,12 @@ Every stored bit is held fivefold and majority-corrected every tick.
 
 **G17 is G16's rule with the colony margin sized for a 73-cell burst**
 instead of 200, and the gathers 10Q apart (REPORT §33). The smaller box
-comes from the error classes: with 16 in place of Gray's 104 in his
-condition (iii), a level-1 error is at most 62 sites wide, and seen one
-level up a level-n error is at most 70 cells wide. The lemmas of Gray's
-§5.1 hold for any such constant, and the later propositions use the box
-only in upper bounds ([GRAY_CONSTANTS.md](GRAY_CONSTANTS.md)). What the
-rule then promises: level-1 errors (the 62-wide class) within two
-colonies and one upper step; bursts up to 73 cells reach the data of one
-colony; bursts of shifted states longer than about 175 ticks become
-level-2 errors (REPORT §32). What each claim rests on is in
+comes from smaller geometric error boxes with16 in place of Gray's104.
+The revised covering and probability lemmas are proved in ROBUSTNESS
+§§3–4; the necessary deterministic recovery and noisy hierarchy are
+not proved at these constants. The intended repair bounds and the
+selected shifted-state race measurements in REPORT §§32–33 remain
+separately scoped evidence. What each claim rests on is in
 [LEDGER.md](LEDGER.md).
 
 **The lineage.** R0 → R1 → G1–G8 → G9–G12 → G13/G14 → G15 → G16 → G17

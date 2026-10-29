@@ -1,5 +1,15 @@
 # Gray's error classes with 24 and 104 as parameters
 
+**Superseded reliability claims, 2026-10-11.** The later
+[ROBUSTNESS.md](ROBUSTNESS.md), especially §§3–4 and7–9, is authoritative
+where it conflicts with this historical argument. Revised geometric
+covering/probability lemmas do not imply that Gray's deterministic
+propositions apply at G17's Q/U/c. In particular the statement below
+that reducing c "breaks nothing downstream" is not an established
+reliability conclusion. No smallest globally sufficient change or
+positive iid threshold is proved. Work is paused; see the
+[handoff](ROBUSTNESS_HANDOFF.md) and [ledger](LEDGER.md).
+
 Written 2026-10-02 by the main session, after the sub-agent study [ERROR_LEVELS.md](ERROR_LEVELS.md). The question: Gray's error classes use two constants, 24 and 104. If they are changed, do the lemmas and propositions that follow still hold, and can the two be chosen independently?
 
 Page numbers are those of Gray's guide (`papers_txt/gray_readers_guide.txt`). What is quoted is Gray's; the proof in §3 and the audit in §5 are mine and have not been checked by anyone else. The brute-force check is `error_levels_exp/lemma_bruteforce.py`.

@@ -3,6 +3,16 @@
 Started 2026-09-29 as a successor to the Q=8192, U=2^20 fixed-rule candidate
 (now archived in [`archive/u20/`](../archive/u20/)); last updated 2026-10-05 (§33).
 
+**Reliability audit notice, 2026-10-11:** [ROBUSTNESS.md](ROBUSTNESS.md)
+and the updated [LEDGER.md](LEDGER.md) supersede conflicting proof-status
+claims here, especially §§31–33. Smaller error boxes and measured races
+do not prove deterministic noisy recovery or the higher-level induction.
+No complete iid theorem or explicit proved positive noise rate has been
+established. Work is paused at the owner's request; the
+[handoff](ROBUSTNESS_HANDOFF.md) records the final accepted results,
+implementation issue, unfinished draft and validation limits.
+The historical measurements below are retained. G17 is unchanged.
+
 - Code: [`gacsca/`](../gacsca/)
 - Tests: [`tests/`](../tests/)
 - Drivers: [`experiments/`](../experiments/)

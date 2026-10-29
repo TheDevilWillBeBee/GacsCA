@@ -1,5 +1,15 @@
 # Overview: what is being built
 
+**Audit status, paused 2026-10-11.** G17 remains the active candidate.
+Complete noiseless encoding results and restricted repair lemmas have
+been proved, but no explicit positive iid noise rate or all-time
+reliability theorem is proved. The geometric error-box argument alone
+does not justify the smaller colony margin or the noisy hierarchy.
+[ROBUSTNESS.md](../Report/ROBUSTNESS.md) supersedes conflicting earlier
+claims; [LEDGER.md](../Report/LEDGER.md) gives their exact statuses.
+The [paused handoff](../Report/ROBUSTNESS_HANDOFF.md) records the last
+accepted results and the incomplete post-J309 validation.
+
 **The goal.** One fixed, finite-state, one-dimensional local rule whose configurations simulate themselves hierarchically, in the style of Gács's reliable cellular automaton as presented in Gray's reader's guide (`papers/`):
 - a *colony* of Q cells simulates one cell of the level above;
 - a *work period* of U ticks implements one tick of that upper cell;

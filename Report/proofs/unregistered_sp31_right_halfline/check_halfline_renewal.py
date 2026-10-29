@@ -1,0 +1,105 @@
+#!/usr/bin/env python3
+"""Freeze once, then replay cofactors/provenance without modifying evidence."""
+from pathlib import Path
+import argparse,hashlib,json,sys,time
+ROOT=Path(__file__).resolve().parents[3];HERE=Path(__file__).resolve().parent
+OUT=ROOT/'figs/robustness/unregistered_sp31_right_halfline'
+CERT=OUT/'halfline_renewal_certificate.json';PROOF=HERE/'SP31_RIGHT_HALFLINE_RENEWAL.md'
+PARENT=ROOT/'figs/robustness/unregistered_sp31_wrap_cases/wrap_disjunction_certificate.json'
+sys.path.insert(0,str(HERE));import probe_halfline_contracts as local;import probe_upper_guard as guard
+def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+def strip_time(r):return {k:v for k,v in r.items() if k!='seconds'}
+def contracts(a,b):
+    for r in (a,b):
+        assert (r['Q'],r['U'],r['TF'])==(1024,475136,278401)
+        assert r['candidate_sha256']=='dc456bac4904647b66ee1f922788cdeb4428df91e21858fd8de0b3ccb4a69421'
+        assert r['netlist_sha256']=='73378f4aa5669c54a21dfcd1f2a277e14aaf4d98e0508d4e6870de7491c36d44'
+        assert not r['rule_ROM_constants_or_G17_changed'] and not r['global_reliability_established']
+    assert a['probe_sha256']==sha(HERE/'probe_halfline_contracts.py')
+    assert a['proof_only_semantic_refiner_identity_not_physical_rule_change']
+    assert a['quorum']['selected_two_bit_exact_joint_quorum_cases']==256
+    assert len(a['upper_cofactors'])==86 and len(a['lower_cofactors'])==72
+    assert not a['universal_native_halfline_scope_and_physical_period_supplied_by_separate_written_proof']
+    assert not a['future_physical_or_all_time_general_higher_iid_or_minimum_proved']
+    for row in a['upper_cofactors']:
+        assert row['Age'] in (295,278400) and all(row['outputs'][k]==0 for k in ('f1','f2','wf1','wf2'))
+    for row in a['lower_cofactors']:
+        assert row['Age'] in (0,278401,280449,475135) and all(row['outputs'][k]==0 for k in ('f1','f2','wf1','wf2'))
+    assert b['probe_sha256']==sha(HERE/'probe_upper_guard.py')
+    assert not b['physical_prepared_A_guard_sharpness_supplied_by_separate_written_proof']
+    assert b['output_WF2_one_is_a_legitimate_shadow_command_not_a_noise_failure']
+    assert [(r['upper_Age'],r['logical_special_Info3'],r['native_outputs']['wf2'])
+            for r in b['selected_full_unchanged_native_cofactors']]==[(278401,0,0),(278400,1,0),(278401,1,1)]
+    for row in b['selected_full_unchanged_native_cofactors']:
+        assert row['native_outputs']['addr']==0 and row['native_outputs']['age']==local.proposed.parameters().age_code(row['upper_Age']+1)
+        assert all(row['native_outputs'][k]==0 for k in ('f1','f2','wf1'))
+def finite_induction():
+    trace=hashlib.sha256();count=0;Q=1024;U=475136;TF=278401
+    for n in range(295,TF+1):
+        assert n<TF or n==TF
+        trace.update(f'{n},{1024},{n*U};'.encode());count+=1
+    assert count==278107 and TF*U==132278337536
+    return dict(first_boundary=295,last_boundary=TF,boundaries=count,R=1024,
+        physical_right_edge=1024*Q,physical_interval=[295*U,TF*U],
+        conditional_outgoing_upper_Ages=[0,TF-1],boundary_arithmetic_sha256=trace.hexdigest())
+def assets():
+    parent=json.loads(PARENT.read_text());pinned=dict(parent['assets_sha256'])
+    for rel,h in pinned.items():assert sha(ROOT/rel)==h,rel
+    pinned[str(PARENT.relative_to(ROOT))]=sha(PARENT)
+    paths={*HERE.iterdir(),*OUT.iterdir()}
+    for name in ('SP31_OWN_RULE.md','SP30_OWN_RULE.md','SP29_OWN_RULE.md','check_native_command1024_encoded.py',
+                 'check_native_command1024_front.py'):
+        paths.add(ROOT/'Report/proofs'/name)
+    for name in ('SP31_symbolic_schedule.json','SP31_front_certificate.json','SP31_encoded_certificate.json',
+                 'SP31_interface_certificate.json','SP31_native_certificate.json','SP31_program_build.json',
+                 'SP31_program.npz','SP31_program_listing.json'):
+        paths.add(ROOT/'figs/robustness'/name)
+    for module in list(sys.modules.values()):
+        f=getattr(module,'__file__',None)
+        if f:
+            p=Path(f).resolve()
+            if p.suffix=='.py' and p.is_relative_to(ROOT):paths.add(p)
+    for p in paths:
+        if p.is_file() and p.name not in (CERT.name,'issue_run.log','readonly_run.log'):
+            rel=str(p.relative_to(ROOT));h=sha(p);assert rel not in pinned or pinned[rel]==h,rel;pinned[rel]=h
+    return dict(sorted(pinned.items()))
+def main():
+    ap=argparse.ArgumentParser();ap.add_argument('--issue',action='store_true');args=ap.parse_args();start=time.monotonic()
+    if args.issue:assert not CERT.exists(),'Immutable certificate exists; use read-only replay.'
+    else:
+        frozen=json.loads(CERT.read_text())
+        for rel,h in frozen['assets_sha256'].items():assert sha(ROOT/rel)==h,rel
+    old=[json.loads((OUT/name).read_text()) for name in ('halfline_contract_probe01_receipt.json','upper_guard_probe01_receipt.json')]
+    contracts(*old);new=[local.compute(),guard.compute()];contracts(*new)
+    assert [strip_time(x) for x in old]==[strip_time(x) for x in new]
+    programme=json.loads((ROOT/'figs/robustness/SP31_symbolic_schedule.json').read_text())
+    front=json.loads((ROOT/'figs/robustness/SP31_front_certificate.json').read_text())
+    encoding=json.loads((ROOT/'figs/robustness/SP31_encoded_certificate.json').read_text())
+    assert programme['final_hold_equalities']==842 and programme['early_flag_equalities']==2
+    assert front['maximum_simultaneous_arrivals']==1 and front['all_raw_addresses_in_ROM'] and front['all_raw_selectors_in_ROM']
+    assert encoding['literal_commit_zero_bits']==807 and encoding['complete_start_noiseless_and_all_period_pure_E0_simulation_proved']
+    cert=dict(passed=True,Q=1024,U=475136,TF=278401,radius=37,proof_sha256=sha(PROOF),checker_sha256=sha(__file__),
+        candidate_sha256=old[0]['candidate_sha256'],netlist_sha256=old[0]['netlist_sha256'],
+        arbitrary_word_two_outward_blocks_equal_raw_default_identity_proved=True,
+        known_right_native_halfline_local_barrier_under_zero_alias_groups_proved=True,
+        proof_only_semantic_adapter_not_physical_rule_or_netlist_change=True,
+        upper_clock_guard_selected_full_unchanged_native_cofactors=3,
+        selected_semantic_native_cofactors=dict(upper=86,lower=72),selected_two_bit_quorum_cases=256,
+        conditional_actual_A_right_halfline_period_renewal_for_R_multipleQ_and_upper_n_belowTF_proved=True,
+        actual_fresh_work_source_capture_own_ROM_courier_native_bank_and_reset_lift_supplied_by_written_proof=True,
+        same_J225_fault_all_original_upper_Info_no_later_errors_actual_all_row_finite_right_native_corollary_proved=True,
+        finite_induction=finite_induction(),
+        prepared_complete_encoding_upper_n_TF_legitimate_WF2_disproves_unrestricted_A_renewal_proved=True,
+        prepared_guard_example_is_not_a_fault_or_memory_or_Gray_G17_counterexample=True,
+        selected_cases_measured_supplements=True,
+        actual_after_TF_U_left_or_full_data_repair_all_time_general_higher_iid_minimum_proved=False,
+        rule_ROM_constants_or_G17_changed=False,global_reliability_established=False,
+        numerical_whole_CA_trajectory_or_132billion_tick_experiment_used=False,
+        assets_sha256=assets())
+    if args.issue:CERT.write_text(json.dumps(cert,indent=2)+'\n')
+    else:assert cert==frozen,'Read-only certificate differs.'
+    print(json.dumps(dict(passed=True,readonly=not args.issue,assets_verified=len(cert['assets_sha256']),
+        certificate_sha256=sha(CERT),conditional_A_renewal_proved=True,actual_boundaries=[295,278401],
+        all_row_right_native_interval=[295*475136,132278337536],prepared_A_upper_guard_sharpness_proved=True,
+        all_time_or_iid_or_minimum_proved=False,seconds=time.monotonic()-start)),flush=True)
+if __name__=='__main__':main()

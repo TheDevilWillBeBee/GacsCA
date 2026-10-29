@@ -1,6 +1,8 @@
 # GacsCA: a fixed-rule, self-simulating cellular automaton
 
-One fixed, finite-state, one-dimensional local rule whose configurations simulate themselves level by level, in the style of Gács's reliable cellular automaton as explained in Gray's reader's guide. A colony of Q cells simulates one cell of the level above, and U ticks of the colony make one tick of that cell. The same rule runs at every level, with no depth parameter anywhere, and errors of each level are removed by the level above.
+One fixed, finite-state, one-dimensional local rule whose configurations simulate themselves level by level, in the style of Gács's reliable cellular automaton as explained in Gray's reader's guide. A colony of Q cells simulates one cell of the level above, and U ticks of the colony make one tick of that cell. The same rule runs at every level, with no depth parameter anywhere. Repair by the hierarchy is the intended noisy behavior; it is not proved for independent noise.
+
+**Reliability audit, paused 2026-10-11:** no all-time iid reliability theorem or explicit proved positive noise rate is available for G17 or an isolated replacement. [Report/ROBUSTNESS.md](Report/ROBUSTNESS.md) supersedes the earlier reliability arguments, including REPORT §§31–33 and GRAY_CONSTANTS where they conflict. Its restricted proofs and counterexamples have separate scopes; they do not refute corrected Gray/Gács reliability. The [handoff](Report/ROBUSTNESS_HANDOFF.md) records the last results, open gaps and validation limits. G17/CURRENT is unchanged; nothing was committed.
 
 ## The current candidate: G17
 
@@ -12,7 +14,7 @@ One fixed, finite-state, one-dimensional local rule whose configurations simulat
 - **The rule.** It is a Boolean netlist plus a hard-wired instruction table (Gray's projection, p. 32).
 - **What a colony does.** It gathers its neighbours' states three times and votes. It then evaluates the rule's *own* netlist on the upper neighbourhood with a comb of five register-file fronts; the upper cell's instruction word is fetched physically, by a match pass. Finally it commits the upper cell's new state.
 - **Redundancy.** Every stored bit is held fivefold and re-voted every tick.
-- **G17 against G16.** The same rule with the colony margin sized for a 73-cell burst instead of 200 and the gathers 10Q apart. The smaller box follows from taking 16 instead of Gray's 104 in his condition (iii), which the error-class lemmas allow ([Report/GRAY_CONSTANTS.md](Report/GRAY_CONSTANTS.md)). G16's program, compiled by a job scheduler (`gacsca/jobsched.py`), takes 37 passes of the comb where G15's took 333.
+- **G17 against G16.** The same rule with the colony margin sized for a 73-cell burst instead of 200 and the gathers 10Q apart. Taking16 instead of Gray's104 gives smaller geometric error boxes; it does not establish the deterministic repair or higher-level induction at these constants ([reliability audit](Report/ROBUSTNESS.md)). G16's program, compiled by a job scheduler (`gacsca/jobsched.py`), takes37 passes of the comb where G15's took333.
 
 **Established, on finite seeded tests** (see [Report/STATUS.md](Report/STATUS.md)):
 - **Self-simulation.** NumPy, C and CUDA backends agree bit for bit. Closure holds over successive periods (G16 and G17: 23 periods each on random and on coherent upper states). Three-level rings are exact across a level-2 commit, and level-2 macrosteps on the level-1 automaton are exact (G15 and G16). For G16 a ring of one level-2 cell and a ring of two were each run physically for a whole level-2 step (671,846,400 ticks): the level-2 state at the end equals the rule applied to the initial one. For G17 the one-cell ring was run the same way (429,981,696 ticks, 1.7 GPU-hours): exact.
@@ -20,7 +22,7 @@ One fixed, finite-state, one-dimensional local rule whose configurations simulat
 - **Colony-scale errors.** Errors of 3–64 colonies are removed by level 2 (G15: 61 errors; G16 and G17: 12 errors of 3–27 colonies each).
 - **The misaligned-colony limit.** Gray's requirement Q > 30.7 × box is replaced by a race: a burst leaves a whole misaligned colony only if it holds a block of shifted Addresses across a colony boundary for (5/6)(Q − w) ticks (REPORT §32; measured at five settings on G16, three on G17), and the same condition holds one level up on the level-1 automaton with the same thresholds (§33). Level-1 and level-2 errors are below it by a factor of 2.4 or more; a 200 × 200 burst of shifted states is above it on G17.
 
-**Not established:** a noise threshold, proofs for all configurations, level-3 errors, and level-2 steps with errors or with differing level-2 neighbours (three error-free physical level-2 steps have been run: G16 on rings of one and two level-2 cells, 2.5 and 3.9 GPU-hours, and G17 on one cell, 1.7 GPU-hours; all exact). G16 and G17 have not been audited independently. What each claim rests on is listed in [Report/LEDGER.md](Report/LEDGER.md).
+**Not established:** a noise threshold, universal repair from damaged colonies, the required noisy higher-level induction, and level-2 steps with errors or differing level-2 neighbours. Three error-free physical level-2 steps were run: G16 on rings of one and two level-2 cells,2.5 and3.9 GPU-hours, and G17 on one cell,1.7 GPU-hours; all exact. The later reliability audit separately proves noiseless complete-encoding closure and identifies an unimplemented total ROM-output completion for arbitrary noisy raw states. What each claim rests on is listed in [Report/LEDGER.md](Report/LEDGER.md).
 
 ## Where to look
 
@@ -32,6 +34,8 @@ One fixed, finite-state, one-dimensional local rule whose configurations simulat
 | [Report/ERROR_LEVELS.md](Report/ERROR_LEVELS.md) | A study of Gray's error-class constants: where 24, 104 and 200 come from, and what a smaller level-1 box would do to the colony margin, Q and U |
 | [Report/GRAY_CONSTANTS.md](Report/GRAY_CONSTANTS.md) | Gray's error classes with 24 and 104 as parameters: which lemmas use which constant, a proof of the covering lemma for any separation, and what the later propositions need |
 | [Report/LEDGER.md](Report/LEDGER.md) | Every statement the construction's reliability rests on, with its status: proved, argued and measured, measured only, or assumed |
+| [Report/ROBUSTNESS.md](Report/ROBUSTNESS.md) | Exact all-time noise target, reliability proof audit, restricted replacement results and remaining gaps |
+| [Report/ROBUSTNESS_HANDOFF.md](Report/ROBUSTNESS_HANDOFF.md) | Paused work through J309/G285, receipts, validation limits and unreviewed draft |
 | [Report/audits/](Report/audits/) | Two independent audits of this work, with their scripts and logs |
 | [docs/OVERVIEW.md](docs/OVERVIEW.md) | The construction in one page |
 | [docs/CODE.md](docs/CODE.md) | Module map, and which driver produced which result |
